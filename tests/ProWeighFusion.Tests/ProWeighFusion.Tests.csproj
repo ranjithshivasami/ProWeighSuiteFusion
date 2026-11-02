@@ -8,15 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="xunit" />
-    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\ProWeighSuitePlatforms.Core\ProWeighSuitePlatforms.Core.csproj" />
-    <ProjectReference Include="..\..\src\ProWeighSuitePlatforms.Modules.Fusion\ProWeighSuitePlatforms.Modules.Fusion.csproj" />
-    <ProjectReference Include="..\..\src\ProWeighSuitePlatforms.Fusion\ProWeighSuitePlatforms.Fusion.csproj" />
+    <ProjectReference Include="..\..\ProWeighSuitePlatforms.csproj" />
   </ItemGroup>
 
 </Project>

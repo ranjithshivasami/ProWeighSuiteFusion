@@ -1,0 +1,131 @@
+<UserControl x:Class="ProWeighSuitePlatforms.Views.FusionSettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
+    <Border Style="{StaticResource PageBackgroundStyle}">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                      CanContentScroll="False" PanningMode="VerticalOnly">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="10,0,10,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Border Padding="10" Background="White" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="10">
+                    <StackPanel>
+                        <TextBlock Text="Configuration" FontSize="12" Foreground="#8A93A3"/>
+                        <TextBlock Text="Fusion settings" FontSize="18" FontWeight="Bold" Foreground="#1c2430"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Border Grid.Row="1" Margin="10,0,10,10" Padding="12" Background="White" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="10">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Stock condition bands (days left)" FontWeight="SemiBold" FontSize="14" Foreground="#1c2430" Margin="0,0,0,8"/>
+                    <StackPanel Grid.Row="1" Orientation="Vertical">
+                        <WrapPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,4">
+                            <Ellipse Width="10" Height="10" Fill="#22C55E" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                            <TextBlock Text="Fresh" FontSize="13" FontWeight="SemiBold" Foreground="#17915a" VerticalAlignment="Center" Width="90" Margin="0,0,6,4"/>
+                            <TextBlock Text="More than" FontSize="12" Foreground="#374151" VerticalAlignment="Center" Margin="0,0,6,4"/>
+                            <TextBox Width="70" Margin="0,0,6,4" Style="{StaticResource FormTextBoxStyle}" Text="{Binding NearExpiryDaysText, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="e.g. 7" ToolTip="Days left above this shows Fresh"/>
+                            <TextBlock Text="days left" FontSize="12" Foreground="#374151" VerticalAlignment="Center" Margin="0,0,6,4"/>
+                        </WrapPanel>
+                        <WrapPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,4">
+                            <Ellipse Width="10" Height="10" Fill="#EAB308" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                            <TextBlock Text="Near Expiry" FontSize="13" FontWeight="SemiBold" Foreground="#C28200" VerticalAlignment="Center" Width="90" Margin="0,0,6,4"/>
+                            <TextBox Width="70" Margin="0,0,6,4" Style="{StaticResource FormTextBoxStyle}" Text="{Binding ExpiredBelowDaysText, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="e.g. 0" ToolTip="Days left from this value upwards shows Near Expiry"/>
+                            <TextBlock Text="to" FontSize="12" Foreground="#374151" VerticalAlignment="Center" Margin="0,0,6,4"/>
+                            <TextBox Width="70" Margin="0,0,6,4" Style="{StaticResource FormTextBoxStyle}" Text="{Binding NearExpiryDaysText, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="e.g. 7" ToolTip="Days left up to this value shows Near Expiry"/>
+                            <TextBlock Text="days left" FontSize="12" Foreground="#374151" VerticalAlignment="Center" Margin="0,0,6,4"/>
+                        </WrapPanel>
+                        <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Ellipse Width="10" Height="10" Fill="#EF4444" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                            <TextBlock Text="Expired" FontSize="13" FontWeight="SemiBold" Foreground="#E5484D" VerticalAlignment="Center" Width="90" Margin="0,0,6,4"/>
+                            <TextBlock Text="Less than" FontSize="12" Foreground="#374151" VerticalAlignment="Center" Margin="0,0,6,4"/>
+                            <TextBox Width="70" Margin="0,0,6,4" Style="{StaticResource FormTextBoxStyle}" Text="{Binding ExpiredBelowDaysText, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="e.g. 0" ToolTip="Days left below this shows Expired (0 = past best-before)"/>
+                            <TextBlock Text="days left" FontSize="12" Foreground="#374151" VerticalAlignment="Center" Margin="0,0,6,4"/>
+                        </WrapPanel>
+                    </StackPanel>
+                    <TextBlock Grid.Row="2" Text="{Binding BandsPreview, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" Foreground="#1c2430" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                    <TextBlock Grid.Row="3" Text="Zero balance always shows Consumed regardless of days. Applies to Inward register and Supplier stock." FontSize="12" Foreground="#5b6472" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                </Grid>
+            </Border>
+
+            <Border Grid.Row="2" Margin="10,0,10,10" Padding="12" Background="White" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="10">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Tub setting (replacement rule)" FontWeight="SemiBold" FontSize="14" Foreground="#1c2430" Margin="0,0,0,8"/>
+                    <UniformGrid Grid.Row="1" Style="{DynamicResource ResponsiveForm2Strip}">
+                        <StackPanel Margin="0,0,8,0" VerticalAlignment="Top">
+                            <TextBox Style="{StaticResource FormTextBoxStyle}" Text="{Binding ReplaceAtCyclesText, UpdateSourceTrigger=PropertyChanged}" InputScope="Number" ToolTip="Cycles after which a tub must be replaced">
+                                <materialDesign:HintAssist.Hint>
+                                    <TextBlock FontSize="14">
+                                        <Run Text="*" Foreground="Red"/>
+                                        <Run Text=" Replace at (cycles)"/>
+                                    </TextBlock>
+                                </materialDesign:HintAssist.Hint>
+                            </TextBox>
+                            <TextBlock Text="{Binding ReplaceAtCyclesError}" FontSize="11" Foreground="#C81E1E" Margin="4,2,0,0" TextWrapping="Wrap"
+                                       Visibility="{Binding ReplaceAtCyclesError, Converter={StaticResource NullToVisibilityConverter}}"/>
+                        </StackPanel>
+                        <StackPanel VerticalAlignment="Top">
+                            <TextBox Style="{StaticResource FormTextBoxStyle}" Text="{Binding WarnPercentText, UpdateSourceTrigger=PropertyChanged}" InputScope="Number" ToolTip="% of tub life at which replacement is planned">
+                                <materialDesign:HintAssist.Hint>
+                                    <TextBlock FontSize="14">
+                                        <Run Text="*" Foreground="Red"/>
+                                        <Run Text=" Warn at (% of life)"/>
+                                    </TextBlock>
+                                </materialDesign:HintAssist.Hint>
+                            </TextBox>
+                            <TextBlock Text="{Binding WarnPercentError}" FontSize="11" Foreground="#C81E1E" Margin="4,2,0,0" TextWrapping="Wrap"
+                                       Visibility="{Binding WarnPercentError, Converter={StaticResource NullToVisibilityConverter}}"/>
+                        </StackPanel>
+                    </UniformGrid>
+                    <TextBlock Grid.Row="2" Text="Applies to Tub master as the default replacement rule." FontSize="12" Foreground="#5b6472" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                </Grid>
+            </Border>
+
+            <Border Grid.Row="3" Margin="10,0,10,10" Padding="12" Background="White" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="10">
+                <StackPanel>
+                    <TextBlock Text="Zero return (Live view)" FontWeight="SemiBold" FontSize="14" Foreground="#1c2430" Margin="0,0,0,8"/>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <RadioButton Content="Yes (True)" GroupName="FusionZeroReturn" Margin="0,0,16,0" VerticalAlignment="Center"
+                                     IsChecked="{Binding ZeroReturnEnabled}"
+                                     ToolTip="When ON, the scale must be cleared / return to 0 after each weigh before the next weight is captured."/>
+                        <RadioButton Content="No (False)" GroupName="FusionZeroReturn" VerticalAlignment="Center"
+                                     IsChecked="{Binding ZeroReturnEnabled, Converter={StaticResource InverseBooleanConverter}}"
+                                     ToolTip="When OFF, follow the per-scale Zero Return flag instead."/>
+                    </StackPanel>
+                    <TextBlock Text="When Yes, Live blocks the next capture until the scale reads near zero (tub removed)." FontSize="12" Foreground="#5b6472" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <WrapPanel Grid.Row="4" Orientation="Horizontal" Margin="10,0,10,10">
+                <Button Style="{StaticResource PrimaryButtonStyle}" Content="Save all settings" Command="{Binding SaveCommand}" Margin="0,0,8,4"/>
+                <Button Margin="0,0,0,4" Style="{StaticResource SecondaryButtonStyle}" Content="Refresh" Command="{Binding RefreshCommand}"/>
+            </WrapPanel>
+
+            <TextBlock Grid.Row="5" Text="{Binding StatusText}" Foreground="#5b6472" Margin="10,0,10,8" TextWrapping="Wrap"/>
+        </Grid>
+        </ScrollViewer>
+    </Border>
+</UserControl>
+
