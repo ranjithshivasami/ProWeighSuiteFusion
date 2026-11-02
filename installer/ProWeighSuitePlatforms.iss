@@ -1,6 +1,6 @@
 ; ProWeigh Fusion Installer Script for Inno Setup 6
 ; Per-brand overrides via ISCC /DMyAppName= /DMyAppVersion= /DMyAppId=.
-; Defaults = Fusion brand, version mirrors branding/fusion/Version.props.
+; Defaults = Fusion brand, version mirrors the csproj <Version>.
 
 #ifndef MyAppName
   #define MyAppName "ProWeigh Fusion"
@@ -18,7 +18,7 @@
   #define SetupIcon "..\branding\fusion\Images\app-icon.ico"
 #endif
 #ifndef MyAppExeName
-  #define MyAppExeName "ProWeighSuitePlatforms.Fusion.exe"
+  #define MyAppExeName "ProWeighSuitePlatforms.exe"
 #endif
 #ifndef PublishDir
   #define PublishDir "Publish"

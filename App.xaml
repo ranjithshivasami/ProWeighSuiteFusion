@@ -1,0 +1,81 @@
+<Application x:Class="ProWeighSuitePlatforms.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+xmlns:corevm="clr-namespace:ProWeighSuitePlatforms.ViewModels"
+xmlns:coreviews="clr-namespace:ProWeighSuitePlatforms.Views"
+xmlns:converters="clr-namespace:ProWeighSuitePlatforms.Converters"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="Grey" SecondaryColor="Lime" />
+
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign2.Defaults.xaml" />
+                
+                <!-- Custom Colors -->
+                <ResourceDictionary Source="Resources/Colors.xaml"/>
+
+                <!-- BridgeX shared page/card/button/grid styles -->
+                <ResourceDictionary Source="Resources/Styles.xaml"/>
+                <ResourceDictionary Source="Resources/DashboardStyles.xaml"/>
+                
+                <!-- Responsive layout primitives (WPF media-query equivalents) -->
+                <ResourceDictionary Source="Resources/Responsive.xaml"/>
+
+                <!-- Menu Styles -->
+                <ResourceDictionary Source="Resources/MenuStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- App version — single source is Version.props (1.1.6); keep this key in sync -->
+            <sys:String x:Key="AppVersion">1.1.6</sys:String>
+
+            <converters:IsLessThanConverter x:Key="IsLessThanConverter" />
+            <converters:IsGreaterThanConverter x:Key="IsGreaterThanConverter" />
+            <converters:DateOnlyConverter x:Key="DateOnlyConverter" />
+            <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+            <converters:BoolToActiveConverter x:Key="BoolToActiveConverter" />
+            <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+            <converters:InverseBooleanConverter x:Key="InverseBoolConverter" />
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <converters:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
+            <converters:RoleToStringConverter x:Key="RoleToStringConverter" />
+            <converters:AlternatingRowConverter x:Key="AlternatingRowConverter" />
+            <converters:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVisibilityConverter" />
+            <converters:TareWeightToLabelConverter x:Key="TareWeightToLabelConverter" />
+            <converters:StatusToColorConverter x:Key="StatusToColorConverter" />
+            <converters:StringToImageSourceConverter x:Key="StringToImageSourceConverter" />
+            <converters:ByteArrayToImageConverter x:Key="ByteArrayToImageConverter" />
+
+            <!-- Increase hint (placeholder) font size globally for all MaterialDesign outlined controls -->
+            <Style TargetType="materialDesign:SmartHint">
+                <Setter Property="FontSize" Value="15"/>
+            </Style>
+            <Style TargetType="materialDesign:SmartHint" x:Key="MaterialDesignSmartHintEx" BasedOn="{StaticResource MaterialDesignSmartHint}">
+                <Setter Property="FontSize" Value="15"/>
+            </Style>
+
+            <!-- Flat icon button style lives in Resources/Styles.xaml (IconButtonStyle),
+                 kept there so IconActionButtonStyle's BasedOn={StaticResource} resolves
+                 within the same dictionary. -->
+
+            <!-- Nested editor screens keep implicit templates; top-level pages are created by view factories. -->
+            <DataTemplate DataType="{x:Type corevm:UserCreateViewModel}">
+                <coreviews:UserCreateView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type corevm:MaterialsCreateViewModel}">
+                <coreviews:MaterialsCreateView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type corevm:CategoryCreateViewModel}">
+                <coreviews:CategoryCreateView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type corevm:VariantCreateViewModel}">
+                <coreviews:VariantCreateView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type corevm:SupplierCreateViewModel}">
+                <coreviews:SupplierCreateView />
+            </DataTemplate>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

@@ -9,7 +9,7 @@ setlocal
 set "SCRIPT_DIR=%~dp0"
 set "ROOT=%SCRIPT_DIR%.."
 set "PROFILE=%ROOT%\branding\fusion\branding.json"
-set "VERSION_PROPS=%ROOT%\branding\fusion\Version.props"
+set "PROJECT_FILE=%ROOT%\ProWeighSuitePlatforms.csproj"
 set "PUBLISH_DIR=%SCRIPT_DIR%Publish"
 set "ISC=C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
 
@@ -20,7 +20,7 @@ for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command "$p = ConvertF
 if "%APPNAME%"=="" set "APPNAME=ProWeigh Fusion"
 if "%APPID%"=="" ( echo [ERROR] issAppId missing from %PROFILE% & exit /b 1 )
 
-for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command "([xml](Get-Content -Raw -LiteralPath '%VERSION_PROPS%')).Project.PropertyGroup.Version"`) do set "APPVER=%%V"
+for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command "([xml](Get-Content -Raw -LiteralPath '%PROJECT_FILE%')).Project.PropertyGroup.Version"`) do set "APPVER=%%V"
 if "%APPVER%"=="" set "APPVER=1.1.6"
 
 echo [1/3] Publishing %APPNAME% v%APPVER% ...

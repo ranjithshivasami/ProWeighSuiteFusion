@@ -1,0 +1,119 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    ProWeigh Fusion — single flat WPF project.
+    All views, view models, models, services, data access and hardware code
+    live in this one project (Views/, ViewModels/, Models/, Services/, Data/,
+    Hardware/, Converters/, Behaviors/, Helpers/, Configuration/, Resources/).
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <StartupObject>ProWeighSuitePlatforms.Program</StartupObject>
+    <AssemblyName>ProWeighSuitePlatforms</AssemblyName>
+    <RootNamespace>ProWeighSuitePlatforms</RootNamespace>
+    <Version>1.1.6</Version>
+    <ApplicationIcon>branding\fusion\Images\app-icon.ico</ApplicationIcon>
+    <RollForward>LatestMinor</RollForward>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <!-- ZebraScannerProvider / PrintService use Windows-only APIs; the app is a
+         Windows-only WPF executable, so CA1416 warnings are noise.
+         NU1701: transitive deps of LiveChartsCore (OpenTK, SkiaSharp.Views.WPF)
+         only ship .NET Framework assets but work correctly on net8.0-windows. -->
+    <NoWarn>$(NoWarn);NU1701;CA1416</NoWarn>
+    <!-- Keep the flat single-project tree from globbing build output and
+         side folders (installer scripts, tests). -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);branding\**;installer\**;tests\**;publish\**;Publish\**;artifacts\**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AssemblyMetadata Include="ProWeighFlavor" Value="Fusion" />
+    <AssemblyMetadata Include="BrandName" Value="ProWeigh" />
+    <AssemblyMetadata Include="BrandSuffix" Value=" Fusion" />
+    <AssemblyMetadata Include="BrandTagline" Value="Intelligent Weighing Management System" />
+  </ItemGroup>
+
+  <!-- Velopack packaging: use publish to ./publish with SingleFile OFF -->
+  <PropertyGroup Condition="'$(VelopackPackaging)'=='true'">
+    <PublishSingleFile>false</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishDir>publish\</PublishDir>
+  </PropertyGroup>
+
+  <!-- Single-file publish configuration: produces Publish\ProWeighSuitePlatforms.exe -->
+  <PropertyGroup Condition="'$(PublishSingleFile)'=='true'">
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <DebugType>embedded</DebugType>
+    <PublishDir>Publish\</PublishDir>
+  </PropertyGroup>
+
+  <!-- Publish/Release-only: keep Debug builds framework-dependent for fast incremental builds. -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release' and '$(VelopackPackaging)' != 'true' and '$(PublishSingleFile)' != 'true'">
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+  </PropertyGroup>
+
+  <!-- Branding profile: embedded for the runtime fallback, copied to Branding\
+       so white-label overrides keep working, images exposed as WPF resources
+       under the same URI that Configuration.BrandingInfo expects. -->
+  <ItemGroup Condition="Exists('branding\fusion\branding.json')">
+    <EmbeddedResource Include="branding\fusion\branding.json">
+      <LogicalName>ProWeighSuitePlatforms.Branding.Fusion.branding.json</LogicalName>
+    </EmbeddedResource>
+    <Content Include="branding\fusion\branding.json">
+      <Link>Branding\branding.json</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </Content>
+    <Content Include="branding\fusion\active-brand.txt">
+      <Link>Branding\active-brand.txt</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup Condition="Exists('branding\fusion\Images')">
+    <Resource Include="branding\fusion\Images\*.png" Link="branding\Fusion\Images\%(Filename)%(Extension)" />
+    <Resource Include="branding\fusion\Images\*.jpg" Link="branding\Fusion\Images\%(Filename)%(Extension)" />
+    <Resource Include="branding\fusion\Images\*.ico" Link="branding\Fusion\Images\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Images\tray-icon.ico">
+      <LogicalName>ProWeighSuitePlatforms.Images.tray-icon.ico</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.95.4" />
+    <PackageReference Include="DotNetKit.Wpf.AutoCompleteComboBox" Version="2.0.0" />
+    <PackageReference Include="LiveChartsCore.SkiaSharpView.WPF" Version="2.0.0-rc4.5" />
+    <PackageReference Include="SkiaSharp.Views.WPF" Version="3.0.0-preview.4.1" NoWarn="NU1701" />
+    <PackageReference Include="MaterialDesignColors" Version="5.2.0" />
+    <PackageReference Include="MaterialDesignThemes" Version="4.8.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.16" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.14" />
+    <PackageReference Include="System.IO.Ports" Version="8.0.0" />
+    <PackageReference Include="Polly" Version="7.2.3" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
+    <PackageReference Include="LiteQueue" Version="1.0.0" />
+    <PackageReference Include="UUIDNext" Version="2.0.0" />
+    <PackageReference Include="Velopack" Version="1.2.0" />
+  </ItemGroup>
+
+</Project>
