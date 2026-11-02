@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using ProWeighSuitePlatforms.Configuration;
 using ProWeighSuitePlatforms.Data;
+using ProWeighSuitePlatforms.Services;
 using static ProWeighSuitePlatforms.Data.FusionRepository;
 
 namespace ProWeighSuitePlatforms.ViewModels
@@ -11,6 +12,9 @@ namespace ProWeighSuitePlatforms.ViewModels
     public sealed class SupportTicketsViewModel : ViewModels.BaseViewModel
     {
         public string Title => "Support tickets";
+
+        private readonly AuditService _audit = new();
+        private readonly string _username;
 
         public ObservableCollection<FusionTicket> Rows { get; } = new();
 
@@ -39,8 +43,9 @@ namespace ProWeighSuitePlatforms.ViewModels
         public ICommand CloseCommand { get; }
         public ICommand ReopenCommand { get; }
 
-        public SupportTicketsViewModel()
+        public SupportTicketsViewModel(string username = "System")
         {
+            _username = string.IsNullOrWhiteSpace(username) ? "System" : username;
             RefreshCommand = new ViewModels.RelayCommand(async _ => await LoadAsync());
             AddCommand = new ViewModels.RelayCommand(async _ => await AddAsync());
             CloseCommand = new ViewModels.RelayCommand(async _ => await SetStatusAsync("Closed"));
@@ -76,6 +81,10 @@ namespace ProWeighSuitePlatforms.ViewModels
             {
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());
                 await repo.AddTicketAsync(NewTitle.Trim());
+                await _audit.LogFusionEventAsync(_username, "Fusion_Ticket_Created",
+                    "FusionTicket", null,
+                    $"Support ticket raised: {NewTitle.Trim()}.",
+                    AuditCategory.System, AuditSeverity.Info);
                 StatusText = "Ticket raised.";
                 NewTitle = string.Empty;
                 await LoadAsync();
@@ -83,6 +92,7 @@ namespace ProWeighSuitePlatforms.ViewModels
             catch (System.Exception ex)
             {
                 StatusText = $"Raise failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Create Fusion support ticket", ex);
             }
         }
 
@@ -97,12 +107,18 @@ namespace ProWeighSuitePlatforms.ViewModels
             {
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());
                 await repo.SetTicketStatusAsync(Selected.Id, status);
+                await _audit.LogFusionEventAsync(_username,
+                    status == "Closed" ? "Fusion_Ticket_Closed" : "Fusion_Ticket_Reopened",
+                    "FusionTicket", Selected.Id,
+                    $"Support ticket {Selected.Id} ({Selected.Title}) set to {status}.",
+                    AuditCategory.System, AuditSeverity.Info);
                 StatusText = $"Ticket {Selected.Id} → {status}.";
                 await LoadAsync();
             }
             catch (System.Exception ex)
             {
                 StatusText = $"Update failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Update Fusion support ticket", ex);
             }
         }
     }

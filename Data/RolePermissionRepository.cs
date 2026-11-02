@@ -144,7 +144,14 @@ namespace ProWeighSuitePlatforms.Data
                         Permission.ViewSystemSettings, Permission.EditSystemSettings,
                         Permission.ViewRolePermissions, Permission.EditRolePermissions,
                         Permission.ViewCompanySettings, Permission.EditCompanySettings,
-                        Permission.ViewModules, Permission.EditModules
+                        Permission.ViewModules, Permission.EditModules,
+                        Permission.ViewAppSettings, Permission.ViewSyncSettings, Permission.ViewBackupSettings,
+                        Permission.ViewBackupLog, Permission.ViewReportSchedule, Permission.ViewLabelTemplates,
+                        Permission.ViewPrinterSetup, Permission.ViewPlcSettings, Permission.ViewScannerSettings,
+                        Permission.ViewCleanUpDatabase,
+                        Permission.ViewFusionSettings, Permission.ViewBayStatus, Permission.ViewSupplierMaster,
+                        Permission.ViewTubMaster, Permission.ViewInwardStock, Permission.ViewBatchLots,
+                        Permission.ViewBatchStatus, Permission.ViewLiveView, Permission.ViewFusionReports
                     }
                 },
                 {
@@ -165,7 +172,13 @@ namespace ProWeighSuitePlatforms.Data
                         Permission.ViewUsers, Permission.CreateUser, Permission.EditUser,
                         Permission.ViewReports, Permission.ExportReports,
                         Permission.ViewCompanySettings, Permission.EditCompanySettings,
-                        Permission.ViewModules
+                        Permission.ViewModules,
+                        Permission.ViewAppSettings, Permission.ViewSyncSettings, Permission.ViewBackupSettings,
+                        Permission.ViewBackupLog, Permission.ViewReportSchedule, Permission.ViewLabelTemplates,
+                        Permission.ViewPrinterSetup, Permission.ViewPlcSettings, Permission.ViewScannerSettings,
+                        Permission.ViewFusionSettings, Permission.ViewBayStatus, Permission.ViewSupplierMaster,
+                        Permission.ViewTubMaster, Permission.ViewInwardStock, Permission.ViewBatchLots,
+                        Permission.ViewBatchStatus, Permission.ViewLiveView, Permission.ViewFusionReports
                     }
                 },
                 {
@@ -178,7 +191,10 @@ namespace ProWeighSuitePlatforms.Data
                         Permission.DownloadCategoryTemplate,
                         Permission.DownloadVariantTemplate,
                         Permission.DownloadSupplierTemplate,
-                        Permission.DownloadMaterialTemplate
+                        Permission.DownloadMaterialTemplate,
+                        Permission.ViewBayStatus, Permission.ViewTubMaster, Permission.ViewInwardStock,
+                        Permission.ViewBatchLots, Permission.ViewBatchStatus, Permission.ViewLiveView,
+                        Permission.ViewFusionReports
                     }
                 }
             };

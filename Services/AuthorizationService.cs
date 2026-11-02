@@ -148,7 +148,30 @@ namespace ProWeighSuitePlatforms.Services
                         
                         // Modules - Full Access
                         Permission.ViewModules,
-                        Permission.EditModules
+                        Permission.EditModules,
+
+                        // Configuration submenus - Full Access
+                        Permission.ViewAppSettings,
+                        Permission.ViewSyncSettings,
+                        Permission.ViewBackupSettings,
+                        Permission.ViewBackupLog,
+                        Permission.ViewReportSchedule,
+                        Permission.ViewLabelTemplates,
+                        Permission.ViewPrinterSetup,
+                        Permission.ViewPlcSettings,
+                        Permission.ViewScannerSettings,
+                        Permission.ViewCleanUpDatabase,
+
+                        // Fusion submenus - Full Access
+                        Permission.ViewFusionSettings,
+                        Permission.ViewBayStatus,
+                        Permission.ViewSupplierMaster,
+                        Permission.ViewTubMaster,
+                        Permission.ViewInwardStock,
+                        Permission.ViewBatchLots,
+                        Permission.ViewBatchStatus,
+                        Permission.ViewLiveView,
+                        Permission.ViewFusionReports
                     }
                 },
                 {
@@ -218,7 +241,29 @@ namespace ProWeighSuitePlatforms.Services
                         Permission.EditCompanySettings,
                         
                         // Modules - View only
-                        Permission.ViewModules
+                        Permission.ViewModules,
+
+                        // Configuration submenus - View
+                        Permission.ViewAppSettings,
+                        Permission.ViewSyncSettings,
+                        Permission.ViewBackupSettings,
+                        Permission.ViewBackupLog,
+                        Permission.ViewReportSchedule,
+                        Permission.ViewLabelTemplates,
+                        Permission.ViewPrinterSetup,
+                        Permission.ViewPlcSettings,
+                        Permission.ViewScannerSettings,
+
+                        // Fusion submenus - View
+                        Permission.ViewFusionSettings,
+                        Permission.ViewBayStatus,
+                        Permission.ViewSupplierMaster,
+                        Permission.ViewTubMaster,
+                        Permission.ViewInwardStock,
+                        Permission.ViewBatchLots,
+                        Permission.ViewBatchStatus,
+                        Permission.ViewLiveView,
+                        Permission.ViewFusionReports
                     }
                 },
                 {
@@ -243,7 +288,16 @@ namespace ProWeighSuitePlatforms.Services
                         Permission.DownloadCategoryTemplate,
                         Permission.DownloadVariantTemplate,
                         Permission.DownloadSupplierTemplate,
-                        Permission.DownloadMaterialTemplate
+                        Permission.DownloadMaterialTemplate,
+
+                        // Fusion submenus - View
+                        Permission.ViewBayStatus,
+                        Permission.ViewTubMaster,
+                        Permission.ViewInwardStock,
+                        Permission.ViewBatchLots,
+                        Permission.ViewBatchStatus,
+                        Permission.ViewLiveView,
+                        Permission.ViewFusionReports
                     }
                 }
             };

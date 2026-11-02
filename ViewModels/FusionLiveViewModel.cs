@@ -80,6 +80,9 @@ namespace ProWeighSuitePlatforms.ViewModels
     {
         public string Title => "Live view";
 
+        private readonly AuditService _audit = new();
+        private readonly string _username;
+
         private static readonly Random _rand = new();
         private static readonly string[] StepOrder =
             { "Batch Created", "Lot Created", "Running", "Paused", "Resumed", "Batch Completed" };
@@ -579,8 +582,9 @@ namespace ProWeighSuitePlatforms.ViewModels
         public ICommand AddLotCommand { get; }
         public ICommand DisplayModeCommand { get; }
 
-        public FusionLiveViewModel()
+        public FusionLiveViewModel(string username = "System")
         {
+            _username = string.IsNullOrWhiteSpace(username) ? "System" : username;
             RefreshCommand = new ViewModels.RelayCommand(async _ => await LoadAsync());
             SelectBatchCommand = new ViewModels.RelayCommand(async p =>
             {
@@ -650,6 +654,9 @@ namespace ProWeighSuitePlatforms.ViewModels
             if (IsAutoRunning)
             {
                 await StopAutoRunAsync();
+                await _audit.LogFusionEventAsync(_username, "Fusion_AutoRun_Stopped",
+                    "FusionBatch", _batch?.BatchNo,
+                    $"Auto run stopped for batch {_batch?.BatchNo ?? "(none)"}; manual weigh enabled.");
                 StatusText = "Auto run stopped — manual weigh enabled.";
                 return;
             }
@@ -667,6 +674,9 @@ namespace ProWeighSuitePlatforms.ViewModels
             // until the batch is paused or completed. ForceRelease on logout /
             // exit stops the run so the lock can never strand the workspace.
             NavigationLock.Lock(FusionRoutes.LiveView, FusionNavigation.NavigationLockedMessage, forceRelease: StopAutoRun);
+            await _audit.LogFusionEventAsync(_username, "Fusion_AutoRun_Started",
+                "FusionBatch", _batch.BatchNo,
+                $"Auto run started for batch {_batch.BatchNo}.");
             StatusText = "Auto run started — scan EPC then place tub; capture is automatic (Weigh button read-only).";
         }
 
@@ -695,9 +705,11 @@ namespace ProWeighSuitePlatforms.ViewModels
                 var batches = await repo.GetBatchesAsync();
                 if (!string.IsNullOrWhiteSpace(want) && batches.Any(b => string.Equals(b.BatchNo, want, StringComparison.OrdinalIgnoreCase)))
                     SelectedBatchNo = want;
-                else if (!batches.Any(b => string.Equals(b.BatchNo, SelectedBatchNo, StringComparison.OrdinalIgnoreCase)))
-                    SelectedBatchNo = batches.FirstOrDefault(b => !string.Equals(b.Status, "completed", StringComparison.OrdinalIgnoreCase))?.BatchNo
-                        ?? batches.FirstOrDefault()?.BatchNo ?? string.Empty;
+                else if (!batches.Any(b => string.Equals(b.BatchNo, SelectedBatchNo, StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(b.Status, "completed", StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(b.Status, "Closed", StringComparison.OrdinalIgnoreCase)))
+                    SelectedBatchNo = batches.FirstOrDefault(b => !string.Equals(b.Status, "completed", StringComparison.OrdinalIgnoreCase)
+                        && !string.Equals(b.Status, "Closed", StringComparison.OrdinalIgnoreCase))?.BatchNo ?? string.Empty;
                 await RefreshBatchAsync();
                 // Mirror batch weighing: with ZeroReturn on, the first weigh of a
                 // running batch also waits for the scale to read near zero.
@@ -726,7 +738,11 @@ namespace ProWeighSuitePlatforms.ViewModels
                 ValidateManualEpc();
 
                 Pills.Clear();
-                foreach (var b in batches)
+                // Completed batches moved to the "Batch status" menu; the live
+                // pill strip only shows batches the operator can still work on.
+                foreach (var b in batches.Where(b =>
+                    !string.Equals(b.Status, "completed", StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(b.Status, "Closed", StringComparison.OrdinalIgnoreCase)))
                     Pills.Add(new LiveBatchPill
                     {
                         BatchNo = b.BatchNo,
@@ -734,6 +750,17 @@ namespace ProWeighSuitePlatforms.ViewModels
                         Status = b.Status ?? string.Empty,
                         IsSelected = string.Equals(b.BatchNo, SelectedBatchNo, StringComparison.OrdinalIgnoreCase),
                     });
+                // If the selected batch was completed (now only visible in Batch
+                // status), fall back to the first active batch.
+                var selectedActive = batches.FirstOrDefault(b =>
+                    string.Equals(b.BatchNo, SelectedBatchNo, StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(b.Status, "completed", StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(b.Status, "Closed", StringComparison.OrdinalIgnoreCase));
+                if (selectedActive == null)
+                    SelectedBatchNo = batches.FirstOrDefault(b =>
+                        !string.Equals(b.Status, "completed", StringComparison.OrdinalIgnoreCase)
+                        && !string.Equals(b.Status, "Closed", StringComparison.OrdinalIgnoreCase))?.BatchNo
+                        ?? string.Empty;
                 int activeCount = batches.Count(b => !string.Equals(b.Status, "completed", StringComparison.OrdinalIgnoreCase)
                     && !string.Equals(b.Status, "Closed", StringComparison.OrdinalIgnoreCase));
                 int freeTubs = tubs.Count(t => !t.IsBlocked && string.IsNullOrEmpty(t.AssignedTo) && t.UsedCycles < 2000);
@@ -1021,6 +1048,9 @@ namespace ProWeighSuitePlatforms.ViewModels
                         return false;
                     }
                     await repo.SetTubsAssignedAsync(pool.Select(t => t.TubId), _batch.BatchNo);
+                    await _audit.LogFusionEventAsync(_username, "Fusion_Tubs_Assigned",
+                        "FusionBatch", _batch.BatchNo,
+                        $"Auto-assigned {pool.Count} free tub(s) to batch {_batch.BatchNo} for lot {lot.LotNo}.");
                 }
                 var tub = pool[0];
                 return await WeighTubAsync(repo, lot, tub);
@@ -1028,6 +1058,7 @@ namespace ProWeighSuitePlatforms.ViewModels
             catch (Exception ex)
             {
                 StatusText = $"Weigh failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Fusion weigh", ex);
                 return false;
             }
             finally
@@ -1047,6 +1078,10 @@ namespace ProWeighSuitePlatforms.ViewModels
             if (ManualEpcError != null)
             {
                 StatusText = ManualEpcError;
+                await _audit.LogFusionEventAsync(_username, "Fusion_Weigh_Blocked",
+                    "FusionBatch", _batch!.BatchNo,
+                    $"Manual EPC weigh blocked: {ManualEpcError} (EPC {epc}).",
+                    AuditCategory.Transaction, AuditSeverity.Warning);
                 return false;
             }
             var tub = FindTubByEpc(tubs, epc);
@@ -1056,7 +1091,12 @@ namespace ProWeighSuitePlatforms.ViewModels
                 return false;
             }
             if (string.IsNullOrEmpty(tub.AssignedTo))
+            {
                 await repo.SetTubsAssignedAsync(new[] { tub.TubId }, _batch!.BatchNo);
+                await _audit.LogFusionEventAsync(_username, "Fusion_Tubs_Assigned",
+                    "FusionBatch", _batch.BatchNo,
+                    $"Tub {tub.TubId} assigned to batch {_batch.BatchNo} from manual EPC scan {epc}.");
+            }
             var lots = await repo.GetPlanLotsAsync(_batch!.BatchNo);
             var lot = lots.Where(l => !l.IsCompleted && l.DoneTubs < l.Tubs && !l.IsPaused && TubFitsLot(tub, l))
                 .OrderByDescending(l => l.Tubs - l.DoneTubs)
@@ -1088,6 +1128,11 @@ namespace ProWeighSuitePlatforms.ViewModels
                     if (row.BalanceNuts < np || row.BalanceKg <= 0)
                     {
                         StatusText = $"GRN {lot.GrnNo} balance too low for another tub — not weighed.";
+                        await _audit.LogFusionEventAsync(_username, "Fusion_Weigh_Blocked",
+                            "FusionBatch", _batch.BatchNo,
+                            $"Weigh blocked: GRN {lot.GrnNo} balance too low for lot {lot.LotNo} " +
+                            $"({row.BalanceKg:0.###} kg / {row.BalanceNuts} nuts available).",
+                            AuditCategory.Transaction, AuditSeverity.Warning);
                         return false;
                     }
                 }
@@ -1102,6 +1147,10 @@ namespace ProWeighSuitePlatforms.ViewModels
             {
                 ScaleStatusText = "Scale: no weight";
                 StatusText = $"No checkweigher weight for {tub.TubId} — not weighed. Check the scale.";
+                await _audit.LogFusionEventAsync(_username, "Fusion_Weigh_Blocked",
+                    "FusionBatch", _batch.BatchNo,
+                    $"Weigh blocked: no checkweigher weight for tub {tub.TubId} (lot {lot.LotNo}).",
+                    AuditCategory.Transaction, AuditSeverity.Warning);
                 return false;
             }
             double w = Math.Round(single.Value, 2);
@@ -1113,6 +1162,10 @@ namespace ProWeighSuitePlatforms.ViewModels
                 ScaleStatusText = overflow ? "Scale: overflow" : "Scale: no product";
                 IsOverLimit = overflow;
                 StatusText = limitError;
+                await _audit.LogFusionEventAsync(_username, "Fusion_Weigh_Blocked",
+                    "FusionBatch", _batch.BatchNo,
+                    $"Weigh blocked for tub {tub.TubId} (lot {lot.LotNo}): {limitError} (weight {w:0.###} kg).",
+                    AuditCategory.Transaction, AuditSeverity.Warning);
                 if (overflow)
                 {
                     // Force unload before retry: weight must be cleared/0.
@@ -1129,13 +1182,14 @@ namespace ProWeighSuitePlatforms.ViewModels
             // Fusion carries supplier_name text only, so resolve the id here
             // (mirrors the fusion supplier into the shared table when needed).
             int supplierId = await repo.ResolveSupplierIdByNameAsync(lot.SupplierName);
-            await repo.RecordLiveWeighAsync(new FusionTransaction
+            var tx = new FusionTransaction
             {
                 Id = Guid.NewGuid().ToString("N"),
                 BatchNo = _batch.BatchNo,
                 TubId = tub.TubId,
                 SupplierId = supplierId,
                 WeightKg = w,
+                RecordedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
                 Epc = tub.Epc,
                 TubCycles = tub.UsedCycles + 1,
                 SupplierName = lot.SupplierName,
@@ -1144,7 +1198,9 @@ namespace ProWeighSuitePlatforms.ViewModels
                 LotNo = lot.LotNo,
                 Nuts = np,
                 OperatorName = OperatorName,
-            }, lot.DoneTubs + 1, lot.DoneKg + w);
+            };
+            await repo.RecordLiveWeighAsync(tx, lot.DoneTubs + 1, lot.DoneKg + w);
+            await _audit.LogFusionTransactionAsync(_username, tx);
             string? warn = Math.Abs(dev) > 1.45
                 ? $"Check weigher: {tub.TubId} weight {w:F2} kg deviates {dev:F1}% from expected {expected:F2} kg."
                 : null;
@@ -1155,6 +1211,9 @@ namespace ProWeighSuitePlatforms.ViewModels
             {
                 await repo.SetLotCompletedAsync(_batch.BatchNo, lot.LotNo, true);
                 await repo.AddBatchEventAsync(_batch.BatchNo, "Lot Completed");
+                await _audit.LogFusionEventAsync(_username, "Fusion_Lot_Completed",
+                    "FusionLot", lot.LotNo,
+                    $"Lot {lot.LotNo} in batch {_batch.BatchNo} completed automatically at {lot.DoneTubs + 1}/{lot.Tubs} tubs.");
             }
             var fresh = await repo.GetPlanLotsAsync(_batch.BatchNo);
             if (fresh.Count > 0 && fresh.All(l => l.IsCompleted || l.DoneTubs >= l.Tubs))
@@ -1206,12 +1265,18 @@ namespace ProWeighSuitePlatforms.ViewModels
                     if (IsAutoRunning) await StopAutoRunAsync();
                     await repo.PauseBatchAsync(_batch.BatchNo);
                     await repo.AddBatchEventAsync(_batch.BatchNo, "Paused");
+                    await _audit.LogFusionEventAsync(_username, "Fusion_Batch_Paused",
+                        "FusionBatch", _batch.BatchNo,
+                        $"Batch {_batch.BatchNo} paused.");
                     StatusText = $"Paused {_batch.BatchNo}.";
                 }
                 else
                 {
                     await repo.ResumeBatchAsync(_batch.BatchNo);
                     await repo.AddBatchEventAsync(_batch.BatchNo, "Resumed");
+                    await _audit.LogFusionEventAsync(_username, "Fusion_Batch_Resumed",
+                        "FusionBatch", _batch.BatchNo,
+                        $"Batch {_batch.BatchNo} resumed.");
                     StatusText = $"Resumed {_batch.BatchNo}.";
                 }
                 await RefreshBatchAsync();
@@ -1219,6 +1284,7 @@ namespace ProWeighSuitePlatforms.ViewModels
             catch (Exception ex)
             {
                 StatusText = $"Update failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Pause/resume Fusion batch", ex);
             }
         }
 
@@ -1244,6 +1310,7 @@ namespace ProWeighSuitePlatforms.ViewModels
             catch (Exception ex)
             {
                 StatusText = $"Complete failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Complete Fusion batch", ex);
             }
         }
 
@@ -1253,6 +1320,9 @@ namespace ProWeighSuitePlatforms.ViewModels
             await repo.CompleteBatchRunAsync(_batch.BatchNo);
             await repo.AddBatchEventAsync(_batch.BatchNo, "Batch Completed");
             await repo.ClearBatchAssignmentsAsync(_batch.BatchNo);
+            await _audit.LogFusionEventAsync(_username, "Fusion_Batch_Completed",
+                "FusionBatch", _batch.BatchNo,
+                $"Batch {_batch.BatchNo} completed {(auto ? "automatically" : "manually")}; assigned tubs released.");
             StopAutoRun();
             StatusText = auto ? $"Batch {_batch.BatchNo} completed automatically." : $"Batch {_batch.BatchNo} completed.";
         }
@@ -1266,12 +1336,17 @@ namespace ProWeighSuitePlatforms.ViewModels
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());
                 bool paused = !row.Lot.IsPaused;
                 await repo.SetLotPausedAsync(_batch.BatchNo, row.Lot.LotNo, paused);
+                await _audit.LogFusionEventAsync(_username,
+                    paused ? "Fusion_Lot_Paused" : "Fusion_Lot_Resumed",
+                    "FusionLot", row.Lot.LotNo,
+                    $"Lot {row.Lot.LotNo} in batch {_batch.BatchNo} {(paused ? "paused" : "resumed")}.");
                 StatusText = paused ? $"Paused {row.Lot.LotNo}." : $"Resumed {row.Lot.LotNo}.";
                 await RefreshBatchAsync();
             }
             catch (Exception ex)
             {
                 StatusText = $"Update failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Pause/resume Fusion lot", ex);
             }
         }
 
@@ -1294,6 +1369,9 @@ namespace ProWeighSuitePlatforms.ViewModels
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());
                 await repo.SetLotCompletedAsync(_batch.BatchNo, row.Lot.LotNo, true);
                 await repo.AddBatchEventAsync(_batch.BatchNo, "Lot Completed");
+                await _audit.LogFusionEventAsync(_username, "Fusion_Lot_Completed",
+                    "FusionLot", row.Lot.LotNo,
+                    $"Lot {row.Lot.LotNo} in batch {_batch.BatchNo} completed manually at {row.Lot.DoneTubs}/{row.Lot.Tubs} tubs.");
                 StatusText = $"Completed {row.Lot.LotNo}.";
                 var fresh = await repo.GetPlanLotsAsync(_batch.BatchNo);
                 if (fresh.Count > 0 && fresh.All(l => l.IsCompleted || l.DoneTubs >= l.Tubs))
@@ -1303,6 +1381,7 @@ namespace ProWeighSuitePlatforms.ViewModels
             catch (Exception ex)
             {
                 StatusText = $"Update failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Complete Fusion lot", ex);
             }
         }
 
@@ -1367,12 +1446,17 @@ namespace ProWeighSuitePlatforms.ViewModels
                 await repo.InsertPlanLotAsync(lot);
                 await repo.SetTubsAssignedAsync(free, _batch.BatchNo);
                 await repo.AddBatchEventAsync(_batch.BatchNo, "Lot Created");
+                await _audit.LogFusionEventAsync(_username, "Fusion_Lot_Added",
+                    "FusionLot", lot.LotNo,
+                    $"Lot {lot.LotNo} added to batch {_batch.BatchNo}: supplier {lot.SupplierName}, GRN {lot.GrnNo}, " +
+                    $"{lot.Tubs} tubs / {lot.Nuts} nuts, {free.Count} tub(s) assigned.");
                 StatusText = $"Added {lot.LotNo} ({cand.SupplierName}, {tubs} tubs).";
                 await RefreshBatchAsync();
             }
             catch (Exception ex)
             {
                 AddLotNote = $"Add failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Add Fusion lot", ex);
             }
         }
     }

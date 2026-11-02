@@ -83,6 +83,30 @@ namespace ProWeighSuitePlatforms.Models
 
         // Module Management (Phase 6: DB-backed module assignments + single-active weighing)
         ViewModules,
-        EditModules
+        EditModules,
+
+        // Configuration submenu access (one permission per menu so each can be
+        // granted/revoked independently in the role permissions matrix).
+        ViewAppSettings,
+        ViewSyncSettings,
+        ViewBackupSettings,
+        ViewBackupLog,
+        ViewReportSchedule,
+        ViewLabelTemplates,
+        ViewPrinterSetup,
+        ViewPlcSettings,
+        ViewScannerSettings,
+        ViewCleanUpDatabase,
+
+        // Fusion submenu access
+        ViewFusionSettings,
+        ViewBayStatus,
+        ViewSupplierMaster,
+        ViewTubMaster,
+        ViewInwardStock,
+        ViewBatchLots,
+        ViewBatchStatus,
+        ViewLiveView,
+        ViewFusionReports
     }
 }

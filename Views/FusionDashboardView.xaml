@@ -1,7 +1,8 @@
 <UserControl x:Class="ProWeighSuitePlatforms.Views.FusionDashboardView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF">
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
     <Border Style="{StaticResource PageBackgroundStyle}">
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                       CanContentScroll="False" PanningMode="VerticalOnly">
@@ -14,12 +15,13 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Export row -->
+                <!-- Filter + export row -->
                 <WrapPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,10">
-                    <Button Style="{StaticResource PrimaryButtonStyle}" Content="Export dashboard as image" Command="{Binding ExportDashboardImageCommand}" Margin="0,0,8,6"/>
-                    <Button Style="{StaticResource SecondaryButtonStyle}" Content="Export dashboard as PDF" Command="{Binding ExportDashboardPdfCommand}" Margin="0,0,12,6"/>
-                    <TextBlock Text="Each chart also has its own PNG and PDF buttons" Foreground="#5b6472" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,12,6"/>
-                    <Button Style="{StaticResource SecondaryButtonStyle}" Content="Refresh" Command="{Binding RefreshCommand}" Margin="0,0,0,6"/>
+                    <DatePicker Width="130" Margin="0,0,8,6" Style="{StaticResource FormDatePickerStyle}" SelectedDate="{Binding From, Mode=TwoWay}" materialDesign:HintAssist.Hint="From"/>
+                    <DatePicker Width="130" Margin="0,0,8,6" Style="{StaticResource FormDatePickerStyle}" SelectedDate="{Binding To, Mode=TwoWay}" materialDesign:HintAssist.Hint="To"/>
+                    <Button Style="{StaticResource PrimaryButtonStyle}" Content="Load" Command="{Binding RefreshCommand}" Margin="0,0,12,6"/>
+                    <Button Style="{StaticResource SecondaryButtonStyle}" Content="Export dashboard as image" Command="{Binding ExportDashboardImageCommand}" Margin="0,0,8,6"/>
+                    <Button Style="{StaticResource SecondaryButtonStyle}" Content="Export dashboard as PDF" Command="{Binding ExportDashboardPdfCommand}" Margin="0,0,0,6"/>
                 </WrapPanel>
 
                 <!-- KPI cards -->
@@ -70,7 +72,7 @@
                         <StackPanel>
                             <TextBlock Text="Completed tubs" FontSize="12" Foreground="White" TextWrapping="Wrap"/>
                             <TextBlock Text="{Binding CompletedToday}" FontSize="26" FontWeight="Bold" Foreground="White" TextWrapping="Wrap"/>
-                            <TextBlock Text="weighed today" FontSize="11" Foreground="White" TextWrapping="Wrap"/>
+                            <TextBlock Text="weighed in range" FontSize="11" Foreground="White" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
                 </UniformGrid>

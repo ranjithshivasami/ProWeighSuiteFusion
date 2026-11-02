@@ -1204,41 +1204,50 @@ namespace ProWeighSuitePlatforms.Data
             int TodayCount, double TodayKg, int ActiveBatches,
             int TotalTubs, int ActiveTubs, int AvailableTubs, int CompletedToday, double TargetKg);
 
-        public async Task<FusionKpis> GetDashboardKpisAsync()
+        public async Task<FusionKpis> GetDashboardKpisAsync(string? fromDate = null, string? toDate = null)
         {
             await using var conn = await OpenAsync();
-            async Task<T> ScalarAsync<T>(string sql)
+            var from = fromDate ?? DateTime.Today.ToString("yyyy-MM-dd");
+            var to = toDate ?? DateTime.Today.ToString("yyyy-MM-dd");
+            async Task<T> ScalarAsync<T>(string sql, params (string Name, object Value)[] ps)
             {
                 using var c = conn.CreateCommand();
                 c.CommandText = sql;
+                foreach (var (name, value) in ps)
+                    c.Parameters.AddWithValue(name, value);
                 var v = await c.ExecuteScalarAsync();
                 if (v == null || v == DBNull.Value) return default!;
                 return (T)Convert.ChangeType(v, typeof(T));
             }
             var todayCount = await ScalarAsync<int>(
-                "SELECT COUNT(*) FROM fusion_transactions WHERE date(recorded_at)=date('now','localtime')");
+                "SELECT COUNT(*) FROM fusion_transactions WHERE date(recorded_at) >= date($from) AND date(recorded_at) <= date($to)",
+                ("$from", from), ("$to", to));
             var todayKg = await ScalarAsync<double>(
-                "SELECT COALESCE(SUM(weight_kg),0) FROM fusion_transactions WHERE date(recorded_at)=date('now','localtime')");
+                "SELECT COALESCE(SUM(weight_kg),0) FROM fusion_transactions WHERE date(recorded_at) >= date($from) AND date(recorded_at) <= date($to)",
+                ("$from", from), ("$to", to));
             var activeBatches = await ScalarAsync<int>(
                 "SELECT COUNT(*) FROM fusion_batches WHERE status IN ('Open','running','paused')");
             var totalTubs = await ScalarAsync<int>("SELECT COUNT(*) FROM fusion_tubs");
             var activeTubs = await ScalarAsync<int>("SELECT COUNT(*) FROM fusion_tubs WHERE assigned_to IS NOT NULL AND assigned_to <> ''");
             var availableTubs = await ScalarAsync<int>("SELECT COUNT(*) FROM fusion_tubs WHERE (is_blocked IS NULL OR is_blocked = 0) AND (assigned_to IS NULL OR assigned_to = '')");
             var completedToday = await ScalarAsync<int>(
-                "SELECT COUNT(DISTINCT tub_id) FROM fusion_transactions WHERE date(recorded_at)=date('now','localtime')");
+                "SELECT COUNT(DISTINCT tub_id) FROM fusion_transactions WHERE date(recorded_at) >= date($from) AND date(recorded_at) <= date($to)",
+                ("$from", from), ("$to", to));
             var targetKg = await ScalarAsync<double>(
                 "SELECT COALESCE(SUM(target_kg),0) FROM fusion_batches WHERE status IN ('Open','running','paused')");
             return new FusionKpis(todayCount, todayKg, activeBatches, totalTubs, activeTubs, availableTubs, completedToday, targetKg);
         }
 
-        public async Task<List<(int SupplierId, double Kg)>> GetSupplierShareAsync()
+        public async Task<List<(int SupplierId, double Kg)>> GetSupplierShareAsync(string? fromDate = null, string? toDate = null)
         {
             await using var conn = await OpenAsync();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
             SELECT supplier_id, SUM(weight_kg) FROM fusion_transactions
-            WHERE date(recorded_at)=date('now','localtime')
+            WHERE date(recorded_at) >= date($from) AND date(recorded_at) <= date($to)
             GROUP BY supplier_id ORDER BY 2 DESC";
+            cmd.Parameters.AddWithValue("$from", fromDate ?? DateTime.Today.ToString("yyyy-MM-dd"));
+            cmd.Parameters.AddWithValue("$to", toDate ?? DateTime.Today.ToString("yyyy-MM-dd"));
             var list = new List<(int, double)>();
             await using var reader = await cmd.ExecuteReaderAsync();
             while (await reader.ReadAsync())
@@ -1399,14 +1408,16 @@ namespace ProWeighSuitePlatforms.Data
             }
         }
 
-        public async Task<List<(string Label, double Kg)>> GetHourlyAsync()
+        public async Task<List<(string Label, double Kg)>> GetHourlyAsync(string? fromDate = null, string? toDate = null)
         {
             await using var conn = await OpenAsync();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
             SELECT strftime('%H', recorded_at) AS h, SUM(weight_kg) FROM fusion_transactions
-            WHERE date(recorded_at)=date('now','localtime')
+            WHERE date(recorded_at) >= date($from) AND date(recorded_at) <= date($to)
             GROUP BY h ORDER BY h";
+            cmd.Parameters.AddWithValue("$from", fromDate ?? DateTime.Today.ToString("yyyy-MM-dd"));
+            cmd.Parameters.AddWithValue("$to", toDate ?? DateTime.Today.ToString("yyyy-MM-dd"));
             var list = new List<(string, double)>();
             await using var reader = await cmd.ExecuteReaderAsync();
             while (await reader.ReadAsync())
@@ -1414,15 +1425,16 @@ namespace ProWeighSuitePlatforms.Data
             return list;
         }
 
-        public async Task<List<(string Label, double Kg)>> GetDailyAsync(int days = 7)
+        public async Task<List<(string Label, double Kg)>> GetDailyAsync(string? fromDate = null, string? toDate = null)
         {
             await using var conn = await OpenAsync();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
             SELECT date(recorded_at) AS d, SUM(weight_kg) FROM fusion_transactions
-            WHERE date(recorded_at) >= date('now','localtime', $back)
+            WHERE date(recorded_at) >= date($from) AND date(recorded_at) <= date($to)
             GROUP BY d ORDER BY d";
-            cmd.Parameters.AddWithValue("$back", $"-{days - 1} days");
+            cmd.Parameters.AddWithValue("$from", fromDate ?? DateTime.Today.AddDays(-6).ToString("yyyy-MM-dd"));
+            cmd.Parameters.AddWithValue("$to", toDate ?? DateTime.Today.ToString("yyyy-MM-dd"));
             var list = new List<(string, double)>();
             await using var reader = await cmd.ExecuteReaderAsync();
             while (await reader.ReadAsync())
@@ -1430,14 +1442,16 @@ namespace ProWeighSuitePlatforms.Data
             return list;
         }
 
-        public async Task<List<(string Label, double Kg)>> GetBatchTotalsAsync()
+        public async Task<List<(string Label, double Kg)>> GetBatchTotalsAsync(string? fromDate = null, string? toDate = null)
         {
             await using var conn = await OpenAsync();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
             SELECT batch_no, SUM(weight_kg) FROM fusion_transactions
-            WHERE date(recorded_at)=date('now','localtime')
+            WHERE date(recorded_at) >= date($from) AND date(recorded_at) <= date($to)
             GROUP BY batch_no ORDER BY 2 DESC";
+            cmd.Parameters.AddWithValue("$from", fromDate ?? DateTime.Today.ToString("yyyy-MM-dd"));
+            cmd.Parameters.AddWithValue("$to", toDate ?? DateTime.Today.ToString("yyyy-MM-dd"));
             var list = new List<(string, double)>();
             await using var reader = await cmd.ExecuteReaderAsync();
             while (await reader.ReadAsync())
@@ -1445,15 +1459,17 @@ namespace ProWeighSuitePlatforms.Data
             return list;
         }
 
-        public async Task<List<(string Label, double Kg)>> GetBayTotalsAsync()
+        public async Task<List<(string Label, double Kg)>> GetBayTotalsAsync(string? fromDate = null, string? toDate = null)
         {
             await using var conn = await OpenAsync();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
             SELECT COALESCE(NULLIF(t.bay_id,''),'(unassigned)'), SUM(x.weight_kg)
             FROM fusion_transactions x LEFT JOIN fusion_tubs t ON t.tub_id=x.tub_id
-            WHERE date(x.recorded_at)=date('now','localtime')
+            WHERE date(x.recorded_at) >= date($from) AND date(x.recorded_at) <= date($to)
             GROUP BY 1 ORDER BY 2 DESC";
+            cmd.Parameters.AddWithValue("$from", fromDate ?? DateTime.Today.ToString("yyyy-MM-dd"));
+            cmd.Parameters.AddWithValue("$to", toDate ?? DateTime.Today.ToString("yyyy-MM-dd"));
             var list = new List<(string, double)>();
             await using var reader = await cmd.ExecuteReaderAsync();
             while (await reader.ReadAsync())
@@ -1807,9 +1823,12 @@ namespace ProWeighSuitePlatforms.Data
             await using var conn = await OpenAsync();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-            SELECT id, batch_no, tub_id, supplier_id, weight_kg, recorded_at FROM fusion_transactions
-            WHERE date(recorded_at) >= date($from) AND date(recorded_at) <= date($to)
-            ORDER BY recorded_at DESC LIMIT $n";
+            SELECT ft.id, ft.batch_no, ft.tub_id, ft.supplier_id, ft.weight_kg, ft.recorded_at,
+                   COALESCE(NULLIF(ft.supplier_name,''), fs.name, '') AS supplier_name
+            FROM fusion_transactions ft
+            LEFT JOIN fusion_suppliers fs ON fs.id = ft.supplier_id
+            WHERE date(ft.recorded_at) >= date($from) AND date(ft.recorded_at) <= date($to)
+            ORDER BY ft.recorded_at DESC LIMIT $n";
             cmd.Parameters.AddWithValue("$from", fromDate);
             cmd.Parameters.AddWithValue("$to", toDate);
             cmd.Parameters.AddWithValue("$n", limit);
@@ -1826,6 +1845,7 @@ namespace ProWeighSuitePlatforms.Data
                     SupplierId = reader.IsDBNull(o) ? 0 : reader.GetInt32(o),
                     WeightKg = GetDouble(reader, "weight_kg"),
                     RecordedAt = GetString(reader, "recorded_at"),
+                    SupplierName = GetString(reader, "supplier_name"),
                 });
             }
             return list;

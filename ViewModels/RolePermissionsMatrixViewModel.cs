@@ -202,7 +202,8 @@ namespace ProWeighSuitePlatforms.ViewModels
                 // (Nexus flavor -> Nexus menus, Fusion flavor -> Fusion menus).
                 var scopedPermissions = ResolveScopedPermissions();
 
-                foreach (var permission in allPermissions)
+                foreach (var permission in allPermissions
+                             .OrderBy(p => GetPermissionCategory(p), StringComparer.OrdinalIgnoreCase))
                 {
                     if (scopedPermissions != null && !scopedPermissions.Contains(permission))
                         continue;
@@ -512,6 +513,29 @@ namespace ProWeighSuitePlatforms.ViewModels
                 
                 Permission.ViewModules => "View Module Matrix",
                 Permission.EditModules => "Edit Module Matrix",
+
+                // Configuration submenus
+                Permission.ViewAppSettings => "View App settings",
+                Permission.ViewSyncSettings => "View Sync settings",
+                Permission.ViewBackupSettings => "View Backup settings",
+                Permission.ViewBackupLog => "View Backup log",
+                Permission.ViewReportSchedule => "View Report schedule",
+                Permission.ViewLabelTemplates => "View Label templates",
+                Permission.ViewPrinterSetup => "View Printer setup",
+                Permission.ViewPlcSettings => "View PLC settings",
+                Permission.ViewScannerSettings => "View Scanner settings",
+                Permission.ViewCleanUpDatabase => "View Clean up database",
+
+                // Fusion submenus
+                Permission.ViewFusionSettings => "View Fusion settings",
+                Permission.ViewBayStatus => "View Bay status",
+                Permission.ViewSupplierMaster => "View Supplier master",
+                Permission.ViewTubMaster => "View Tub master",
+                Permission.ViewInwardStock => "View Inward and supplier stock",
+                Permission.ViewBatchLots => "View Batch creation and lots",
+                Permission.ViewBatchStatus => "View Batch status",
+                Permission.ViewLiveView => "View Live view",
+                Permission.ViewFusionReports => "View Fusion Reports",
                 
                 _ => permission.ToString()
             };
@@ -521,19 +545,19 @@ namespace ProWeighSuitePlatforms.ViewModels
         {
             return permission switch
             {
-                Permission.ViewDashboard => "Dashboard",
-                Permission.StartWeighing => "Dashboard",
-                Permission.AcceptWeight => "Dashboard",
-                Permission.PauseBatch => "Dashboard",
-                Permission.AbortBatch => "Dashboard",
+                Permission.ViewDashboard => "Fusion - Dashboard",
+                Permission.StartWeighing => "Fusion - Dashboard",
+                Permission.AcceptWeight => "Fusion - Dashboard",
+                Permission.PauseBatch => "Fusion - Dashboard",
+                Permission.AbortBatch => "Fusion - Dashboard",
                 
-                Permission.ViewMaterials => "Materials",
-                Permission.CreateMaterial => "Materials",
-                Permission.EditMaterial => "Materials",
-                Permission.DeleteMaterial => "Materials",
-                Permission.ImportMaterial => "Materials",
-                Permission.DownloadMaterialTemplate => "Materials",
-                Permission.ExportMaterial => "Materials",
+                Permission.ViewMaterials => "Master - Materials",
+                Permission.CreateMaterial => "Master - Materials",
+                Permission.EditMaterial => "Master - Materials",
+                Permission.DeleteMaterial => "Master - Materials",
+                Permission.ImportMaterial => "Master - Materials",
+                Permission.DownloadMaterialTemplate => "Master - Materials",
+                Permission.ExportMaterial => "Master - Materials",
                 
                 Permission.ViewRecipes => "Recipes",
                 Permission.CreateRecipe => "Recipes",
@@ -541,21 +565,21 @@ namespace ProWeighSuitePlatforms.ViewModels
                 Permission.DeleteRecipe => "Recipes",
                 Permission.PrintRecipe => "Recipes",
                 
-                Permission.ViewCategory => "Category",
-                Permission.CreateCategory => "Category",
-                Permission.EditCategory => "Category",
-                Permission.DeleteCategory => "Category",
-                Permission.ImportCategory => "Category",
-                Permission.DownloadCategoryTemplate => "Category",
-                Permission.ExportCategory => "Category",
+                Permission.ViewCategory => "Master - Category",
+                Permission.CreateCategory => "Master - Category",
+                Permission.EditCategory => "Master - Category",
+                Permission.DeleteCategory => "Master - Category",
+                Permission.ImportCategory => "Master - Category",
+                Permission.DownloadCategoryTemplate => "Master - Category",
+                Permission.ExportCategory => "Master - Category",
                 
-                Permission.ViewVariant => "Variant",
-                Permission.CreateVariant => "Variant",
-                Permission.EditVariant => "Variant",
-                Permission.DeleteVariant => "Variant",
-                Permission.ImportVariant => "Variant",
-                Permission.DownloadVariantTemplate => "Variant",
-                Permission.ExportVariant => "Variant",
+                Permission.ViewVariant => "Master - Variant",
+                Permission.CreateVariant => "Master - Variant",
+                Permission.EditVariant => "Master - Variant",
+                Permission.DeleteVariant => "Master - Variant",
+                Permission.ImportVariant => "Master - Variant",
+                Permission.DownloadVariantTemplate => "Master - Variant",
+                Permission.ExportVariant => "Master - Variant",
 
                 Permission.ViewSupplier => "Supplier",
                 Permission.CreateSupplier => "Supplier",
@@ -565,10 +589,10 @@ namespace ProWeighSuitePlatforms.ViewModels
                 Permission.DownloadSupplierTemplate => "Supplier",
                 Permission.ExportSupplier => "Supplier",
                 
-                Permission.ViewScaleSettings => "Scale Settings",
-                Permission.CreateScaleSettings => "Scale Settings",
-                Permission.EditScaleSettings => "Scale Settings",
-                Permission.DeleteScaleSettings => "Scale Settings",
+                Permission.ViewScaleSettings => "Configuration - Scale settings",
+                Permission.CreateScaleSettings => "Configuration - Scale settings",
+                Permission.EditScaleSettings => "Configuration - Scale settings",
+                Permission.DeleteScaleSettings => "Configuration - Scale settings",
                 
                 Permission.ViewUsers => "User Management",
                 Permission.CreateUser => "User Management",
@@ -579,17 +603,40 @@ namespace ProWeighSuitePlatforms.ViewModels
                 Permission.ViewReports => "Reports",
                 Permission.ExportReports => "Reports",
                 
-                Permission.ViewSystemSettings => "System Settings",
-                Permission.EditSystemSettings => "System Settings",
+                Permission.ViewSystemSettings => "Configuration - System settings",
+                Permission.EditSystemSettings => "Configuration - System settings",
                 
                 Permission.ViewRolePermissions => "Permissions",
                 Permission.EditRolePermissions => "Permissions",
                 
-                Permission.ViewCompanySettings => "Company Settings",
-                Permission.EditCompanySettings => "Company Settings",
+                Permission.ViewCompanySettings => "Configuration - Company settings",
+                Permission.EditCompanySettings => "Configuration - Company settings",
                 
                 Permission.ViewModules => "Module Management",
                 Permission.EditModules => "Module Management",
+
+                // Configuration submenus
+                Permission.ViewAppSettings => "Configuration - App settings",
+                Permission.ViewSyncSettings => "Configuration - Sync settings",
+                Permission.ViewBackupSettings => "Configuration - Backup settings",
+                Permission.ViewBackupLog => "Configuration - Backup log",
+                Permission.ViewReportSchedule => "Configuration - Report schedule",
+                Permission.ViewLabelTemplates => "Configuration - Label templates",
+                Permission.ViewPrinterSetup => "Configuration - Printer setup",
+                Permission.ViewPlcSettings => "Configuration - PLC settings",
+                Permission.ViewScannerSettings => "Configuration - Scanner settings",
+                Permission.ViewCleanUpDatabase => "Configuration - Clean up database",
+
+                // Fusion submenus
+                Permission.ViewFusionSettings => "Fusion - Fusion settings",
+                Permission.ViewBayStatus => "Fusion - Bay status",
+                Permission.ViewSupplierMaster => "Fusion - Supplier master",
+                Permission.ViewTubMaster => "Fusion - Tub master",
+                Permission.ViewInwardStock => "Fusion - Inward and supplier stock",
+                Permission.ViewBatchLots => "Fusion - Batch creation and lots",
+                Permission.ViewBatchStatus => "Fusion - Batch status",
+                Permission.ViewLiveView => "Fusion - Live view",
+                Permission.ViewFusionReports => "Fusion - Reports",
                 
                 _ => "Other"
             };

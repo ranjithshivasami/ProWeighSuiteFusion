@@ -203,6 +203,70 @@ namespace ProWeighSuitePlatforms.Services
         }
 
         /// <summary>
+        /// Log a successful Fusion weigh transaction. Uses the Transaction
+        /// category so it is queued by the offline audit sync alongside the
+        /// main weighing ledger.
+        /// </summary>
+        public async Task LogFusionTransactionAsync(string username, FusionTransaction transaction)
+        {
+            await LogAsync(new AuditEntry
+            {
+                Action = "Fusion_Transaction_Created",
+                Category = AuditCategory.Transaction,
+                Username = username,
+                EntityType = "FusionTransaction",
+                EntityId = transaction.Id,
+                Details = $"Fusion weigh: batch {transaction.BatchNo}, tub {transaction.TubId}, lot {transaction.LotNo}, {transaction.WeightKg:0.###} kg, {transaction.Nuts} nuts",
+                NewValue = JsonSerializer.Serialize(new
+                {
+                    transaction.Id,
+                    transaction.BatchNo,
+                    transaction.TubId,
+                    transaction.Epc,
+                    transaction.TubCycles,
+                    transaction.SupplierId,
+                    transaction.SupplierName,
+                    transaction.GrnNo,
+                    transaction.BayId,
+                    transaction.LotNo,
+                    transaction.WeightKg,
+                    transaction.Nuts,
+                    transaction.OperatorName,
+                    transaction.RecordedAt
+                }),
+                Severity = AuditSeverity.Info
+            });
+        }
+
+        /// <summary>
+        /// Log a Fusion operation (batch lifecycle, stock, master data, config).
+        /// </summary>
+        public async Task LogFusionEventAsync(
+            string username,
+            string action,
+            string entityType,
+            string? entityId,
+            string details,
+            AuditCategory category = AuditCategory.Transaction,
+            AuditSeverity severity = AuditSeverity.Info,
+            string? oldValue = null,
+            string? newValue = null)
+        {
+            await LogAsync(new AuditEntry
+            {
+                Action = action,
+                Category = category,
+                Username = username,
+                EntityType = entityType,
+                EntityId = entityId,
+                Details = details,
+                OldValue = oldValue,
+                NewValue = newValue,
+                Severity = severity
+            });
+        }
+
+        /// <summary>
         /// Log user creation
         /// </summary>
         public async Task LogUserCreatedAsync(string adminUsername, User newUser)

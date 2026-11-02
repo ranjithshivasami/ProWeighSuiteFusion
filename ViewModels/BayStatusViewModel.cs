@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows;
 using ProWeighSuitePlatforms.Configuration;
 using ProWeighSuitePlatforms.Data;
+using ProWeighSuitePlatforms.Services;
 
 using ProWeighSuitePlatforms.Models;
 namespace ProWeighSuitePlatforms.ViewModels
@@ -34,6 +35,8 @@ namespace ProWeighSuitePlatforms.ViewModels
 
     public sealed class BayStatusViewModel : ViewModels.BaseViewModel
     {
+        private readonly AuditService _audit = new();
+        private readonly string _username;
         public string Title => "Bay status";
 
         // Bay at or above this occupancy % counts as nearly full (full = 100%+).
@@ -125,8 +128,9 @@ namespace ProWeighSuitePlatforms.ViewModels
         public ICommand BeginEditCommand { get; }
         public ICommand CancelEditCommand { get; }
 
-        public BayStatusViewModel()
+        public BayStatusViewModel(string username = "System")
         {
+            _username = string.IsNullOrWhiteSpace(username) ? "System" : username;
             RefreshCommand = new ViewModels.RelayCommand(async _ => await LoadAsync());
             AddBayCommand = new ViewModels.RelayCommand(async _ => await AddOrUpdateBayAsync());
             ToggleFormCommand = new ViewModels.RelayCommand(_ => IsFormExpanded = !IsFormExpanded);
@@ -257,6 +261,11 @@ namespace ProWeighSuitePlatforms.ViewModels
                     return;
                 }
                 await repo.UpsertBayAsync(bayId, cap);
+                await _audit.LogFusionEventAsync(_username, "Fusion_Bay_Created",
+                    "FusionBay", bayId,
+                    $"Bay {bayId} created with {cap:N0} nuts capacity.",
+                    AuditCategory.Material, AuditSeverity.Info,
+                    null, $"BayId={bayId}; MaxCapacityNuts={cap}");
                 StatusText = $"Added bay {bayId} with {cap:N0} nuts capacity.";
                 _newBayId = string.Empty;
                 RaisePropertyChanged(nameof(NewBayId));
@@ -269,6 +278,7 @@ namespace ProWeighSuitePlatforms.ViewModels
             catch (Exception ex)
             {
                 StatusText = $"Add failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Add Fusion bay", ex);
             }
         }
 
@@ -318,12 +328,18 @@ namespace ProWeighSuitePlatforms.ViewModels
             {
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());
                 await repo.UpsertBayAsync(row.BayId, cap);
+                await _audit.LogFusionEventAsync(_username, "Fusion_Bay_Capacity_Updated",
+                    "FusionBay", row.BayId,
+                    $"Bay {row.BayId} capacity updated to {cap:N0} nuts.",
+                    AuditCategory.Material, AuditSeverity.Info,
+                    $"MaxCapacityNuts={row.MaxCapacityNuts}", $"MaxCapacityNuts={cap}");
                 StatusText = $"Updated {row.BayId} capacity to {cap:N0} nuts.";
                 await LoadAsync();
             }
             catch (Exception ex)
             {
                 StatusText = $"Save failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Update Fusion bay capacity", ex);
             }
         }
 
@@ -347,6 +363,12 @@ namespace ProWeighSuitePlatforms.ViewModels
             {
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());
                 await repo.SetBayActiveAsync(row.BayId, activating);
+                await _audit.LogFusionEventAsync(_username,
+                    activating ? "Fusion_Bay_Activated" : "Fusion_Bay_Deactivated",
+                    "FusionBay", row.BayId,
+                    $"Bay {row.BayId} {(activating ? "activated" : "deactivated")} (history kept).",
+                    AuditCategory.Material, AuditSeverity.Info,
+                    $"IsActive={!activating}", $"IsActive={activating}");
                 StatusText = activating
                     ? $"Activated {row.BayId}."
                     : $"Deactivated {row.BayId} (history kept).";
@@ -355,6 +377,7 @@ namespace ProWeighSuitePlatforms.ViewModels
             catch (Exception ex)
             {
                 StatusText = $"Update failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Update Fusion bay status", ex);
             }
         }
 
@@ -413,6 +436,15 @@ namespace ProWeighSuitePlatforms.ViewModels
             {
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());
                 await repo.RenameBayAsync(EditingOriginalId, newId, cap);
+                bool renamed = !string.Equals(EditingOriginalId, newId, StringComparison.OrdinalIgnoreCase);
+                await _audit.LogFusionEventAsync(_username,
+                    renamed ? "Fusion_Bay_Renamed" : "Fusion_Bay_Updated",
+                    "FusionBay", newId,
+                    renamed
+                        ? $"Bay {EditingOriginalId} renamed to {newId} with {cap:N0} nuts capacity."
+                        : $"Bay {newId} updated to {cap:N0} nuts capacity.",
+                    AuditCategory.Material, AuditSeverity.Info,
+                    $"BayId={EditingOriginalId}", $"BayId={newId}; MaxCapacityNuts={cap}");
                 StatusText = string.Equals(EditingOriginalId, newId, StringComparison.OrdinalIgnoreCase)
                     ? $"Updated {newId} capacity to {cap:N0} nuts."
                     : $"Renamed {EditingOriginalId} to {newId} with {cap:N0} nuts capacity.";
@@ -422,6 +454,7 @@ namespace ProWeighSuitePlatforms.ViewModels
             catch (Exception ex)
             {
                 StatusText = $"Save failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Update Fusion bay", ex);
             }
         }
     }

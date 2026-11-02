@@ -96,7 +96,7 @@
                     </DataGrid.CellStyle>
                     
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Menu" Binding="{Binding Category}" Width="150" IsReadOnly="True">
+                        <DataGridTextColumn Header="Menu" Binding="{Binding Category}" Width="250" MinWidth="200" IsReadOnly="True">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}">
                                     <Setter Property="FontWeight" Value="Bold"/>

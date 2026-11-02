@@ -3,10 +3,12 @@
 // Add more settings here as needed (same load/save pattern).
 using System;
 using System.Globalization;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ProWeighSuitePlatforms.Configuration;
 using ProWeighSuitePlatforms.Data;
+using ProWeighSuitePlatforms.Services;
 
 using ProWeighSuitePlatforms.Models;
 namespace ProWeighSuitePlatforms.ViewModels
@@ -14,6 +16,9 @@ namespace ProWeighSuitePlatforms.ViewModels
     public sealed class FusionSettingsViewModel : ViewModels.BaseViewModel
     {
         public string Title => "Fusion settings";
+
+        private readonly AuditService _audit = new();
+        private readonly string _username;
 
         private string _nearExpiryDaysText = FusionSettingsDefaults.NearExpiryDays.ToString();
         public string NearExpiryDaysText
@@ -88,8 +93,9 @@ namespace ProWeighSuitePlatforms.ViewModels
         public ICommand RefreshCommand { get; }
         public ICommand SaveCommand { get; }
 
-        public FusionSettingsViewModel()
+        public FusionSettingsViewModel(string username = "System")
         {
+            _username = string.IsNullOrWhiteSpace(username) ? "System" : username;
             RefreshCommand = new ViewModels.RelayCommand(async _ => await LoadAsync());
             SaveCommand = new ViewModels.RelayCommand(async _ => await SaveAllAsync());
             _ = LoadAsync();
@@ -187,16 +193,25 @@ namespace ProWeighSuitePlatforms.ViewModels
             try
             {
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());
+                var oldSettings = await repo.GetSettingsAsync();
                 await repo.SetSettingAsync(FusionSettingsKeys.NearExpiryDays, near.ToString());
                 await repo.SetSettingAsync(FusionSettingsKeys.ExpiredBelowDays, expiredBelow.ToString());
                 await repo.SetSettingAsync(FusionSettingsKeys.TubReplaceAtCycles, replaceAt.ToString());
                 await repo.SetSettingAsync(FusionSettingsKeys.TubWarnPercent, warn.ToString(CultureInfo.InvariantCulture));
                 await repo.SetSettingAsync(FusionSettingsKeys.ZeroReturn, ZeroReturnEnabled ? "1" : "0");
+                var newSettings = await repo.GetSettingsAsync();
+                await _audit.LogFusionEventAsync(_username, "Fusion_Settings_Updated",
+                    "FusionSettings", "fusion_settings",
+                    $"Fusion settings saved: near-expiry {near} day(s), expired-below {expiredBelow} day(s), " +
+                    $"tub replace-at {replaceAt} cycles, warn {warn}%, zero return {(ZeroReturnEnabled ? "ON" : "OFF")}.",
+                    AuditCategory.Configuration, AuditSeverity.Info,
+                    JsonSerializer.Serialize(oldSettings), JsonSerializer.Serialize(newSettings));
                 StatusText = $"Saved all settings. Bands < {expiredBelow} → Expired · {expiredBelow}–{near} → Near Expiry · > {near} → Fresh; tubs replace at {replaceAt} cycles, warn at {warn}%; zero return {(ZeroReturnEnabled ? "ON" : "OFF")}.";
             }
             catch (Exception ex)
             {
                 StatusText = $"Save failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Save Fusion settings", ex);
             }
         }
     }

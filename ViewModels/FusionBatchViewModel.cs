@@ -52,6 +52,9 @@ namespace ProWeighSuitePlatforms.ViewModels
     {
         public string Title => "Batch creation and lots";
 
+        private readonly AuditService _audit = new();
+        private readonly string _username;
+
         public List<string> SupplierModes { get; } = new() { "Auto FEFO (any suppliers)", "Single supplier" };
         public List<string> TubModes { get; } = new() { "Colour based (orange / blue)", "Virtual (scan tub EPC)" };
         public List<string> LotModes { get; } = new() { "Auto FEFO, all lots now", "Auto FEFO, first lot only", "Supplier wise, add lots manually" };
@@ -144,8 +147,9 @@ namespace ProWeighSuitePlatforms.ViewModels
         public ICommand ScanTubCommand { get; }
         public ICommand ToggleFormCommand { get; }
 
-        public FusionBatchViewModel()
+        public FusionBatchViewModel(string username = "System")
         {
+            _username = string.IsNullOrWhiteSpace(username) ? "System" : username;
             RefreshCommand = new ViewModels.RelayCommand(async _ => await LoadAsync());
             CreateBatchCommand = new ViewModels.RelayCommand(async _ => await CreateBatchAsync(), _ => CanCreate || IsManual);
             CloseBatchCommand = new ViewModels.RelayCommand(async _ => await CloseBatchAsync());
@@ -476,7 +480,12 @@ namespace ProWeighSuitePlatforms.ViewModels
                 foreach (var l in lots)
                     await repo.AddBatchEventAsync(batch.BatchNo, "Lot Created");
                 await repo.AddBatchEventAsync(batch.BatchNo, "Running");
-                await AssignTubsToBatchAsync(repo, batch.BatchNo, lots);
+                int assigned = await AssignTubsToBatchAsync(repo, batch.BatchNo, lots);
+                await _audit.LogFusionEventAsync(_username, "Fusion_Batch_Created",
+                    "FusionBatch", batch.BatchNo,
+                    $"Batch {batch.BatchNo} created: target {batch.TargetKg:0.###} kg, {lots.Count} lot(s), " +
+                    $"{batch.TargetTubs} target tub(s), {assigned} tub(s) assigned; supplier mode {batch.SupplierMode}, " +
+                    $"tub mode {batch.TubMode}, lot mode {batch.LotMode}.");
                 // Create-and-start needs a live scale: auto-connect when not already reading.
                 bool scaleReady = await ScaleConnectionService.EnsureConnectedAsync();
                 StatusText = scaleReady
@@ -491,11 +500,12 @@ namespace ProWeighSuitePlatforms.ViewModels
             catch (Exception ex)
             {
                 StatusText = $"Create failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Create Fusion batch", ex);
             }
         }
 
         // Hold tubs for the running batch (persisted assigned_to; Eligible() excludes them elsewhere).
-        private async Task AssignTubsToBatchAsync(FusionRepository repo, string batchNo, List<FusionPlanLot> lots)
+        private async Task<int> AssignTubsToBatchAsync(FusionRepository repo, string batchNo, List<FusionPlanLot> lots)
         {
             var toAssign = new List<string>();
             if (IsVirtual)
@@ -526,6 +536,7 @@ namespace ProWeighSuitePlatforms.ViewModels
                 }
             }
             await repo.SetTubsAssignedAsync(toAssign, batchNo);
+            return toAssign.Count;
         }
 
         public async Task CloseBatchAsync()
@@ -539,12 +550,16 @@ namespace ProWeighSuitePlatforms.ViewModels
             {
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());
                 await repo.CloseBatchAsync(SelectedBatch.BatchNo);
+                await _audit.LogFusionEventAsync(_username, "Fusion_Batch_Closed",
+                    "FusionBatch", SelectedBatch.BatchNo,
+                    $"Batch {SelectedBatch.BatchNo} closed.");
                 StatusText = $"Closed batch {SelectedBatch.BatchNo}.";
                 await LoadAsync();
             }
             catch (Exception ex)
             {
                 StatusText = $"Close failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Close Fusion batch", ex);
             }
         }
     }

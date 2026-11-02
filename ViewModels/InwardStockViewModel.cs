@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using ProWeighSuitePlatforms.Configuration;
 using ProWeighSuitePlatforms.Data;
+using ProWeighSuitePlatforms.Services;
 
 using ProWeighSuitePlatforms.Models;
 namespace ProWeighSuitePlatforms.ViewModels
@@ -17,6 +18,9 @@ namespace ProWeighSuitePlatforms.ViewModels
     public sealed class InwardStockViewModel : ViewModels.BaseViewModel
     {
         public string Title => "Inward and supplier stock";
+
+        private readonly AuditService _audit = new();
+        private readonly string _username;
 
         public ObservableCollection<string> SupplierNames { get; } = new();
         public ObservableCollection<string> MaterialNames { get; } = new();
@@ -249,8 +253,9 @@ namespace ProWeighSuitePlatforms.ViewModels
         public ICommand NextPageCommand { get; }
         public ICommand GoToPageCommand { get; }
 
-        public InwardStockViewModel()
+        public InwardStockViewModel(string username = "System")
         {
+            _username = string.IsNullOrWhiteSpace(username) ? "System" : username;
             RefreshCommand = new ViewModels.RelayCommand(async _ => await LoadAsync());
             SaveCommand = new ViewModels.RelayCommand(async _ => await AddOrUpdateAsync());
             ToggleFormCommand = new ViewModels.RelayCommand(_ => IsFormExpanded = !IsFormExpanded);
@@ -557,7 +562,7 @@ namespace ProWeighSuitePlatforms.ViewModels
                 // resolve it from the chosen supplier name (mirrors the fusion
                 // supplier into the shared table when needed) instead of 0.
                 var supplierId = await repo.ResolveSupplierIdByNameAsync(supplier);
-                await repo.AddInwardFullAsync(new FusionInward
+                var inward = new FusionInward
                 {
                     GrnNo = grn,
                     SupplierId = supplierId,
@@ -570,7 +575,14 @@ namespace ProWeighSuitePlatforms.ViewModels
                     ShelfLifeDays = sl,
                     WeightKg = w,
                     CoconutCount = c,
-                });
+                };
+                await repo.AddInwardFullAsync(inward);
+                await _audit.LogFusionEventAsync(_username, "Fusion_Inward_Created",
+                    "FusionInward", grn,
+                    $"Inward {grn} created: supplier {supplier}, material {material}, bay {bay}, " +
+                    $"ticket {inward.TicketNo}, {w:0.###} kg / {c:0} nuts, shelf life {sl} day(s).",
+                    AuditCategory.Transaction, AuditSeverity.Info,
+                    null, $"GRN={grn}; Supplier={supplier}; Material={material}; Bay={bay}; WeightKg={w}; Nuts={c}; ShelfLifeDays={sl}");
                 StatusText = $"{grn} saved to {supplier}'s account, bay {bay}, APW {(w / c):F3}.";
                 TicketNo = BayId = WeightKgText = CountText = string.Empty;
                 // Clearing fires live validation — reset errors so a fresh form shows no red messages.
@@ -580,6 +592,7 @@ namespace ProWeighSuitePlatforms.ViewModels
             catch (Exception ex)
             {
                 StatusText = $"Save failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Create Fusion inward", ex);
             }
         }
 
@@ -656,7 +669,8 @@ namespace ProWeighSuitePlatforms.ViewModels
                 // Resolve the shared suppliers.id from the name (never reset the
                 // column back to 0 on edit).
                 var supplierId = await repo.ResolveSupplierIdByNameAsync(supplier);
-                await repo.UpdateInwardFullAsync(new FusionInward
+                var old = await repo.GetInwardByGrnAsync(EditingGrnNo);
+                var inward = new FusionInward
                 {
                     GrnNo = EditingGrnNo,
                     SupplierId = supplierId,
@@ -669,7 +683,15 @@ namespace ProWeighSuitePlatforms.ViewModels
                     ShelfLifeDays = sl,
                     WeightKg = w,
                     CoconutCount = c,
-                });
+                };
+                await repo.UpdateInwardFullAsync(inward);
+                await _audit.LogFusionEventAsync(_username, "Fusion_Inward_Updated",
+                    "FusionInward", EditingGrnNo,
+                    $"Inward {EditingGrnNo} updated: supplier {supplier}, material {material}, bay {bay}, " +
+                    $"ticket {ticket}, {w:0.###} kg / {c:0} nuts, shelf life {sl} day(s).",
+                    AuditCategory.Transaction, AuditSeverity.Info,
+                    old is null ? null : $"Supplier={old.SupplierName}; Material={old.MaterialName}; Bay={old.BayId}; WeightKg={old.WeightKg}; Nuts={old.CoconutCount}; ShelfLifeDays={old.ShelfLifeDays}",
+                    $"Supplier={supplier}; Material={material}; Bay={bay}; WeightKg={w}; Nuts={c}; ShelfLifeDays={sl}");
                 StatusText = $"Updated {EditingGrnNo}.";
                 CancelEdit();
                 await LoadAsync();
@@ -677,6 +699,7 @@ namespace ProWeighSuitePlatforms.ViewModels
             catch (Exception ex)
             {
                 StatusText = $"Save failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Update Fusion inward", ex);
             }
         }
 

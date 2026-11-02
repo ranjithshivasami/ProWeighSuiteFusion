@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using ProWeighSuitePlatforms.Configuration;
 using ProWeighSuitePlatforms.Data;
+using ProWeighSuitePlatforms.Services;
 
 using ProWeighSuitePlatforms.Models;
 namespace ProWeighSuitePlatforms.ViewModels
@@ -15,9 +16,12 @@ namespace ProWeighSuitePlatforms.ViewModels
     {
         public string Title => "Reports";
 
+        private readonly AuditService _audit = new();
+        private readonly string _username;
+
         public ObservableCollection<FusionTransaction> Rows { get; } = new();
 
-        private DateTime _from = DateTime.Today.AddDays(-7);
+        private DateTime _from = DateTime.Today;
         public DateTime From { get => _from; set => SetProperty(ref _from, value); }
         private DateTime _to = DateTime.Today;
         public DateTime To { get => _to; set => SetProperty(ref _to, value); }
@@ -28,8 +32,9 @@ namespace ProWeighSuitePlatforms.ViewModels
         public ICommand RefreshCommand { get; }
         public ICommand ExportCsvCommand { get; }
 
-        public FusionReportsViewModel()
+        public FusionReportsViewModel(string username = "System")
         {
+            _username = string.IsNullOrWhiteSpace(username) ? "System" : username;
             RefreshCommand = new ViewModels.RelayCommand(async _ => await LoadAsync());
             ExportCsvCommand = new ViewModels.RelayCommand(async _ => await ExportCsvAsync());
             _ = LoadAsync();
@@ -69,15 +74,18 @@ namespace ProWeighSuitePlatforms.ViewModels
                     Filter = "CSV file (*.csv)|*.csv",
                 };
                 if (dlg.ShowDialog() != true) return;
-                var sb = new StringBuilder("Id,BatchNo,TubId,SupplierId,WeightKg,RecordedAt\r\n");
+                var sb = new StringBuilder("Id,BatchNo,TubId,Supplier,WeightKg,RecordedAt\r\n");
                 foreach (var r in Rows)
-                    sb.Append($"{r.Id},{r.BatchNo},{r.TubId},{r.SupplierId},{r.WeightKg},{r.RecordedAt}\r\n");
+                    sb.Append($"{r.Id},{r.BatchNo},{r.TubId},{r.SupplierName},{r.WeightKg},{r.RecordedAt}\r\n");
                 await System.IO.File.WriteAllTextAsync(dlg.FileName, sb.ToString(), Encoding.UTF8);
+                await _audit.LogReportExportedAsync(_username,
+                    $"Fusion Transactions ({From:dd-MM-yyyy} to {To:dd-MM-yyyy}, CSV)", Rows.Count);
                 StatusText = $"Exported {Rows.Count} row(s) to {dlg.FileName}.";
             }
             catch (System.Exception ex)
             {
                 StatusText = $"Export failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Export Fusion transactions CSV", ex);
             }
         }
     }

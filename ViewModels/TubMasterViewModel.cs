@@ -16,6 +16,7 @@ using System.Windows.Input;
 using Microsoft.Win32;
 using ProWeighSuitePlatforms.Configuration;
 using ProWeighSuitePlatforms.Data;
+using ProWeighSuitePlatforms.Services;
 using ProWeighSuitePlatforms.Views;
 
 using ProWeighSuitePlatforms.Models;
@@ -50,6 +51,9 @@ namespace ProWeighSuitePlatforms.ViewModels
     public sealed class TubMasterViewModel : ViewModels.BaseViewModel
     {
         public string Title => "Tub master";
+
+        private readonly AuditService _audit = new();
+        private readonly string _username;
 
         private List<FusionTub> _all = new();
         public ObservableCollection<TubMasterRow> Rows { get; } = new();
@@ -325,8 +329,9 @@ namespace ProWeighSuitePlatforms.ViewModels
         public ICommand ExportCsvCommand { get; }
         public ICommand ReleaseSelectedTubsCommand { get; }
 
-        public TubMasterViewModel()
+        public TubMasterViewModel(string username = "System")
         {
+            _username = string.IsNullOrWhiteSpace(username) ? "System" : username;
             RefreshCommand = new ViewModels.RelayCommand(async _ => await LoadAsync());
             BlockCommand = new ViewModels.RelayCommand(async p =>
             {
@@ -461,6 +466,11 @@ namespace ProWeighSuitePlatforms.ViewModels
             {
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());
                 await repo.AddTubAsync(tubNo, epc, colour, cap, bay, DateTime.Today.ToString("yyyy-MM-dd"));
+                await _audit.LogFusionEventAsync(_username, "Fusion_Tub_Created",
+                    "FusionTub", tubNo,
+                    $"Tub created: {tubNo}, EPC {epc}, colour {colour}, capacity {cap:0.###} kg, bay {bay}.",
+                    AuditCategory.Material, AuditSeverity.Info,
+                    null, $"TubId={tubNo}; EPC={epc}; Colour={colour}; CapacityKg={cap}; Bay={bay}");
                 StatusText = $"Added tub {tubNo}.";
                 ResetAddForm();
                 await LoadAsync();
@@ -485,6 +495,7 @@ namespace ProWeighSuitePlatforms.ViewModels
                     return;
                 }
                 StatusText = $"Add failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Add Fusion tub", ex);
             }
         }
 
@@ -545,7 +556,14 @@ namespace ProWeighSuitePlatforms.ViewModels
             try
             {
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());
+                var old = _all.FirstOrDefault(t => string.Equals(t.TubId, EditingOriginalId, StringComparison.OrdinalIgnoreCase));
                 await repo.UpdateTubAsync(EditingOriginalId, epc, colour, cap, bay);
+                await _audit.LogFusionEventAsync(_username, "Fusion_Tub_Updated",
+                    "FusionTub", EditingOriginalId,
+                    $"Tub updated: {EditingOriginalId}, EPC {epc}, colour {colour}, capacity {cap:0.###} kg, bay {bay}.",
+                    AuditCategory.Material, AuditSeverity.Info,
+                    old is null ? null : $"EPC={old.Epc}; Colour={old.Colour}; CapacityKg={old.CapacityKg}; Bay={old.BayId}",
+                    $"EPC={epc}; Colour={colour}; CapacityKg={cap}; Bay={bay}");
                 StatusText = $"Updated tub {EditingOriginalId}.";
                 CancelEdit();
                 await LoadAsync();
@@ -561,6 +579,7 @@ namespace ProWeighSuitePlatforms.ViewModels
                     return;
                 }
                 StatusText = $"Save failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Update Fusion tub", ex);
             }
         }
 
@@ -819,11 +838,17 @@ namespace ProWeighSuitePlatforms.ViewModels
             {
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());
                 await repo.UpdateTubCyclesAsync(row.Tub.TubId, row.Tub.UsedCycles);
+                await _audit.LogFusionEventAsync(_username, "Fusion_Tub_Cycles_Updated",
+                    "FusionTub", row.Tub.TubId,
+                    $"Tub {row.Tub.TubId} used cycles set to {row.Tub.UsedCycles}.",
+                    AuditCategory.Material, AuditSeverity.Info,
+                    null, $"UsedCycles={row.Tub.UsedCycles}");
                 RefreshView();
             }
             catch (Exception ex)
             {
                 StatusText = $"Save failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Update Fusion tub cycles", ex);
             }
         }
 
@@ -859,12 +884,19 @@ namespace ProWeighSuitePlatforms.ViewModels
             {
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());
                 await repo.SetTubBlockedAsync(tubId, blocked);
+                await _audit.LogFusionEventAsync(_username,
+                    blocked ? "Fusion_Tub_Blocked" : "Fusion_Tub_Unblocked",
+                    "FusionTub", tubId,
+                    $"Tub {tubId} {(blocked ? "blocked" : "unblocked")}.",
+                    AuditCategory.Material, AuditSeverity.Info,
+                    $"IsBlocked={!blocked}", $"IsBlocked={blocked}");
                 StatusText = blocked ? $"Blocked {tubId}." : $"Unblocked {tubId}.";
                 await LoadAsync();
             }
             catch (Exception ex)
             {
                 StatusText = $"Update failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Update Fusion tub blocked state", ex);
             }
         }
 
@@ -890,13 +922,20 @@ namespace ProWeighSuitePlatforms.ViewModels
                     return;
                 }
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());
+                int oldCycles = row.Tub.UsedCycles;
                 await repo.ReplaceTubAsync(tubId, DateTime.Today.ToString("yyyy-MM-dd"));
+                await _audit.LogFusionEventAsync(_username, "Fusion_Tub_Replaced",
+                    "FusionTub", tubId,
+                    $"Tub {tubId} marked replaced; used cycles reset from {oldCycles} to 0.",
+                    AuditCategory.Material, AuditSeverity.Warning,
+                    $"UsedCycles={oldCycles}", "UsedCycles=0");
                 StatusText = $"Replaced {tubId} (cycles reset).";
                 await LoadAsync();
             }
             catch (Exception ex)
             {
                 StatusText = $"Replace failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Replace Fusion tub", ex);
             }
         }
 
@@ -929,12 +968,17 @@ namespace ProWeighSuitePlatforms.ViewModels
             {
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());
                 var released = await repo.ReleaseTubsAsync(inUse.Select(r => r.Tub.TubId));
+                await _audit.LogFusionEventAsync(_username, "Fusion_Tubs_Released",
+                    "FusionTub", null,
+                    $"Released {released} tub(s) from in use: {string.Join(", ", inUse.Select(r => r.Tub.TubId))}.",
+                    AuditCategory.Material, AuditSeverity.Warning);
                 StatusText = $"Released {released} tub(s) from in use.";
                 await LoadAsync();
             }
             catch (Exception ex)
             {
                 StatusText = $"Release failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Release Fusion tubs", ex);
             }
         }
 
@@ -962,6 +1006,7 @@ namespace ProWeighSuitePlatforms.ViewModels
                 };
                 if (dialog.ShowDialog() != true) return;
                 File.WriteAllText(dialog.FileName, GetCsvTemplate());
+                _ = _audit.LogCsvTemplateDownloadedAsync(_username, "Tub", dialog.FileName);
                 MessageBox.Show(
                     $"Template saved to:\n{dialog.FileName}\n\nFill in the columns and use 'Import' to import.\n\nNotes:\n  - TubNo: required, min 2 chars, letters/digits/_/- only, must be unique.\n  - EPC: required, digits only, min 4 digits, must be unique.\n  - Colour: Orange or Blue.\n  - CapacityKg: > 0 and <= 1000.\n  - Bay: optional, max 30 chars.",
                     "Template Downloaded",
@@ -994,6 +1039,7 @@ namespace ProWeighSuitePlatforms.ViewModels
                     sb.AppendLine($"{EscapeCsv(t.TubId)},{EscapeCsv(t.Epc)},{EscapeCsv(t.Colour)},{t.CapacityKg.ToString("0.###", CultureInfo.InvariantCulture)},{EscapeCsv(t.BayId)}");
                 }
                 File.WriteAllText(dialog.FileName, sb.ToString(), Encoding.UTF8);
+                await _audit.LogReportExportedAsync(_username, "Fusion Tub Master (CSV)", _all.Count);
                 StatusText = $"Exported {_all.Count} tub(s) to {Path.GetFileName(dialog.FileName)}.";
                 MessageBox.Show(
                     $"Exported {_all.Count} tub(s) to:\n{dialog.FileName}",
@@ -1004,6 +1050,7 @@ namespace ProWeighSuitePlatforms.ViewModels
             catch (Exception ex)
             {
                 StatusText = $"Export failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Export Fusion tubs CSV", ex);
                 MessageBox.Show($"Error exporting tubs: {ex.Message}", "Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
@@ -1183,6 +1230,11 @@ namespace ProWeighSuitePlatforms.ViewModels
 
                 await LoadAsync();
 
+                await _audit.LogFusionEventAsync(_username, "Fusion_Tub_Import",
+                    "FusionTub", null,
+                    $"Tub CSV import: {inserted} inserted, {updated} updated, {skipped} skipped, {errors.Count} error(s).",
+                    AuditCategory.Material, errors.Count > 0 ? AuditSeverity.Warning : AuditSeverity.Info);
+
                 if (errors.Count > 0)
                 {
                     Views.ScrollableMessageBox.Show(
@@ -1204,6 +1256,7 @@ namespace ProWeighSuitePlatforms.ViewModels
             catch (Exception ex)
             {
                 StatusText = $"Import failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Import Fusion tubs CSV", ex);
                 MessageBox.Show($"Error importing CSV: {ex.Message}", "Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }

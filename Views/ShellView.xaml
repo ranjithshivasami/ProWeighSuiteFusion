@@ -508,11 +508,8 @@
                             </TextBlock>
                         </StackPanel>
                         <Border Width="1" Height="14" Background="#d9dde3" Margin="12,0,12,0" VerticalAlignment="Center"/>
-                        <materialDesign:PackIcon Kind="ViewModule" Width="14" Height="14" Foreground="#666" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                        <TextBlock VerticalAlignment="Center" TextOptions.TextFormattingMode="Display">
-                            <Run Text="Module:" Foreground="{DynamicResource SidebarMutedTextBrush}" FontSize="11"/>
-                            <Run Text="{Binding CurrentModuleDisplayName, Mode=OneWay}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource SidebarTextBrush}"/>
-                        </TextBlock>
+                        
+                       
                     </StackPanel>
                     <!-- Scale + scanner status -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">

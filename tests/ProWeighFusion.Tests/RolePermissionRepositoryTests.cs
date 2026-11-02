@@ -41,6 +41,18 @@ public sealed class RolePermissionRepositoryTests : IAsyncLifetime
         Assert.Contains(Permission.ViewModules, map[UserRole.Admin]);
         Assert.DoesNotContain(Permission.EditModules, map[UserRole.Admin]);
         Assert.DoesNotContain(Permission.EditModules, map[UserRole.Operator]);
+
+        // Submenu permissions are seeded per role so the matrix can grant or
+        // revoke each menu independently.
+        Assert.Contains(Permission.ViewAppSettings, map[UserRole.SuperAdmin]);
+        Assert.Contains(Permission.ViewCleanUpDatabase, map[UserRole.SuperAdmin]);
+        Assert.Contains(Permission.ViewAppSettings, map[UserRole.Admin]);
+        Assert.DoesNotContain(Permission.ViewCleanUpDatabase, map[UserRole.Admin]);
+        Assert.Contains(Permission.ViewFusionReports, map[UserRole.SuperAdmin]);
+        Assert.Contains(Permission.ViewFusionReports, map[UserRole.Admin]);
+        Assert.Contains(Permission.ViewFusionReports, map[UserRole.Operator]);
+        Assert.Contains(Permission.ViewLiveView, map[UserRole.Operator]);
+        Assert.DoesNotContain(Permission.ViewFusionSettings, map[UserRole.Operator]);
     }
 
     [Fact]

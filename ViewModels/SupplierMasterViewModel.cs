@@ -12,6 +12,7 @@ using System.Windows;
 using System.Windows.Input;
 using ProWeighSuitePlatforms.Configuration;
 using ProWeighSuitePlatforms.Data;
+using ProWeighSuitePlatforms.Services;
 
 using ProWeighSuitePlatforms.Models;
 namespace ProWeighSuitePlatforms.ViewModels
@@ -19,6 +20,9 @@ namespace ProWeighSuitePlatforms.ViewModels
     public sealed class SupplierMasterViewModel : ViewModels.BaseViewModel
     {
         public string Title => "Supplier master";
+
+        private readonly AuditService _audit = new();
+        private readonly string _username;
 
         public ObservableCollection<FusionSupplier> Suppliers { get; } = new();
         public ObservableCollection<FusionSupplierStockRow> Rows { get; } = new();
@@ -210,8 +214,9 @@ namespace ProWeighSuitePlatforms.ViewModels
         public ICommand NextPageCommand { get; }
         public ICommand GoToPageCommand { get; }
 
-        public SupplierMasterViewModel()
+        public SupplierMasterViewModel(string username = "System")
         {
+            _username = string.IsNullOrWhiteSpace(username) ? "System" : username;
             RefreshCommand = new ViewModels.RelayCommand(async _ => await LoadAsync());
             AddSupplierCommand = new ViewModels.RelayCommand(async _ => await AddOrUpdateSupplierAsync());
             ToggleFormCommand = new ViewModels.RelayCommand(_ => IsFormExpanded = !IsFormExpanded);
@@ -361,10 +366,19 @@ namespace ProWeighSuitePlatforms.ViewModels
             }
             try
             {
+                var name = (NewName ?? string.Empty).Trim();
+                var location = (NewLocation ?? string.Empty).Trim();
+                var phone = (NewPhone ?? string.Empty).Trim();
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());
-                await repo.AddSupplierAsync(NewName.Trim(), NewLocation?.Trim() ?? string.Empty,
-                    NewPhone?.Trim() ?? string.Empty);
-                StatusText = $"Added supplier {NewName.Trim()}.";
+                await repo.AddSupplierAsync(name, location, phone);
+                var created = (await repo.GetSuppliersAsync())
+                    .FirstOrDefault(s => string.Equals(s.Name, name, StringComparison.OrdinalIgnoreCase));
+                await _audit.LogFusionEventAsync(_username, "Fusion_Supplier_Created",
+                    "FusionSupplier", created?.Id,
+                    $"Supplier created: {name} ({location}, {phone}).",
+                    AuditCategory.Material, AuditSeverity.Info,
+                    null, $"Name={name}; Location={location}; Phone={phone}");
+                StatusText = $"Added supplier {name}.";
                 _newName = _newLocation = _newPhone = string.Empty;
                 RaisePropertyChanged(nameof(NewName));
                 RaisePropertyChanged(nameof(NewLocation));
@@ -375,6 +389,7 @@ namespace ProWeighSuitePlatforms.ViewModels
             catch (Exception ex)
             {
                 StatusText = $"Add failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Add Fusion supplier", ex);
             }
         }
 
@@ -482,8 +497,16 @@ namespace ProWeighSuitePlatforms.ViewModels
             try
             {
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());
-                await repo.UpdateSupplierAsync(EditingSupplierId, name,
-                    (NewLocation ?? string.Empty).Trim(), (NewPhone ?? string.Empty).Trim());
+                var old = Suppliers.FirstOrDefault(s => string.Equals(s.Id, EditingSupplierId, StringComparison.OrdinalIgnoreCase));
+                var location = (NewLocation ?? string.Empty).Trim();
+                var phone = (NewPhone ?? string.Empty).Trim();
+                await repo.UpdateSupplierAsync(EditingSupplierId, name, location, phone);
+                await _audit.LogFusionEventAsync(_username, "Fusion_Supplier_Updated",
+                    "FusionSupplier", EditingSupplierId,
+                    $"Supplier updated: {name} ({location}, {phone}).",
+                    AuditCategory.Material, AuditSeverity.Info,
+                    old is null ? null : $"Name={old.Name}; Location={old.Location}; Phone={old.Phone}",
+                    $"Name={name}; Location={location}; Phone={phone}");
                 StatusText = $"Updated supplier {name}.";
                 CancelEdit();
                 await LoadAsync();
@@ -491,6 +514,7 @@ namespace ProWeighSuitePlatforms.ViewModels
             catch (Exception ex)
             {
                 StatusText = $"Save failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Update Fusion supplier", ex);
             }
         }
 
@@ -523,12 +547,19 @@ namespace ProWeighSuitePlatforms.ViewModels
             {
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());
                 await repo.SetSupplierActiveAsync(supplier.Id, active);
+                await _audit.LogFusionEventAsync(_username,
+                    active ? "Fusion_Supplier_Activated" : "Fusion_Supplier_Deactivated",
+                    "FusionSupplier", supplier.Id,
+                    $"Supplier {supplier.Name} {(active ? "activated" : "deactivated")} (history kept).",
+                    AuditCategory.Material, AuditSeverity.Info,
+                    $"IsActive={supplier.IsActive}", $"IsActive={active}");
                 StatusText = active ? $"Activated {supplier.Name}." : $"Deactivated {supplier.Name} (history kept).";
                 await LoadAsync();
             }
             catch (Exception ex)
             {
                 StatusText = $"Update failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Update Fusion supplier status", ex);
             }
         }
 
@@ -558,12 +589,19 @@ namespace ProWeighSuitePlatforms.ViewModels
                 }
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());
                 await repo.SetSupplierActiveAsync(row.SupplierId, active);
+                await _audit.LogFusionEventAsync(_username,
+                    active ? "Fusion_Supplier_Activated" : "Fusion_Supplier_Deactivated",
+                    "FusionSupplier", row.SupplierId,
+                    $"Supplier {row.SupplierName} {(active ? "activated" : "deactivated")} (history kept).",
+                    AuditCategory.Material, AuditSeverity.Info,
+                    $"IsActive={isActive}", $"IsActive={active}");
                 StatusText = active ? $"Activated {row.SupplierName}." : $"Deactivated {row.SupplierName} (history kept).";
                 await LoadAsync();
             }
             catch (Exception ex)
             {
                 StatusText = $"Update failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Update Fusion supplier status", ex);
             }
         }
 

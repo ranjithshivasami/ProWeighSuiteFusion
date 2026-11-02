@@ -28,7 +28,7 @@
                         <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="*"/>
                         <DataGridTextColumn Header="Batch" Binding="{Binding BatchNo}" Width="*"/>
                         <DataGridTextColumn Header="Tub" Binding="{Binding TubId}" Width="*"/>
-                        <DataGridTextColumn Header="Supplier" Binding="{Binding SupplierId}" Width="*"/>
+                        <DataGridTextColumn Header="Supplier" Binding="{Binding SupplierName}" Width="*"/>
                         <DataGridTextColumn Header="kg" Binding="{Binding WeightKg}" Width="*"/>
                         <DataGridTextColumn Header="At" Binding="{Binding RecordedAt}" Width="*"/>
                     </DataGrid.Columns>

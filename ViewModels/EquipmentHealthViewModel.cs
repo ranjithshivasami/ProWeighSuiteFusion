@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using ProWeighSuitePlatforms.Configuration;
 using ProWeighSuitePlatforms.Data;
+using ProWeighSuitePlatforms.Services;
 using static ProWeighSuitePlatforms.Data.FusionRepository;
 
 namespace ProWeighSuitePlatforms.ViewModels
@@ -11,6 +12,9 @@ namespace ProWeighSuitePlatforms.ViewModels
     public sealed class EquipmentHealthViewModel : ViewModels.BaseViewModel
     {
         public string Title => "Equipment health";
+
+        private readonly AuditService _audit = new();
+        private readonly string _username;
 
         public ObservableCollection<FusionEquipment> Rows { get; } = new();
 
@@ -28,8 +32,9 @@ namespace ProWeighSuitePlatforms.ViewModels
         public ICommand SaveCommand { get; }
         public ICommand DeleteCommand { get; }
 
-        public EquipmentHealthViewModel()
+        public EquipmentHealthViewModel(string username = "System")
         {
+            _username = string.IsNullOrWhiteSpace(username) ? "System" : username;
             RefreshCommand = new ViewModels.RelayCommand(async _ => await LoadAsync());
             SaveCommand = new ViewModels.RelayCommand(async _ => await SaveAsync());
             DeleteCommand = new ViewModels.RelayCommand(async _ => await DeleteAsync());
@@ -64,6 +69,10 @@ namespace ProWeighSuitePlatforms.ViewModels
             {
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());
                 await repo.UpsertEquipmentAsync(EquipId.Trim(), Name.Trim(), Status?.Trim() ?? "Online");
+                await _audit.LogFusionEventAsync(_username, "Fusion_Equipment_Saved",
+                    "FusionEquipment", EquipId.Trim(),
+                    $"Equipment saved: {EquipId.Trim()} ({Name.Trim()}) status {Status?.Trim() ?? "Online"}.",
+                    AuditCategory.Material, AuditSeverity.Info);
                 StatusText = $"Saved {EquipId.Trim()}.";
                 EquipId = Name = string.Empty;
                 Status = "Online";
@@ -72,6 +81,7 @@ namespace ProWeighSuitePlatforms.ViewModels
             catch (System.Exception ex)
             {
                 StatusText = $"Save failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Save Fusion equipment", ex);
             }
         }
 
@@ -86,6 +96,10 @@ namespace ProWeighSuitePlatforms.ViewModels
             {
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());
                 await repo.DeleteEquipmentAsync(EquipId.Trim());
+                await _audit.LogFusionEventAsync(_username, "Fusion_Equipment_Deleted",
+                    "FusionEquipment", EquipId.Trim(),
+                    $"Equipment deleted: {EquipId.Trim()}.",
+                    AuditCategory.Material, AuditSeverity.Warning);
                 StatusText = $"Deleted {EquipId.Trim()}.";
                 EquipId = string.Empty;
                 await LoadAsync();
@@ -93,6 +107,7 @@ namespace ProWeighSuitePlatforms.ViewModels
             catch (System.Exception ex)
             {
                 StatusText = $"Delete failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Delete Fusion equipment", ex);
             }
         }
     }

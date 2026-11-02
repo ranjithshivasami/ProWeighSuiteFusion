@@ -44,6 +44,7 @@ namespace ProWeighSuitePlatforms.Navigation
         public const string TubMaster = "TubMaster";
         public const string InwardStock = "InwardStock";
         public const string BatchLots = "BatchLots";
+        public const string BatchStatus = "BatchStatus";
         public const string LiveView = "LiveView";
         public const string Reports = "FusionReports";
         public const string Category = "Category";

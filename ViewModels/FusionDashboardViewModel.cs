@@ -14,6 +14,7 @@ using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using ProWeighSuitePlatforms.Configuration;
 using ProWeighSuitePlatforms.Data;
+using ProWeighSuitePlatforms.Services;
 using SkiaSharp;
 
 namespace ProWeighSuitePlatforms.ViewModels
@@ -21,6 +22,9 @@ namespace ProWeighSuitePlatforms.ViewModels
     public sealed class FusionDashboardViewModel : ViewModels.BaseViewModel
     {
         public string Title => "Dashboard";
+
+        private readonly AuditService _audit = new();
+        private readonly string _username;
 
         // ===== KPIs =====
         private int _todayCount;
@@ -58,6 +62,12 @@ namespace ProWeighSuitePlatforms.ViewModels
 
         private string _statusText = string.Empty;
         public string StatusText { get => _statusText; private set => SetProperty(ref _statusText, value); }
+
+        // ===== Date range filter (KPIs + charts honor this range) =====
+        private DateTime _from = DateTime.Today;
+        public DateTime From { get => _from; set => SetProperty(ref _from, value); }
+        private DateTime _to = DateTime.Today;
+        public DateTime To { get => _to; set => SetProperty(ref _to, value); }
 
         // ===== Chart series (WPF bindings) =====
         private ISeries[] _supplierSeries = Array.Empty<ISeries>();
@@ -113,8 +123,9 @@ namespace ProWeighSuitePlatforms.ViewModels
         private static readonly SKColor GridLine = new(231, 234, 239);
         private static readonly SKColor BrandGreen = new(11, 177, 77);
 
-        public FusionDashboardViewModel()
+        public FusionDashboardViewModel(string username = "System")
         {
+            _username = string.IsNullOrWhiteSpace(username) ? "System" : username;
             RefreshCommand = new ViewModels.RelayCommand(async _ => await LoadAsync());
             ExportChartPngCommand = new ViewModels.RelayCommand(async p => await ExportChartAsync(p as string, "png"));
             ExportChartPdfCommand = new ViewModels.RelayCommand(async p => await ExportChartAsync(p as string, "pdf"));
@@ -129,8 +140,10 @@ namespace ProWeighSuitePlatforms.ViewModels
             {
                 await new FusionDatabaseInit(AppConfigurationManager.GetDatabasePath()).EnsureCreatedAsync();
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());
+                var from = From.ToString("yyyy-MM-dd");
+                var to = To.ToString("yyyy-MM-dd");
 
-                var kpis = await repo.GetDashboardKpisAsync();
+                var kpis = await repo.GetDashboardKpisAsync(from, to);
                 TodayCount = kpis.TodayCount;
                 TodayKg = kpis.TodayKg;
                 ActiveBatches = kpis.ActiveBatches;
@@ -142,7 +155,7 @@ namespace ProWeighSuitePlatforms.ViewModels
                 RaisePropertyChanged(nameof(TargetPct));
                 RaisePropertyChanged(nameof(RemainingKg));
 
-                var share = await repo.GetSupplierShareAsync();
+                var share = await repo.GetSupplierShareAsync(from, to);
                 var names = await repo.GetSupplierNamesAsync(share.Select(s => s.SupplierId));
                 _supplier = share.Select(s => (
                     Label: names.TryGetValue(s.SupplierId, out var n) && !string.IsNullOrWhiteSpace(n)
@@ -154,41 +167,41 @@ namespace ProWeighSuitePlatforms.ViewModels
                     var total = _supplier.Sum(s => s.Kg);
                     SupplierSubtitle = $"Largest: {top.Label} {(total > 0 ? top.Kg / total * 100 : 0):F0}% of production";
                 }
-                else SupplierSubtitle = "no production today";
+                else SupplierSubtitle = "no production in the selected range";
                 BuildSupplierSeries();
 
                 TargetSubtitle = TargetKg > 0 ? $"Remaining {RemainingKg:0,0} kg" : "no target set";
                 BuildTargetSeries();
 
-                _hourly = await repo.GetHourlyAsync();
+                _hourly = await repo.GetHourlyAsync(from, to);
                 if (_hourly.Count > 0)
                 {
                     var peak = _hourly.OrderByDescending(h => h.Kg).First();
                     HourlySubtitle = $"Peak hour {peak.Label} with {peak.Kg / 1000:F1}k kg";
                 }
-                else HourlySubtitle = "no production today";
+                else HourlySubtitle = "no production in the selected range";
                 BuildHourlySeries();
 
-                _trend = await repo.GetDailyAsync(7);
+                _trend = await repo.GetDailyAsync(from, to);
                 if (_trend.Count >= 2)
                 {
                     var last = _trend[^1].Kg;
                     var prevAvg = _trend.Take(_trend.Count - 1).Average(t => t.Kg);
                     var vs = prevAvg > 0 ? (last - prevAvg) / prevAvg * 100 : 0;
-                    TrendSubtitle = $"Today is {vs:+0;-0}% vs the {(_trend.Count - 1)}-day average";
+                    TrendSubtitle = $"Latest day is {vs:+0;-0}% vs the previous {(_trend.Count - 1)}-day average";
                 }
                 else TrendSubtitle = "needs more days of data";
                 BuildTrendSeries();
 
-                _batches = await repo.GetBatchTotalsAsync();
-                BatchSubtitle = _batches.Count == 0 ? "no batches today" : $"{_batches.Count} batch(es) today";
+                _batches = await repo.GetBatchTotalsAsync(from, to);
+                BatchSubtitle = _batches.Count == 0 ? "no batches in the selected range" : $"{_batches.Count} batch(es) in the selected range";
                 BuildBatchSeries();
 
-                _bays = await repo.GetBayTotalsAsync();
-                BaySubtitle = _bays.Count == 0 ? "no production today" : "Share of today's weight by store bay";
+                _bays = await repo.GetBayTotalsAsync(from, to);
+                BaySubtitle = _bays.Count == 0 ? "no production in the selected range" : "Share of the selected range by store bay";
                 BuildBaySeries();
 
-                StatusText = $"Updated {DateTime.Now:T}: {TodayCount} transaction(s), {TodayKg:0.###} kg today.";
+                StatusText = $"Updated {DateTime.Now:T}: {TodayCount} transaction(s), {TodayKg:0.###} kg from {From:dd-MM-yyyy} to {To:dd-MM-yyyy}.";
             }
             catch (System.Exception ex)
             {
@@ -507,10 +520,13 @@ namespace ProWeighSuitePlatforms.ViewModels
                     }
                 });
                 StatusText = $"Exported {ChartTitles[key]} to {dlg.FileName}.";
+                await _audit.LogReportExportedAsync(_username,
+                    $"Fusion Dashboard - {ChartTitles[key]} ({format.ToUpperInvariant()}, {From:dd-MM-yyyy} to {To:dd-MM-yyyy})", 1);
             }
             catch (System.Exception ex)
             {
                 StatusText = $"Export failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Export Fusion dashboard chart", ex);
             }
         }
 
@@ -561,10 +577,13 @@ namespace ProWeighSuitePlatforms.ViewModels
                     }
                 });
                 StatusText = $"Exported dashboard to {dlg.FileName}.";
+                await _audit.LogReportExportedAsync(_username,
+                    $"Fusion Dashboard ({format.ToUpperInvariant()}, {From:dd-MM-yyyy} to {To:dd-MM-yyyy})", TodayCount);
             }
             catch (System.Exception ex)
             {
                 StatusText = $"Export failed: {ex.Message}";
+                await _audit.LogErrorAsync(_username, "Export Fusion dashboard", ex);
             }
         }
 

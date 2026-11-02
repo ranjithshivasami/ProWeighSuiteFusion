@@ -908,25 +908,25 @@ namespace ProWeighSuitePlatforms.ViewModels
             new("CompanySettings", "Company settings", "OfficeBuilding", "CompanySettings", MenuRegion.Configuration, 20,
                 ParentId: "Configuration", Permissions: new[] { Permission.ViewCompanySettings }),
             new("AppSettings", "App settings", "Cog", "AppSettings", MenuRegion.Configuration, 30,
-                ParentId: "Configuration", Permissions: new[] { Permission.ViewCompanySettings }),
+                ParentId: "Configuration", Permissions: new[] { Permission.ViewAppSettings }),
             new("SyncSettings", "Sync settings", "Sync", "SyncSettings", MenuRegion.Configuration, 40,
-                ParentId: "Configuration", Permissions: new[] { Permission.ViewCompanySettings }),
+                ParentId: "Configuration", Permissions: new[] { Permission.ViewSyncSettings }),
             new("BackupSettings", "Backup settings", "BackupRestore", "BackupSettings", MenuRegion.Configuration, 50,
-                ParentId: "Configuration", Permissions: new[] { Permission.ViewCompanySettings }),
+                ParentId: "Configuration", Permissions: new[] { Permission.ViewBackupSettings }),
             new("BackupLog", "Backup log", "History", "BackupLog", MenuRegion.Configuration, 60,
-                ParentId: "Configuration", Permissions: new[] { Permission.ViewCompanySettings }),
+                ParentId: "Configuration", Permissions: new[] { Permission.ViewBackupLog }),
             new("ReportSchedule", "Report schedule", "CalendarClock", "ReportSchedule", MenuRegion.Configuration, 70,
-                ParentId: "Configuration", Permissions: new[] { Permission.ViewCompanySettings }),
+                ParentId: "Configuration", Permissions: new[] { Permission.ViewReportSchedule }),
             new("LabelTemplates", "Label templates", "TagText", "LabelTemplates", MenuRegion.Configuration, 80,
-                ParentId: "Configuration", Permissions: new[] { Permission.ViewCompanySettings }),
+                ParentId: "Configuration", Permissions: new[] { Permission.ViewLabelTemplates }),
             new("PrinterSetup", "Printer setup", "Printer", "PrinterSetup", MenuRegion.Configuration, 90,
-                ParentId: "Configuration", Permissions: new[] { Permission.ViewCompanySettings }),
+                ParentId: "Configuration", Permissions: new[] { Permission.ViewPrinterSetup }),
             new("PlcSettings", "PLC settings", "Chip", "PlcSettings", MenuRegion.Configuration, 100,
-                ParentId: "Configuration", Permissions: new[] { Permission.ViewCompanySettings }),
+                ParentId: "Configuration", Permissions: new[] { Permission.ViewPlcSettings }),
             new("ScannerSettings", "Scanner settings", "BarcodeScan", "ScannerSettings", MenuRegion.Configuration, 110,
-                ParentId: "Configuration", Permissions: new[] { Permission.ViewCompanySettings }),
+                ParentId: "Configuration", Permissions: new[] { Permission.ViewScannerSettings }),
             new("CleanUpDatabase", "Clean up database", "DatabaseRemove", "CleanUpDatabase", MenuRegion.Configuration, 120,
-                ParentId: "Configuration", Permissions: new[] { Permission.EditSystemSettings }),
+                ParentId: "Configuration", Permissions: new[] { Permission.ViewCleanUpDatabase }),
 
             // Sidebar — Master group children (Fusion master data)
             new("Category", "Category", "Tag", "Category", MenuRegion.Primary, 10,
@@ -940,28 +940,30 @@ namespace ProWeighSuitePlatforms.ViewModels
             new("FusionDashboard", "Dashboard", "ViewDashboard", "FusionDashboard", MenuRegion.ModuleTop, 10,
                 Permissions: new[] { Permission.ViewDashboard }),
             new("FusionSettings", "Fusion settings", "Cog", "FusionSettings", MenuRegion.ModuleTop, 20,
-                Permissions: new[] { Permission.ViewCompanySettings }),
+                Permissions: new[] { Permission.ViewFusionSettings }),
             new("BayStatus", "Bay status", "MapMarkerRadius", "BayStatus", MenuRegion.ModuleTop, 30,
-                Permissions: new[] { Permission.ViewDashboard }),
+                Permissions: new[] { Permission.ViewBayStatus }),
             new("SupplierMaster", "Supplier master", "TruckDelivery", "SupplierMaster", MenuRegion.ModuleTop, 40,
-                Permissions: new[] { Permission.ViewSupplier }),
+                Permissions: new[] { Permission.ViewSupplierMaster }),
             new("TubMaster", "Tub master", "PackageVariantClosed", "TubMaster", MenuRegion.ModuleTop, 50,
-                Permissions: new[] { Permission.ViewMaterials }),
+                Permissions: new[] { Permission.ViewTubMaster }),
             new("InwardStock", "Inward and supplier stock", "PackageVariantClosedPlus", "InwardStock", MenuRegion.ModuleTop, 60,
-                Permissions: new[] { Permission.ViewMaterials }),
+                Permissions: new[] { Permission.ViewInwardStock }),
             new("BatchLots", "Batch creation and lots", "LayersTriple", "BatchLots", MenuRegion.ModuleTop, 70,
-                Permissions: new[] { Permission.ViewMaterials }),
+                Permissions: new[] { Permission.ViewBatchLots }),
+            new("BatchStatus", "Batch status", "ListStatus", "BatchStatus", MenuRegion.ModuleTop, 75,
+                Permissions: new[] { Permission.ViewBatchStatus }),
             new("LiveView", "Live view", "MonitorDashboard", "LiveView", MenuRegion.ModuleTop, 80,
-                Permissions: new[] { Permission.ViewDashboard }),
+                Permissions: new[] { Permission.ViewLiveView }),
             new("FusionReports", "Reports", "FileChart", "FusionReports", MenuRegion.ModuleTop, 90,
-                Permissions: new[] { Permission.ViewReports }),
+                Permissions: new[] { Permission.ViewFusionReports }),
         };
 
         private static readonly HashSet<string> FusionRouteIds = new(StringComparer.OrdinalIgnoreCase)
         {
             FusionRoutes.Dashboard, FusionRoutes.Settings, FusionRoutes.BayStatus,
             FusionRoutes.SupplierMaster, FusionRoutes.TubMaster, FusionRoutes.InwardStock,
-            FusionRoutes.BatchLots, FusionRoutes.LiveView, FusionRoutes.Reports,
+            FusionRoutes.BatchLots, FusionRoutes.BatchStatus, FusionRoutes.LiveView, FusionRoutes.Reports,
         };
 
         private static readonly Dictionary<string, string> RouteNames = new(StringComparer.OrdinalIgnoreCase)
@@ -973,6 +975,7 @@ namespace ProWeighSuitePlatforms.ViewModels
             ["TubMaster"] = "Tub master",
             ["InwardStock"] = "Inward and supplier stock",
             ["BatchLots"] = "Batch creation and lots",
+            ["BatchStatus"] = "Batch status",
             ["LiveView"] = "Live view",
             ["FusionReports"] = "Reports",
             ["Category"] = "Categories",
@@ -1134,32 +1137,35 @@ namespace ProWeighSuitePlatforms.ViewModels
         {
             if (routeId.Equals("FusionDashboard", StringComparison.OrdinalIgnoreCase))
                 return GetOrCreateKeepAlive("FusionDashboard", () =>
-                    View(new FusionDashboardViewModel(), new FusionDashboardView()));
+                    View(new FusionDashboardViewModel(CurrentUser?.Username ?? "System"), new FusionDashboardView()));
 
             if (routeId.Equals("FusionSettings", StringComparison.OrdinalIgnoreCase))
-                return View(new FusionSettingsViewModel(), new FusionSettingsView());
+                return View(new FusionSettingsViewModel(CurrentUser?.Username ?? "System"), new FusionSettingsView());
 
             if (routeId.Equals("BayStatus", StringComparison.OrdinalIgnoreCase))
-                return View(new BayStatusViewModel(), new BayStatusView());
+                return View(new BayStatusViewModel(CurrentUser?.Username ?? "System"), new BayStatusView());
 
             if (routeId.Equals("SupplierMaster", StringComparison.OrdinalIgnoreCase))
-                return View(new SupplierMasterViewModel(), new SupplierMasterView());
+                return View(new SupplierMasterViewModel(CurrentUser?.Username ?? "System"), new SupplierMasterView());
 
             if (routeId.Equals("TubMaster", StringComparison.OrdinalIgnoreCase))
-                return View(new TubMasterViewModel(), new TubMasterView());
+                return View(new TubMasterViewModel(CurrentUser?.Username ?? "System"), new TubMasterView());
 
             if (routeId.Equals("InwardStock", StringComparison.OrdinalIgnoreCase))
-                return View(new InwardStockViewModel(), new InwardStockView());
+                return View(new InwardStockViewModel(CurrentUser?.Username ?? "System"), new InwardStockView());
 
             if (routeId.Equals("BatchLots", StringComparison.OrdinalIgnoreCase))
-                return View(new FusionBatchViewModel(), new FusionBatchView());
+                return View(new FusionBatchViewModel(CurrentUser?.Username ?? "System"), new FusionBatchView());
+
+            if (routeId.Equals("BatchStatus", StringComparison.OrdinalIgnoreCase))
+                return View(new BatchStatusViewModel(), new BatchStatusView());
 
             if (routeId.Equals("LiveView", StringComparison.OrdinalIgnoreCase))
                 return GetOrCreateKeepAlive("LiveView", () =>
-                    View(new FusionLiveViewModel(), new FusionLiveView()));
+                    View(new FusionLiveViewModel(CurrentUser?.Username ?? "System"), new FusionLiveView()));
 
             if (routeId.Equals("FusionReports", StringComparison.OrdinalIgnoreCase))
-                return View(new FusionReportsViewModel(), new FusionReportsView());
+                return View(new FusionReportsViewModel(CurrentUser?.Username ?? "System"), new FusionReportsView());
 
             if (routeId.Equals("Category", StringComparison.OrdinalIgnoreCase))
                 return View(new CategoryViewModel(_main), new CategoryView());
