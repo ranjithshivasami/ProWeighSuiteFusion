@@ -1,0 +1,489 @@
+<UserControl x:Class="ProWeighSuitePlatforms.Views.FailedSyncViewerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+              Background="#F5F7FA">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+
+    <Border Style="{StaticResource PageBackgroundStyle}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Filter Bar - identical to RecentTransactionsView (dates + filter + actions + page size + search) -->
+            <Border Grid.Row="1" Margin="10,0,10,10" Padding="12" Style="{StaticResource CardBorderStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Left: Date filters + context menu (same as ReportsView) -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <DatePicker SelectedDate="{Binding FromDate, Mode=TwoWay}"
+                                    materialDesign:HintAssist.Hint="From date"
+                                    Width="110"
+                                    Style="{StaticResource FormDatePickerStyle}"
+                                    FontSize="13"
+                                    Margin="0,0,6,0"/>
+                        <DatePicker SelectedDate="{Binding ToDate, Mode=TwoWay}"
+                                    materialDesign:HintAssist.Hint="To date"
+                                    Width="110"
+                                    Style="{StaticResource FormDatePickerStyle}"
+                                    FontSize="13"
+                                    Margin="0,0,6,0"/>
+                        <!-- Actions context menu - same pattern as ReportsView -->
+                        <ToggleButton x:Name="ActionsMenuButton"
+                                      Width="28" Height="28"
+                                      Margin="0,0,5,0"
+                                      Cursor="Hand"
+                                      FocusVisualStyle="{x:Null}"
+                                      IsChecked="False"
+                                      ToolTip="Actions">
+                            <ToggleButton.Template>
+                                <ControlTemplate TargetType="ToggleButton">
+                                    <Border x:Name="Root"
+                                            Background="Transparent"
+                                            CornerRadius="4"
+                                            Padding="6">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Root" Property="Background" Value="#1A000000"/>
+                                        </Trigger>
+                                        <Trigger Property="IsPressed" Value="True">
+                                            <Setter TargetName="Root" Property="Background" Value="#33000000"/>
+                                        </Trigger>
+                                        <Trigger Property="IsChecked" Value="True">
+                                            <Setter TargetName="Root" Property="Background" Value="#26000000"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </ToggleButton.Template>
+                            <materialDesign:PackIcon Kind="DotsVertical" Width="18" Height="18" Foreground="#424242"/>
+                        </ToggleButton>
+                        <Popup x:Name="ActionsPopup"
+                               IsOpen="{Binding IsChecked, ElementName=ActionsMenuButton}"
+                               Placement="Bottom"
+                               PlacementTarget="{Binding ElementName=ActionsMenuButton}"
+                               StaysOpen="False"
+                               PopupAnimation="Fade"
+                               AllowsTransparency="True">
+                            <Border Background="White"
+                                    BorderBrush="#E5E7EB"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    MinWidth="160"
+                                    Effect="{StaticResource MaterialDesignShadowDepth3}">
+                                <StackPanel>
+                                    <MenuItem Header="Filter"
+                                              Command="{Binding PlacementTarget.DataContext.ApplyFilterCommand, RelativeSource={RelativeSource AncestorType=Popup}}"
+                                              Click="ActionsMenuItem_Click"
+                                              Icon="{materialDesign:PackIcon Kind=FilterVariant}"
+                                              Foreground="#424242"/>
+                                    <MenuItem Header="Reset"
+                                              Command="{Binding PlacementTarget.DataContext.ClearFilterCommand, RelativeSource={RelativeSource AncestorType=Popup}}"
+                                              Click="ActionsMenuItem_Click"
+                                              Icon="{materialDesign:PackIcon Kind=Refresh}"
+                                              Foreground="#424242"/>
+                                    <Separator/>
+                                    <MenuItem Header="Refresh"
+                                              Command="{Binding PlacementTarget.DataContext.RefreshCommand, RelativeSource={RelativeSource AncestorType=Popup}}"
+                                              Click="ActionsMenuItem_Click"
+                                              Icon="{materialDesign:PackIcon Kind=Reload}"
+                                              Foreground="#424242"/>
+                                    <MenuItem Header="Retry All"
+                                              Command="{Binding PlacementTarget.DataContext.RetryAllCommand, RelativeSource={RelativeSource AncestorType=Popup}}"
+                                              Click="ActionsMenuItem_Click"
+                                              Icon="{materialDesign:PackIcon Kind=Sync}"
+                                              Foreground="#424242"/>
+                                    <MenuItem Header="Retry Selected"
+                                              Command="{Binding PlacementTarget.DataContext.RetrySelectedCommand, RelativeSource={RelativeSource AncestorType=Popup}}"
+                                              Click="ActionsMenuItem_Click"
+                                              Icon="{materialDesign:PackIcon Kind=Restart}"
+                                              Foreground="#424242"
+                                              ToolTip="Retry checked rows (moves selected items to the Queue)"/>
+                                </StackPanel>
+                            </Border>
+                        </Popup>
+                    </StackPanel>
+
+                    <!-- Middle: Search box like Report -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,10,0">
+                        <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
+                                 Width="180"
+                                 MinWidth="120"
+                                 HorizontalAlignment="Left"
+                                 Style="{StaticResource FormTextBoxStyle}"
+                                 materialDesign:HintAssist.Hint="Search all columns" />
+                    </StackPanel>
+
+                    <!-- Right: Page Size + Selected info -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource FieldLabelStyle}" Text="Page Size:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <ComboBox Width="80" Style="{StaticResource FormComboBoxStyle}" HorizontalContentAlignment="Right" SelectedValue="{Binding PageSize}" SelectedValuePath="Content" Margin="0,0,10,0">
+                            <ComboBoxItem Content="10"/>
+                            <ComboBoxItem Content="20" IsSelected="True"/>
+                            <ComboBoxItem Content="50"/>
+                            <ComboBoxItem Content="100"/>
+                        </ComboBox>
+                        <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="#2E7D32" FontWeight="SemiBold">
+                            <Run Text="Checked: "/>
+                            <Run Text="{Binding SelectedCount, Mode=OneWay}"/>
+                        </TextBlock>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- DataGrid - same styling as RecentTransactionsView -->
+            <Border Grid.Row="2" Margin="10,0,10,10" Padding="0" Style="{StaticResource CardBorderStyle}">
+                <Grid>
+                    <!-- Loading Overlay -->
+                    <Grid Background="#80FFFFFF"
+                          Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"
+                          Panel.ZIndex="999">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <Viewbox Width="50" Height="50" Margin="0,0,0,10">
+                                <Grid>
+                                    <Ellipse Width="60" Height="60" Stroke="#E0E0E0" StrokeThickness="6" Opacity="1"/>
+                                    <Ellipse Width="60" Height="60" Stroke="{DynamicResource BrandPrimaryBrush}" StrokeThickness="6" StrokeDashArray="40 20" StrokeDashCap="Round" RenderTransformOrigin="0.5,0.5">
+                                        <Ellipse.RenderTransform>
+                                            <RotateTransform x:Name="InnerSpinnerRotation" Angle="0"/>
+                                        </Ellipse.RenderTransform>
+                                        <Ellipse.Triggers>
+                                            <EventTrigger RoutedEvent="Loaded">
+                                                <BeginStoryboard>
+                                                    <Storyboard RepeatBehavior="Forever">
+                                                        <DoubleAnimation Storyboard.TargetName="InnerSpinnerRotation" Storyboard.TargetProperty="Angle" From="0" To="360" Duration="0:0:1.0"/>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </EventTrigger>
+                                        </Ellipse.Triggers>
+                                    </Ellipse>
+                                </Grid>
+                            </Viewbox>
+                            <TextBlock Text="Loading..."
+                                       Style="{StaticResource SubtitleStyle}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                  VerticalScrollBarVisibility="Auto"
+                                  Padding="8">
+                        <DataGrid AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  IsReadOnly="True"
+                                  HeadersVisibility="Column"
+                                  ItemsSource="{Binding FailedItems}"
+                                  SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                                  SelectionMode="Single"
+                                  SelectionUnit="FullRow"
+                                  CanUserResizeRows="False"
+                                  GridLinesVisibility="Horizontal"
+                                  Style="{StaticResource AppDataGridStyle}"
+                                  VerticalScrollBarVisibility="Disabled"
+                                  HorizontalScrollBarVisibility="Auto"
+                                  EnableColumnVirtualization="False"
+                                  EnableRowVirtualization="False"
+                                  MinWidth="1400">
+                            <DataGrid.Resources>
+                                <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource AppDataGridHeaderStyle}">
+                                </Style>
+                            </DataGrid.Resources>
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow" BasedOn="{StaticResource AppDataGridRowStyle}">
+                                    <Setter Property="Tag" Value="{Binding DataContext, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
+                                    <Setter Property="ContextMenu">
+                                        <Setter.Value>
+                                            <ContextMenu>
+                                                <MenuItem Header="View Details"
+                                                          Command="{Binding PlacementTarget.Tag.ViewDetailsCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                          CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                          Icon="{materialDesign:PackIcon Kind=Eye}"/>
+                                                <MenuItem Header="Copy Trans ID"
+                                                          Command="{Binding PlacementTarget.Tag.CopyTransIdCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                          CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                          Icon="{materialDesign:PackIcon Kind=ContentCopy}"/>
+                                                <MenuItem Header="Copy Batch Number"
+                                                          Command="{Binding PlacementTarget.Tag.CopyBatchNumberCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                          CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                          Icon="{materialDesign:PackIcon Kind=ContentCopy}"/>
+                                            </ContextMenu>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <EventSetter Event="MouseDoubleClick" Handler="DataGridRow_MouseDoubleClick"/>
+                                </Style>
+                            </DataGrid.RowStyle>
+                            <DataGrid.CellStyle>
+                                <Style TargetType="DataGridCell" BasedOn="{StaticResource AppDataGridCellStyle}">
+                                </Style>
+                            </DataGrid.CellStyle>
+                            <DataGrid.Columns>
+                                <!-- Checkbox - select row + header select-all -->
+                                <DataGridTemplateColumn Width="40" MinWidth="40" CanUserSort="False" CanUserReorder="False" CanUserResize="False" IsReadOnly="False">
+                                    <DataGridTemplateColumn.Header>
+                                        <CheckBox IsChecked="{Binding DataContext.IsSelectAll, RelativeSource={RelativeSource AncestorType=DataGrid}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                  ToolTip="Check/uncheck all on this page"/>
+                                    </DataGridTemplateColumn.Header>
+                                    <DataGridTemplateColumn.HeaderStyle>
+                                        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource AppDataGridHeaderCenterStyle}">
+                                            <Setter Property="Padding" Value="4"/>
+                                            <Setter Property="ContentTemplate" Value="{x:Null}"/>
+                                        </Style>
+                                    </DataGridTemplateColumn.HeaderStyle>
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- # -->
+                                <DataGridTextColumn Header="#" Width="50" MinWidth="50" IsReadOnly="True" Binding="{Binding SlNo}"
+                                                      HeaderStyle="{StaticResource AppDataGridHeaderCenterStyle}">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextCenterStyle}">
+                                            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <!-- Trans ID - full width with Copy context menu (same as ReportsView) -->
+                                <DataGridTemplateColumn Header="Trans ID" Width="*" MinWidth="280" IsReadOnly="True">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding TransactionId}" Style="{StaticResource GridCellTextLeftStyle}"
+                                                       Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=DataGrid}}">
+                                                <TextBlock.ContextMenu>
+                                                    <ContextMenu>
+                                                        <MenuItem Header="Copy Trans ID" Command="{Binding PlacementTarget.Tag.CopyTransIdCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding}" Icon="{materialDesign:PackIcon Kind=ContentCopy}"/>
+                                                        <MenuItem Header="View Details" Command="{Binding PlacementTarget.Tag.ViewDetailsCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding}" Icon="{materialDesign:PackIcon Kind=Eye}"/>
+                                                    </ContextMenu>
+                                                </TextBlock.ContextMenu>
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Failed At -->
+                                <DataGridTextColumn Header="Failed At" Binding="{Binding TimestampFormatted}" Width="135" MinWidth="135" IsReadOnly="True" ElementStyle="{StaticResource GridCellTextLeftStyle}"/>
+
+                                <!-- Batch Number with Copy -->
+                                <DataGridTemplateColumn Header="Batch Number" Width="130" MinWidth="130" IsReadOnly="True">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding BatchNumber}" Style="{StaticResource GridCellTextLeftStyle}" FontWeight="Medium"
+                                                       Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=DataGrid}}">
+                                                <TextBlock.ContextMenu>
+                                                    <ContextMenu>
+                                                        <MenuItem Header="Copy Batch Number" Command="{Binding PlacementTarget.Tag.CopyBatchNumberCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding}" Icon="{materialDesign:PackIcon Kind=ContentCopy}"/>
+                                                        <MenuItem Header="View Details" Command="{Binding PlacementTarget.Tag.ViewDetailsCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding}" Icon="{materialDesign:PackIcon Kind=Eye}"/>
+                                                    </ContextMenu>
+                                                </TextBlock.ContextMenu>
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Material Code with Copy -->
+                                <DataGridTemplateColumn Header="Material Code" Width="110" MinWidth="110" IsReadOnly="True">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding MaterialCode}" Style="{StaticResource GridCellTextLeftStyle}"
+                                                       Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=DataGrid}}">
+                                                <TextBlock.ContextMenu>
+                                                    <ContextMenu>
+                                                        <MenuItem Header="Copy Material Code" Command="{Binding PlacementTarget.Tag.CopyMaterialCodeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding}" Icon="{materialDesign:PackIcon Kind=ContentCopy}"/>
+                                                        <MenuItem Header="View Details" Command="{Binding PlacementTarget.Tag.ViewDetailsCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding}" Icon="{materialDesign:PackIcon Kind=Eye}"/>
+                                                    </ContextMenu>
+                                                </TextBlock.ContextMenu>
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Material Name -->
+                                <DataGridTextColumn Header="Material Name" Binding="{Binding MaterialName}" Width="*" MinWidth="130" IsReadOnly="True" ElementStyle="{StaticResource GridCellTextLeftStyle}"/>
+
+                                <!-- Weight -->
+                                <DataGridTextColumn Header="Weight (kg)" Binding="{Binding ActualWeight, StringFormat=F3}" Width="90" MinWidth="90" IsReadOnly="True" ElementStyle="{StaticResource GridCellTextRightStyle}"/>
+
+                                <!-- Weighed By -->
+                                <DataGridTextColumn Header="Weighed By" Binding="{Binding WeighedBy}" Width="100" MinWidth="100" IsReadOnly="True" ElementStyle="{StaticResource GridCellTextLeftStyle}"/>
+
+                                <!-- Attempts -->
+                                <DataGridTextColumn Header="Attempts" Binding="{Binding AttemptCount}" Width="90" MinWidth="90" IsReadOnly="True"
+                                                      HeaderStyle="{StaticResource AppDataGridHeaderCenterStyle}" ElementStyle="{StaticResource GridCellTextCenterStyle}"/>
+
+                                <!-- API Endpoint -->
+                                <DataGridTemplateColumn Header="API Endpoint" Width="170" MinWidth="170" IsReadOnly="True">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding ApiUrl}"
+                                                       Style="{StaticResource GridCellTextLeftStyle}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       ToolTip="{Binding ApiUrl}"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Error / Note -->
+                                <DataGridTemplateColumn Header="Error / Note" Width="*" MinWidth="180" IsReadOnly="True">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding ErrorNote}"
+                                                       Style="{StaticResource GridCellTextLeftStyle}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       ToolTip="{Binding ErrorNote}"
+                                                       Foreground="#D32F2F"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Pagination Controls - identical to RecentTransactionsView -->
+            <Border Grid.Row="3" 
+                    Margin="10,5,10,5" 
+                    Style="{StaticResource PaginationBarStyle}"
+                    VerticalAlignment="Bottom">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Page info -->
+                    <TextBlock Grid.Column="0" Text="{Binding PageInfo}" VerticalAlignment="Center" Style="{StaticResource SubtitleStyle}" FontSize="13" Margin="8,0"/>
+
+                    <!-- Center: hint for context menu (same as report - no buttons) -->
+                    <TextBlock Grid.Column="1" Text="Right-click a row for View Details / Copy" VerticalAlignment="Center" HorizontalAlignment="Center" Style="{StaticResource SubtitleStyle}" FontSize="11" FontStyle="Italic"/>
+
+                    <!-- Page navigation -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,4,0">
+                        <Button Command="{Binding FirstPageCommand}" 
+                                Style="{StaticResource PaginationButtonStyle}"
+                                Margin="0,0,4,0"
+                                ToolTip="First page">
+                            <materialDesign:PackIcon Kind="PageFirst" Width="20" Height="20"/>
+                        </Button>
+                        <Button Command="{Binding PrevPageCommand}" 
+                                Style="{StaticResource PaginationButtonStyle}"
+                                Margin="0,0,4,0"
+                                ToolTip="Previous page">
+                            <materialDesign:PackIcon Kind="ChevronLeft" Width="24" Height="24"/>
+                        </Button>
+                        <Border Background="#F5F5F5" 
+                                CornerRadius="4" 
+                                Padding="15,5"
+                                VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Page " FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding CurrentPage}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource BrandPrimaryBrush}" VerticalAlignment="Center" Margin="4,0"/>
+                                <TextBlock Text=" of " FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding TotalPages}" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <Button Command="{Binding NextPageCommand}" 
+                                Style="{StaticResource PaginationButtonStyle}"
+                                Margin="4,0,4,0"
+                                ToolTip="Next page">
+                            <materialDesign:PackIcon Kind="ChevronRight" Width="24" Height="24"/>
+                        </Button>
+                        <Button Command="{Binding LastPageCommand}" 
+                                Style="{StaticResource PaginationButtonStyle}"
+                                ToolTip="Last page">
+                            <materialDesign:PackIcon Kind="PageLast" Width="20" Height="20"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Status bar - same as RecentTransactionsView Row 4 -->
+            <Border Grid.Row="4" Margin="10,0,10,0" Padding="8,4" Style="{StaticResource PaginationBarStyle}">
+                <TextBlock Text="{Binding StatusMessage}" Style="{StaticResource SubtitleStyle}" FontSize="12" FontStyle="Italic" TextWrapping="Wrap"/>
+            </Border>
+
+            <!-- Global Loading Overlay - shown when any context menu action is in progress -->
+            <Grid Grid.RowSpan="5"
+                  Background="#60000000"
+                  Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"
+                  Panel.ZIndex="1000"
+                  IsHitTestVisible="True">
+                <Border Background="White"
+                        CornerRadius="8"
+                        Padding="24,20"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Effect="{StaticResource MaterialDesignShadowDepth3}">
+                    <StackPanel HorizontalAlignment="Center">
+                        <!-- Custom spinning ellipse - proven visible (same as LoadingIndicator.xaml) -->
+                        <Viewbox Width="48" Height="48" Margin="0,0,0,12" HorizontalAlignment="Center">
+                            <Grid>
+                                <Ellipse Width="60" Height="60"
+                                         Stroke="#E0E0E0"
+                                         StrokeThickness="6"
+                                         Opacity="1"/>
+                                <Ellipse Width="60" Height="60"
+                                         Stroke="{DynamicResource BrandPrimaryBrush}"
+                                         StrokeThickness="6"
+                                         StrokeDashArray="40 20"
+                                         StrokeDashCap="Round"
+                                         RenderTransformOrigin="0.5,0.5">
+                                    <Ellipse.RenderTransform>
+                                        <RotateTransform x:Name="GlobalSpinnerRotation" Angle="0"/>
+                                    </Ellipse.RenderTransform>
+                                    <Ellipse.Triggers>
+                                        <EventTrigger RoutedEvent="Loaded">
+                                            <BeginStoryboard>
+                                                <Storyboard RepeatBehavior="Forever">
+                                                    <DoubleAnimation Storyboard.TargetName="GlobalSpinnerRotation"
+                                                                   Storyboard.TargetProperty="Angle"
+                                                                   From="0" To="360" Duration="0:0:1.0"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                    </Ellipse.Triggers>
+                                </Ellipse>
+                            </Grid>
+                        </Viewbox>
+                        <TextBlock Text="{Binding StatusMessage}"
+                                   Style="{StaticResource GridCellTextLeftStyle}"
+                                   FontWeight="SemiBold"
+                                   HorizontalAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   MaxWidth="350"
+                                   TextAlignment="Center"/>
+                        <TextBlock Text="Please wait..."
+                                   Style="{StaticResource SubtitleStyle}"
+                                   FontSize="11"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

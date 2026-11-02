@@ -1,0 +1,533 @@
+<UserControl x:Class="ProWeighSuitePlatforms.Views.MaterialsCreateView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:behaviors="clr-namespace:ProWeighSuitePlatforms.Behaviors"
+             mc:Ignorable="d">
+    <Border Background="White"
+            BorderBrush="{StaticResource CardBorderBrush}"
+            BorderThickness="1"
+            CornerRadius="8"
+            Padding="16">
+    <Grid behaviors:AutoFocusBehavior.IsEnabled="True">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Required fields note (title now shown in top bar dynamically) -->
+        <Grid Grid.Row="0" Margin="0,0,0,10" VerticalAlignment="Top">
+            <TextBlock HorizontalAlignment="Right"
+                       FontSize="12"
+                       Foreground="Gray"
+                       VerticalAlignment="Center">
+                <Run Text="*" Foreground="Red" FontSize="14"/>
+                <Run Text=" indicates required fields"/>
+            </TextBlock>
+        </Grid>
+
+        <!-- Form Fields (scrollable on small screens) -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Grid Margin="0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Row 0: Material Name -->
+            <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,20">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Left" 
+                               Text="* " 
+                               Foreground="Red" 
+                               FontSize="20" 
+                               Margin="0,0,5,0" 
+                               VerticalAlignment="Center"/>
+                    <TextBox FontSize="16" Style="{StaticResource FormTextBoxStyle}" materialDesign:HintAssist.Background="White" Padding="5" Background="Transparent" BorderBrush="#d9dee7" MaxLength="100" Text="{Binding ProductName, UpdateSourceTrigger=PropertyChanged}">
+                                            <materialDesign:HintAssist.Hint>
+                                                <TextBlock Text="Material Name" FontSize="15" />
+                                            </materialDesign:HintAssist.Hint>
+                                        </TextBox>
+                </DockPanel>
+                <TextBlock Text="Must be 2-100 characters" 
+                           FontSize="11" 
+                           Foreground="Gray"
+                           Margin="30,3,0,0"/>
+                <TextBlock Text="{Binding ProductNameError}" 
+                           FontSize="11" 
+                           Foreground="Red"
+                           Margin="30,3,0,0"
+                           Visibility="{Binding ProductNameError, Converter={StaticResource NullToVisibilityConverter}}"/>
+            </StackPanel>
+
+            <!-- Row 0: Product Code (Required & Unique) -->
+            <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,20">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Left" 
+                               Text="* " 
+                               Foreground="Red"
+                               FontSize="20" 
+                               Margin="0,0,5,0" 
+                               VerticalAlignment="Center"/>
+                    <TextBox FontSize="16" Style="{StaticResource FormTextBoxStyle}" materialDesign:HintAssist.Background="White" Padding="5" Background="Transparent" BorderBrush="#d9dee7" MaxLength="50" Text="{Binding ProductCode, UpdateSourceTrigger=PropertyChanged}">
+                                            <materialDesign:HintAssist.Hint>
+                                                <TextBlock Text="Material Code" FontSize="15" />
+                                            </materialDesign:HintAssist.Hint>
+                                        </TextBox>
+                </DockPanel>
+                <TextBlock Text="Must be unique (max 50 characters)"
+                           FontSize="11" 
+                           Foreground="Gray"
+                           Margin="30,3,0,0"/>
+                <TextBlock Text="{Binding ProductCodeError}" 
+                           FontSize="11" 
+                           Foreground="Red"
+                           Margin="30,3,0,0"
+                           Visibility="{Binding ProductCodeError, Converter={StaticResource NullToVisibilityConverter}}"/>
+            </StackPanel>
+
+            <!-- Row 1: Category -->
+            <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,20">
+                <TextBlock Text="Category" 
+                           FontSize="12" 
+                           FontWeight="SemiBold"
+                           Margin="30,0,0,4"/>
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Left" 
+                               Text="* " 
+                               Foreground="Red" 
+                               FontSize="20" 
+                               Margin="0,0,5,0" 
+                               VerticalAlignment="Center"/>
+                    <ComboBox FontSize="16" Style="{StaticResource FormComboBoxStyle}" materialDesign:HintAssist.Background="White" ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}" Padding="5" DisplayMemberPath="Name">
+                                            <materialDesign:HintAssist.Hint>
+                                                <TextBlock Text="Select Category" FontSize="15" />
+                                            </materialDesign:HintAssist.Hint>
+                                        </ComboBox>
+                </DockPanel>
+                <TextBlock Text="Select an active category" 
+                           FontSize="11" 
+                           Foreground="Gray"
+                           Margin="30,3,0,0"/>
+                <TextBlock Text="{Binding CategoryError}" 
+                           FontSize="11" 
+                           Foreground="Red"
+                           Margin="30,3,0,0"
+                           Visibility="{Binding CategoryError, Converter={StaticResource NullToVisibilityConverter}}"/>
+            </StackPanel>
+
+            <!-- Row 1: Variant -->
+            <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,0,20">
+                <TextBlock Text="Variant" 
+                           FontSize="12" 
+                           FontWeight="SemiBold"
+                           Margin="30,0,0,4"/>
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Left" 
+                               Text="* " 
+                               Foreground="Red" 
+                               FontSize="20" 
+                               Margin="0,0,5,0" 
+                               VerticalAlignment="Center"/>
+                    <ComboBox FontSize="16" Style="{StaticResource FormComboBoxStyle}" materialDesign:HintAssist.Background="White" ItemsSource="{Binding Variants}" SelectedItem="{Binding SelectedVariant}" Padding="5" DisplayMemberPath="Name">
+                                            <materialDesign:HintAssist.Hint>
+                                                <TextBlock Text="Select Variant" FontSize="15" />
+                                            </materialDesign:HintAssist.Hint>
+                                        </ComboBox>
+                </DockPanel>
+                <TextBlock Text="Select an active variant" 
+                           FontSize="11" 
+                           Foreground="Gray"
+                           Margin="30,3,0,0"/>
+                <TextBlock Text="{Binding VariantError}" 
+                           FontSize="11" 
+                           Foreground="Red"
+                           Margin="30,3,0,0"
+                           Visibility="{Binding VariantError, Converter={StaticResource NullToVisibilityConverter}}"/>
+            </StackPanel>
+
+            <!-- Row 2: Shelf Life -->
+            <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,0,20">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Left" 
+                               Text="* " 
+                               Foreground="Red" 
+                               FontSize="20" 
+                               Margin="0,0,5,0" 
+                               VerticalAlignment="Center"/>
+                     <TextBox FontSize="16" Style="{StaticResource FormTextBoxStyle}" materialDesign:HintAssist.Background="White" Padding="5" Background="Transparent" BorderBrush="#d9dee7" behaviors:NumericInputBehavior.Mode="Integer" MaxLength="4" Text="{Binding ShelfLife, UpdateSourceTrigger=PropertyChanged}">
+                                            <materialDesign:HintAssist.Hint>
+                                                <TextBlock Text="Shelf Life (Days)" FontSize="15" />
+                                            </materialDesign:HintAssist.Hint>
+                                        </TextBox>
+                </DockPanel>
+                <TextBlock Text="Positive number, maximum 9999 days" 
+                           FontSize="11" 
+                           Foreground="Gray"
+                           Margin="30,3,0,0"/>
+                <TextBlock Text="{Binding ShelfLifeError}" 
+                           FontSize="11" 
+                           Foreground="Red"
+                           Margin="30,3,0,0"
+                           Visibility="{Binding ShelfLifeError, Converter={StaticResource NullToVisibilityConverter}}"/>
+            </StackPanel>
+
+            <!-- Row 2: UOM Selector -->
+            <StackPanel Grid.Row="2" Grid.Column="2" Margin="20,0,0,20">               
+                <ComboBox FontSize="16" Style="{StaticResource FormComboBoxStyle}" materialDesign:HintAssist.Background="White" ItemsSource="{Binding WeightUOMOptions}" SelectedItem="{Binding SelectedWeightUOM}" Padding="5" BorderBrush="#d9dee7">
+                                            <materialDesign:HintAssist.Hint>
+                                                <TextBlock Text="Select UOM" FontSize="15" />
+                                            </materialDesign:HintAssist.Hint>
+                                        </ComboBox>
+                <TextBlock Text="Unit for weight measurements" 
+                           FontSize="11" 
+                           Foreground="Gray"
+                           Margin="5,3,0,0"/>
+            </StackPanel>
+
+            <!-- Row 3: Check Weigher Required -->
+            <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,0,20">
+                <TextBlock Text="Check Weigher Required" 
+                           FontSize="12" 
+                           FontWeight="SemiBold"
+                           Margin="20,0,0,5"/>
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton Content="Yes" 
+                                 FontSize="16"
+                                 IsChecked="{Binding CheckWeigherRequired}"
+                                 Margin="30,0,20,0"/>
+                    <RadioButton Content="No" 
+                                 FontSize="16"
+                                 IsChecked="{Binding CheckWeigherRequired, Converter={StaticResource InverseBooleanConverter}}"/>
+                </StackPanel>
+                <TextBlock Text="Enable check weigher validation (Default: Yes)" 
+                           FontSize="11" 
+                           Foreground="Gray"
+                           Margin="30,3,0,0"/>
+            </StackPanel>
+
+            <!-- Row 3: Target Weight (Conditional - Relative mode only) -->
+            <StackPanel Grid.Row="3" Grid.Column="2" Margin="0,0,0,20"
+                        Visibility="{Binding IsToleranceModeRelative, Converter={StaticResource BoolToVisibilityConverter}}">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Left" 
+                               Text="* " 
+                               FontSize="20" 
+                               Margin="0,0,5,0" 
+                               VerticalAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="#CCCCCC"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CheckWeigherRequired}" Value="True">
+                                        <Setter Property="Foreground" Value="Red"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                     <TextBox FontSize="16" Style="{StaticResource FormTextBoxStyle}" materialDesign:HintAssist.Background="White" Padding="5" Background="Transparent" BorderBrush="#d9dee7" IsEnabled="{Binding CheckWeigherRequired}" behaviors:NumericInputBehavior.Mode="Decimal" MaxLength="8" Text="{Binding TargetWeight, UpdateSourceTrigger=PropertyChanged}">
+                                            <materialDesign:HintAssist.Hint>
+                                                <TextBlock Text="Target Weight" FontSize="15" />
+                                            </materialDesign:HintAssist.Hint>
+                                        </TextBox>
+                </DockPanel>
+                <TextBlock Text="{Binding TargetWeightMaxHelperText}" 
+                           FontSize="11" 
+                           Foreground="Gray"
+                           Margin="30,3,0,0"/>
+                <TextBlock Text="{Binding TargetWeightError}" 
+                           FontSize="11" 
+                           Foreground="Red"
+                           Margin="30,3,0,0"
+                           Visibility="{Binding TargetWeightError, Converter={StaticResource NullToVisibilityConverter}}"/>
+                <TextBlock Text="{Binding TargetWeightLimitError}" 
+                           FontSize="11" 
+                           Foreground="Red"
+                           Margin="30,3,0,0"
+                           TextWrapping="Wrap"
+                           Visibility="{Binding TargetWeightLimitError, Converter={StaticResource NullToVisibilityConverter}}"/>
+            </StackPanel>
+
+            <!-- Row 4: Mode of Tolerance (visible when Check Weigher is Yes) -->
+            <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="4" Margin="0,0,0,20"
+                        Visibility="{Binding CheckWeigherRequired, Converter={StaticResource BoolToVisibilityConverter}}">
+                <TextBlock Text="Mode of Tolerance" 
+                           FontSize="12" 
+                           FontWeight="SemiBold"
+                           Margin="20,0,0,5"/>
+                <StackPanel Orientation="Vertical">
+                    <StackPanel Margin="30,0,0,8">
+                        <RadioButton Content="Relative" 
+                                     FontSize="16"
+                                     IsChecked="{Binding IsToleranceModeRelative}"
+                                     GroupName="ToleranceMode"/>
+                        <TextBlock Text="(%) percentage-based tolerance" 
+                                   FontSize="11" 
+                                   Foreground="Gray"
+                                   Margin="24,2,0,0"/>
+                    </StackPanel>
+                    <StackPanel Margin="30,0,0,0">
+                        <RadioButton Content="Absolute" 
+                                     FontSize="16"
+                                     IsChecked="{Binding IsToleranceModeAbsolute}"
+                                     GroupName="ToleranceMode"/>
+                        <TextBlock Text="(±g/kg) fixed tolerance in grams/kilograms" 
+                                   FontSize="11" 
+                                   Foreground="Gray"
+                                   Margin="24,2,0,0"/>
+                    </StackPanel>
+                </StackPanel>
+                <TextBlock Text="Choose how tolerance is calculated for check weigher validation" 
+                           FontSize="11" 
+                           Foreground="Gray"
+                           Margin="30,3,0,0"/>
+            </StackPanel>
+
+            <!-- Row 5: T- % (Conditional - Relative mode only) -->
+            <StackPanel Grid.Row="5" Grid.Column="0" Margin="0,0,0,20"
+                        Visibility="{Binding IsToleranceModeRelative, Converter={StaticResource BoolToVisibilityConverter}}">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Left" 
+                               Text="* " 
+                               FontSize="20" 
+                               Margin="0,0,5,0" 
+                               VerticalAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="#CCCCCC"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CheckWeigherRequired}" Value="True">
+                                        <Setter Property="Foreground" Value="Red"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <TextBox FontSize="16" Style="{StaticResource FormTextBoxStyle}" materialDesign:HintAssist.Background="White" Padding="5" Background="Transparent" BorderBrush="#d9dee7" IsEnabled="{Binding CheckWeigherRequired}" behaviors:NumericInputBehavior.Mode="Decimal" MaxLength="6" Text="{Binding TMinusPercent, UpdateSourceTrigger=PropertyChanged}">
+                                            <materialDesign:HintAssist.Hint>
+                                                <TextBlock Text="T- %" FontSize="15" />
+                                            </materialDesign:HintAssist.Hint>
+                                        </TextBox>
+                </DockPanel>
+                <TextBlock Text="Percentage: 0-100 (e.g., 5.50)" 
+                           FontSize="11" 
+                           Foreground="Gray"
+                           Margin="30,3,0,0"/>
+                <TextBlock Text="{Binding TMinusPercentError}" 
+                           FontSize="11" 
+                           Foreground="Red"
+                           Margin="30,3,0,0"
+                           Visibility="{Binding TMinusPercentError, Converter={StaticResource NullToVisibilityConverter}}"/>
+            </StackPanel>
+
+            <!-- Row 5: T+ % (Conditional - Relative mode only) -->
+            <StackPanel Grid.Row="5" Grid.Column="2" Margin="0,0,0,20"
+                        Visibility="{Binding IsToleranceModeRelative, Converter={StaticResource BoolToVisibilityConverter}}">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Left" 
+                               Text="* " 
+                               FontSize="20" 
+                               Margin="0,0,5,0" 
+                               VerticalAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="#CCCCCC"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CheckWeigherRequired}" Value="True">
+                                        <Setter Property="Foreground" Value="Red"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <TextBox FontSize="16" Style="{StaticResource FormTextBoxStyle}" materialDesign:HintAssist.Background="White" Padding="5" Background="Transparent" BorderBrush="#d9dee7" IsEnabled="{Binding CheckWeigherRequired}" behaviors:NumericInputBehavior.Mode="Decimal" MaxLength="6" Text="{Binding TPlusPercent, UpdateSourceTrigger=PropertyChanged}">
+                                            <materialDesign:HintAssist.Hint>
+                                                <TextBlock Text="T+ %" FontSize="15" />
+                                            </materialDesign:HintAssist.Hint>
+                                        </TextBox>
+                </DockPanel>
+                <TextBlock Text="Percentage: 0-100 (e.g., 10.50)" 
+                           FontSize="11" 
+                           Foreground="Gray"
+                           Margin="30,3,0,0"/>
+                <TextBlock Text="{Binding TPlusPercentError}" 
+                           FontSize="11" 
+                           Foreground="Red"
+                           Margin="30,3,0,0"
+                           Visibility="{Binding TPlusPercentError, Converter={StaticResource NullToVisibilityConverter}}"/>
+            </StackPanel>
+
+            <!-- Row 6: Min Weight (Absolute mode only) -->
+            <StackPanel Grid.Row="6" Grid.Column="0" Margin="0,0,0,20"
+                        Visibility="{Binding IsToleranceModeAbsolute, Converter={StaticResource BoolToVisibilityConverter}}">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Left" 
+                               Text="* " 
+                               FontSize="20" 
+                               Margin="0,0,5,0" 
+                               VerticalAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="#CCCCCC"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CheckWeigherRequired}" Value="True">
+                                        <Setter Property="Foreground" Value="Red"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <TextBox FontSize="16" Style="{StaticResource FormTextBoxStyle}" materialDesign:HintAssist.Background="White" Padding="5" Background="Transparent" BorderBrush="#d9dee7" IsEnabled="{Binding CheckWeigherRequired}" behaviors:NumericInputBehavior.Mode="Decimal" MaxLength="8" Text="{Binding MinWeight, UpdateSourceTrigger=PropertyChanged}">
+                                            <materialDesign:HintAssist.Hint>
+                                                <TextBlock Text="Min Weight" FontSize="15" />
+                                            </materialDesign:HintAssist.Hint>
+                                        </TextBox>
+                </DockPanel>
+                <TextBlock Text="{Binding MinWeightHelperText}" 
+                           FontSize="11" 
+                           Foreground="Gray"
+                           Margin="30,3,0,0"/>
+                <TextBlock Text="{Binding MinWeightError}" 
+                           FontSize="11" 
+                           Foreground="Red"
+                           Margin="30,3,0,0"
+                           Visibility="{Binding MinWeightError, Converter={StaticResource NullToVisibilityConverter}}"/>
+                <TextBlock Text="{Binding MinWeightLimitError}" 
+                           FontSize="11" 
+                           Foreground="Red"
+                           Margin="30,3,0,0"
+                           TextWrapping="Wrap"
+                           Visibility="{Binding MinWeightLimitError, Converter={StaticResource NullToVisibilityConverter}}"/>
+            </StackPanel>
+
+            <!-- Row 6: Max Weight (Absolute mode only) -->
+            <StackPanel Grid.Row="6" Grid.Column="2" Margin="0,0,0,20"
+                        Visibility="{Binding IsToleranceModeAbsolute, Converter={StaticResource BoolToVisibilityConverter}}">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Left" 
+                               Text="* " 
+                               FontSize="20" 
+                               Margin="0,0,5,0" 
+                               VerticalAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="#CCCCCC"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CheckWeigherRequired}" Value="True">
+                                        <Setter Property="Foreground" Value="Red"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <TextBox FontSize="16" Style="{StaticResource FormTextBoxStyle}" materialDesign:HintAssist.Background="White" Padding="5" Background="Transparent" BorderBrush="#d9dee7" IsEnabled="{Binding CheckWeigherRequired}" behaviors:NumericInputBehavior.Mode="Decimal" MaxLength="8" Text="{Binding MaxWeight, UpdateSourceTrigger=PropertyChanged}">
+                                            <materialDesign:HintAssist.Hint>
+                                                <TextBlock Text="Max Weight" FontSize="15" />
+                                            </materialDesign:HintAssist.Hint>
+                                        </TextBox>
+                </DockPanel>
+                <TextBlock Text="{Binding MaxWeightHelperText}" 
+                           FontSize="11" 
+                           Foreground="Gray"
+                           Margin="30,3,0,0"/>
+                <TextBlock Text="{Binding MaxWeightError}" 
+                           FontSize="11" 
+                           Foreground="Red"
+                           Margin="30,3,0,0"
+                           Visibility="{Binding MaxWeightError, Converter={StaticResource NullToVisibilityConverter}}"/>
+                <TextBlock Text="{Binding MaxWeightLimitError}" 
+                           FontSize="11" 
+                           Foreground="Red"
+                           Margin="30,3,0,0"
+                           TextWrapping="Wrap"
+                           Visibility="{Binding MaxWeightLimitError, Converter={StaticResource NullToVisibilityConverter}}"/>
+            </StackPanel>
+
+            <!-- Row 7: Material Image (Optional with crop) -->
+            <StackPanel Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,20">
+                <TextBlock Text="Material Image (Optional)" FontSize="12" FontWeight="SemiBold" Margin="20,0,0,6"/>
+                <Border BorderBrush="#d9dee7" BorderThickness="1" CornerRadius="6" Background="#FAFAFA" Padding="10" Margin="20,0,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Width="100" Height="100" Background="White" BorderBrush="#DDD" BorderThickness="1" CornerRadius="6" ClipToBounds="True">
+                            <Grid>
+                                <Image Source="{Binding ImagePreview}" Stretch="UniformToFill" Width="100" Height="100"/>
+                                <TextBlock Text="No image" FontSize="11" Foreground="#999" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasImage}" Value="False">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Grid>
+                        </Border>
+                        <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                            <WrapPanel Orientation="Horizontal">
+                                <Button Content="Browse &amp; Crop" Command="{Binding BrowseImageCommand}" Background="{DynamicResource BrandPrimaryBrush}" BorderBrush="{DynamicResource BrandPrimaryBrush}" Foreground="#434242" FontWeight="SemiBold" Padding="10,5" FontSize="13" Style="{StaticResource MaterialDesignRaisedButton}"/>
+                                <Button Content="Remove" Command="{Binding RemoveImageCommand}" Margin="8,0,0,0" Background="#E0E0E0" BorderBrush="#BDBDBD" Foreground="#333" Padding="10,5" FontSize="13" Style="{StaticResource MaterialDesignOutlinedButton}"/>
+                            </WrapPanel>
+                            <TextBlock Text="JPG/PNG, will be cropped to square. Max 5 MB. Stored locally." FontSize="11" Foreground="Gray" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <!-- Row 8: Status -->
+            <StackPanel Grid.Row="8" Grid.Column="0" Margin="10,0,0,20">
+                <CheckBox Content="Active"
+                          FontSize="16"
+                          IsChecked="{Binding IsActive}"
+                          Margin="0,5,0,0"/>
+                <TextBlock Text="Set product as active or inactive" 
+                           FontSize="11" 
+                           Foreground="Gray"
+                           Margin="5,3,0,0"/>
+            </StackPanel>
+        </Grid>
+        </ScrollViewer>
+
+        <!-- Action Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="{Binding SubmitButtonText}" 
+                    Command="{Binding SubmitCommand}" 
+                    Margin="6,0"
+                    Background="{DynamicResource BrandPrimaryBrush}" 
+                    BorderBrush="{DynamicResource BrandPrimaryBrush}" 
+                    Foreground="#434242"
+                    Style="{StaticResource MaterialDesignRaisedButton}"/>
+            <Button Content="Cancel" 
+                    Command="{Binding CancelCommand}" 
+                    Margin="6,0"
+                    Background="#555555" 
+                    BorderBrush="#555555" 
+                    Foreground="White"
+                    Style="{StaticResource MaterialDesignRaisedButton}"/>
+        </StackPanel>
+    </Grid>
+    </Border>
+</UserControl>

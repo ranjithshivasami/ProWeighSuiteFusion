@@ -1,0 +1,134 @@
+<Window x:Class="ProWeighSuitePlatforms.Views.QueueMonitorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"        Title="Queue Monitor" 
+        Height="580" 
+        Width="700"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResize">
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Margin" Value="10,5"/>
+        </Style>
+        
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Window.Resources>
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="{DynamicResource BrandPrimaryBrush}" Padding="12" CornerRadius="5" Margin="0,0,0,15">
+            <TextBlock Text="Transaction Sync Queue Monitor" FontSize="20" FontWeight="Bold" Foreground="#434242" HorizontalAlignment="Center"/>
+        </Border>
+
+        <!-- Session Statistics -->
+        <Grid Grid.Row="1" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="#FFF3E0" BorderBrush="#FF9800" BorderThickness="2" Padding="12" CornerRadius="8" Margin="0,0,8,0">
+                <StackPanel>
+                    <TextBlock Text="Pending" FontWeight="SemiBold" Foreground="#E65100" HorizontalAlignment="Center"/>
+                    <TextBlock Text="{Binding QueueSize}" FontSize="32" FontWeight="Bold" Foreground="#FF9800" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                    <TextBlock Text="items in queue" FontSize="11" Foreground="#666" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="1" Background="#E8F5E9" BorderBrush="#4CAF50" BorderThickness="2" Padding="12" CornerRadius="8" Margin="0,0,8,0">
+                <StackPanel>
+                    <TextBlock Text="Synced" FontWeight="SemiBold" Foreground="#2E7D32" HorizontalAlignment="Center"/>
+                    <TextBlock Text="{Binding SuccessCount}" FontSize="32" FontWeight="Bold" Foreground="#4CAF50" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                    <TextBlock Text="this session" FontSize="11" Foreground="#666" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="2" Background="#FFEBEE" BorderBrush="#F44336" BorderThickness="2" Padding="12" CornerRadius="8">
+                <StackPanel>
+                    <TextBlock Text="Failed" FontWeight="SemiBold" Foreground="#C62828" HorizontalAlignment="Center"/>
+                    <TextBlock Text="{Binding FailureCount}" FontSize="32" FontWeight="Bold" Foreground="#F44336" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                    <TextBlock Text="errors" FontSize="11" Foreground="#666" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Error Message -->
+        <Border Grid.Row="2"
+                Background="#FFF3E0" BorderBrush="#FF6F00" BorderThickness="2"
+                Padding="12" CornerRadius="5" Margin="0,0,0,10"
+                Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}">
+            <StackPanel>
+                <TextBlock Text="ERROR DETECTED" FontWeight="Bold" FontSize="14" Foreground="#E65100"/>
+                <TextBlock Text="{Binding ErrorMessage}" FontSize="12" Foreground="#BF360C" TextWrapping="Wrap" Margin="0,5,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Status & API Info -->
+        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Status Message -->
+                <Border Background="#F5F5F5" BorderBrush="#E0E0E0" BorderThickness="1" Padding="15" CornerRadius="5" Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBlock Text="Current Status:" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding Status}" FontSize="15" Foreground="#4CAF50" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- API Configuration -->
+                <Border Background="#E3F2FD" BorderBrush="#2196F3" BorderThickness="1" Padding="15" CornerRadius="5" Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBlock Text="API Endpoint:" FontWeight="SemiBold" Foreground="#1565C0"/>
+                        <TextBlock Text="{Binding ApiUrl}" Foreground="#0D47A1" FontFamily="Consolas" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Last Update -->
+                <Border Background="#FAFAFA" BorderBrush="#E0E0E0" BorderThickness="1" Padding="12" CornerRadius="5" Margin="0,0,0,10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Last Updated:" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Text="{Binding LastSync}" Foreground="#666" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+
+                <TextBlock Text="Auto-refreshing every 2 seconds" FontSize="11" Foreground="#999" FontStyle="Italic" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Action Buttons -->
+        <Border Grid.Row="4" BorderThickness="0,1,0,0" BorderBrush="#E0E0E0" Padding="0,10,0,0" Margin="0,10,0,0">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,8">
+                    <Button Content="Refresh Now" Command="{Binding RefreshCommand}" Background="#4CAF50" Foreground="White"/>
+                    <Button Content="Delete Synced Items" Command="{Binding DeleteSuccessfulCommand}" Background="#2196F3" Foreground="White"/>
+                    <Button Content="Clear All" Command="{Binding ClearQueueCommand}" Background="#FF5722" Foreground="White"/>
+                    <Button Content="⚠️ Force Clear" Command="{Binding ForceClearCommand}" Background="#D32F2F" Foreground="White" FontWeight="Bold"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button Content="🔍 Debug Info" Command="{Binding ShowDebugInfoCommand}" Background="#9E9E9E" Foreground="White" Padding="20,8"/>
+                    <Button Content="❌ Close" Command="{Binding CloseCommand}" Background="#757575" Foreground="White" Padding="25,8"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

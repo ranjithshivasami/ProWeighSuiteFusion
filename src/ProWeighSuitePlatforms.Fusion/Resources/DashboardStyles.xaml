@@ -1,0 +1,236 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
+
+    <!-- ============================================================
+         Dashboard / weighing-screen tokens (BridgeX look).
+         Primary actions use admin-switchable Brand brushes.
+         ============================================================ -->
+    <SolidColorBrush x:Key="DashPurpleBrush" Color="#7B5CF0"/>
+    <SolidColorBrush x:Key="DashGreenBrush" Color="#16A34A"/>
+    <SolidColorBrush x:Key="DashGoldBrush" Color="#F5A623"/>
+    <SolidColorBrush x:Key="DashRedBrush" Color="#E6493D"/>
+
+    <SolidColorBrush x:Key="DashTextDarkBrush" Color="#1E2B3C"/>
+    <SolidColorBrush x:Key="DashBodyBrush" Color="#5B6472"/>
+    <SolidColorBrush x:Key="DashMutedBrush" Color="#8A93A3"/>
+    <SolidColorBrush x:Key="DashFaintBrush" Color="#A3ABB8"/>
+    <SolidColorBrush x:Key="DashBorderBrush" Color="#E8EBF1"/>
+    <SolidColorBrush x:Key="DashPageBgBrush" Color="#EEF1F6"/>
+    <SolidColorBrush x:Key="DashCardBgBrush" Color="#FFFFFF"/>
+
+    <SolidColorBrush x:Key="DashHighlightBgBrush" Color="#EEF4FF"/>
+    <SolidColorBrush x:Key="DashHighlightBorderBrush" Color="#CFE0FF"/>
+    <SolidColorBrush x:Key="DashGreenPaleBrush" Color="#E8F8EE"/>
+    <SolidColorBrush x:Key="DashRedPaleBrush" Color="#FDE8E8"/>
+    <SolidColorBrush x:Key="DashNavyBrush" Color="#1E2B3C"/>
+    <SolidColorBrush x:Key="DashInputBgBrush" Color="#FAFBFC"/>
+    <SolidColorBrush x:Key="DashInputBorderBrush" Color="#DDE2EA"/>
+
+    <CornerRadius x:Key="DashCardCornerRadius">12</CornerRadius>
+    <CornerRadius x:Key="DashInnerCornerRadius">10</CornerRadius>
+    <CornerRadius x:Key="DashControlCornerRadius">8</CornerRadius>
+
+    <!-- ============================================================
+         Containers
+         ============================================================ -->
+    <Style x:Key="CardPanel" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource DashCardBgBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource DashBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="{StaticResource DashCardCornerRadius}"/>
+        <Setter Property="Padding" Value="18,16"/>
+    </Style>
+
+    <Style x:Key="MeasureCard" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource DashCardBgBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource DashBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="{StaticResource DashInnerCornerRadius}"/>
+        <Setter Property="Padding" Value="12,12"/>
+        <Setter Property="Margin" Value="0,0,8,8"/>
+    </Style>
+
+    <Style x:Key="MeasureCardHighlight" TargetType="Border" BasedOn="{StaticResource MeasureCard}">
+        <Setter Property="Background" Value="{StaticResource DashHighlightBgBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource DashHighlightBorderBrush}"/>
+    </Style>
+
+    <Style x:Key="StepCircleStyle" TargetType="Border">
+        <Setter Property="Width" Value="22"/>
+        <Setter Property="Height" Value="22"/>
+        <Setter Property="Background" Value="{DynamicResource BrandPrimaryBrush}"/>
+        <Setter Property="CornerRadius" Value="11"/>
+    </Style>
+
+    <!-- ============================================================
+         Typography
+         ============================================================ -->
+    <Style x:Key="SectionHeaderText" TargetType="TextBlock">
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="FontSize" Value="15"/>
+        <Setter Property="Foreground" Value="{StaticResource DashTextDarkBrush}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="LabelText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource DashMutedBrush}"/>
+    </Style>
+
+    <Style x:Key="ValueText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="19"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{StaticResource DashTextDarkBrush}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="UnitText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource DashMutedBrush}"/>
+        <Setter Property="VerticalAlignment" Value="Bottom"/>
+    </Style>
+
+    <Style x:Key="InfoKeyText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Foreground" Value="{StaticResource DashMutedBrush}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="InfoValueText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource DashTextDarkBrush}"/>
+        <Setter Property="TextAlignment" Value="Right"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <!-- ============================================================
+         Status pills
+         ============================================================ -->
+    <Style x:Key="StatusPillSuccess" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource DashGreenPaleBrush}"/>
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="Padding" Value="8,3"/>
+    </Style>
+
+    <Style x:Key="StatusPillDanger" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource DashRedPaleBrush}"/>
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="Padding" Value="8,3"/>
+    </Style>
+
+    <Style x:Key="StatusPillTextSuccess" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="10.5"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{StaticResource DashGreenBrush}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="StatusPillTextDanger" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="10.5"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{StaticResource DashRedBrush}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <!-- ============================================================
+         Buttons (brand-aware)
+         ============================================================ -->
+    <Style x:Key="PrimaryButton" TargetType="Button">
+        <Setter Property="Background" Value="{DynamicResource BrandPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BrandPrimaryBrush}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrandOnPrimaryBrush}"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="FontSize" Value="13.5"/>
+        <Setter Property="Padding" Value="20,11"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{StaticResource DashControlCornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource BrandPrimaryDarkBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.85"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.5"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="OutlineButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="BorderBrush" Value="{StaticResource DashBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrandPrimaryDarkBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{StaticResource DashControlCornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#F4F6FA"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.85"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.5"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="DangerOutlineButton" TargetType="Button" BasedOn="{StaticResource OutlineButton}">
+        <Setter Property="Foreground" Value="{StaticResource DashRedBrush}"/>
+        <Setter Property="BorderBrush" Value="#F3D4D1"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{StaticResource DashControlCornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#FEF1F0"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.85"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.5"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

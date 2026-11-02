@@ -1,0 +1,178 @@
+<UserControl x:Class="ProWeighSuitePlatforms.Views.CleanUpDatabaseView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
+    <Border Style="{StaticResource PageBackgroundStyle}" Padding="20">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Back Button and Title -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
+                <Button Command="{Binding BackCommand}"
+                       Width="40"
+                       Height="40"
+                       Padding="0"
+                       Style="{StaticResource MaterialDesignIconButton}"
+                       ToolTip="Back to Dashboard">
+                    <materialDesign:PackIcon Kind="ArrowLeft" Width="24" Height="24"/>
+                </Button>
+
+            </StackPanel>
+
+            <!-- Main Content Card -->
+            <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}" Padding="25" Margin="0,10,0,10">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <!-- Header with Icon -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                            <materialDesign:PackIcon Kind="DatabaseRemove" 
+                                                   Width="40" 
+                                                   Height="40" 
+                                                   Foreground="#D32F2F" 
+                                                   VerticalAlignment="Center" 
+                                                   Margin="0,0,15,0"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Clean Up Database" 
+                                          Style="{StaticResource PageTitleStyle}"/>
+                                <TextBlock Text="Select the data sections to permanently delete. This action cannot be undone." 
+                                          Style="{StaticResource SubtitleStyle}"
+                                          TextWrapping="Wrap" 
+                                          Margin="0,5,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Warning Banner -->
+                        <Border Background="#FFF3E0" 
+                               BorderBrush="#FF9800" 
+                               BorderThickness="1" 
+                               CornerRadius="4" 
+                               Padding="15" 
+                               Margin="0,0,0,25">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="Alert" 
+                                                       Width="20" 
+                                                       Height="20" 
+                                                       Foreground="#FF6F00" 
+                                                       VerticalAlignment="Top" 
+                                                       Margin="0,0,10,0"/>
+                                <StackPanel>
+                                    <TextBlock Text="Warning: " 
+                                             FontWeight="SemiBold" 
+                                             Foreground="#E65100" 
+                                             FontSize="13"/>
+                                    <TextBlock Text="Deleted data cannot be recovered. A password confirmation is required before cleanup proceeds." 
+                                             Foreground="#E65100" 
+                                             FontSize="12" 
+                                             TextWrapping="Wrap" 
+                                             Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Section Label -->
+                        <TextBlock Text="Select sections to clean:" 
+                                  Style="{StaticResource SectionTitleStyle}"
+                                  Margin="0,0,0,15"/>
+
+                        <!-- Masters Section -->
+                        <Border Style="{StaticResource SettingsCardBorderStyle}" 
+                               Margin="0,0,0,10">
+                            <StackPanel>
+                                <CheckBox IsChecked="{Binding MastersSectionChecked}" 
+                                         FontSize="14" 
+                                         FontWeight="Medium"
+                                         Style="{StaticResource MaterialDesignCheckBox}">
+                                    <TextBlock Text="Masters" FontWeight="SemiBold" Foreground="#333"/>
+                                </CheckBox>
+                                <TextBlock Text="Truncates: materials, categories, variants, scale settings, company settings, label templates." 
+                                          FontSize="12" 
+                                          Foreground="#666" 
+                                          Margin="32,5,0,0" 
+                                          TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Transactions Section -->
+                        <Border Style="{StaticResource SettingsCardBorderStyle}" 
+                               Margin="0,0,0,10">
+                            <StackPanel>
+                                <CheckBox IsChecked="{Binding TransactionsSectionChecked}" 
+                                         FontSize="14" 
+                                         FontWeight="Medium"
+                                         Style="{StaticResource MaterialDesignCheckBox}">
+                                    <TextBlock Text="Transactions" FontWeight="SemiBold" Foreground="#333"/>
+                                </CheckBox>
+                                <TextBlock Text="Truncates: weighing transactions, weighing batches, and reprint records." 
+                                          FontSize="12" 
+                                          Foreground="#666" 
+                                          Margin="32,5,0,0" 
+                                          TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Audit Logs Section -->
+                        <Border Style="{StaticResource SettingsCardBorderStyle}" 
+                               Margin="0,0,0,10">
+                            <StackPanel>
+                                <CheckBox IsChecked="{Binding AuditLogsSectionChecked}" 
+                                         FontSize="14" 
+                                         FontWeight="Medium"
+                                         Style="{StaticResource MaterialDesignCheckBox}">
+                                    <TextBlock Text="Audit Logs" FontWeight="SemiBold" Foreground="#333"/>
+                                </CheckBox>
+                                <TextBlock Text="Permanently deletes all daily audit log files from the AuditLogs folder." 
+                                          FontSize="12" 
+                                          Foreground="#666" 
+                                          Margin="32,5,0,0" 
+                                          TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Queue Section -->
+                        <Border Style="{StaticResource SettingsCardBorderStyle}" 
+                               Margin="0,0,0,0">
+                            <StackPanel>
+                                <CheckBox IsChecked="{Binding QueueSectionChecked}" 
+                                         FontSize="14" 
+                                         FontWeight="Medium"
+                                         Style="{StaticResource MaterialDesignCheckBox}">
+                                    <TextBlock Text="Queue" FontWeight="SemiBold" Foreground="#333"/>
+                                </CheckBox>
+                                <TextBlock Text="Clears the transaction sync queue, sync status tracking, and dead letter queue." 
+                                          FontSize="12" 
+                                          Foreground="#666" 
+                                          Margin="32,5,0,0" 
+                                          TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Clear Button -->
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                <Button Command="{Binding ClearCommand}"
+                       Background="#D32F2F"
+                       Foreground="White"
+                       Width="120"
+                       Height="40"
+                       Style="{StaticResource MaterialDesignRaisedButton}"
+                       FontSize="14">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Delete" 
+                                               Width="20" 
+                                               Height="20" 
+                                               VerticalAlignment="Center" 
+                                               Margin="0,0,8,0"/>
+                        <TextBlock Text="Clear" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

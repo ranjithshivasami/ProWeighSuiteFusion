@@ -1,0 +1,45 @@
+<UserControl x:Class="ProWeighSuitePlatforms.Views.MaterialsUpdateView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d">
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Update Material" FontSize="16" Grid.ColumnSpan="2" Margin="0,0,0,10" />
+
+        <TextBlock Grid.Row="1" Text="Name" VerticalAlignment="Center" />
+        <TextBox Grid.Row="1" Grid.Column="1"
+                 Style="{StaticResource FormTextBoxStyle}"
+                 Text="{Binding Selected.Name, UpdateSourceTrigger=PropertyChanged}" />
+
+        <TextBlock Grid.Row="2" Text="Material Code" VerticalAlignment="Center" />
+        <TextBox Grid.Row="2" Grid.Column="1"
+                 Style="{StaticResource FormTextBoxStyle}"
+                 Text="{Binding Selected.MaterialCode, UpdateSourceTrigger=PropertyChanged}" />
+
+        <TextBlock Grid.Row="3" Text="Expiry Duration (Days)" VerticalAlignment="Center" />
+        <TextBox Grid.Row="3" Grid.Column="1"
+                 Style="{StaticResource FormTextBoxStyle}"
+                 materialDesign:HintAssist.Hint="The number of days to expire"
+                 PreviewTextInput="NumberValidationTextBox"
+                 Text="{Binding Selected.ExpiryDuration, UpdateSourceTrigger=PropertyChanged}" />
+
+        <StackPanel Grid.Row="4" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="Update1" Command="{Binding UpdateCommand}" Margin="6,0" />
+            <Button Content="Cancel" Command="{Binding CancelUpdateCommand}" Margin="6,0" Style="{StaticResource MaterialDesignOutlinedButton}" />
+        </StackPanel>
+    </Grid>
+</UserControl>

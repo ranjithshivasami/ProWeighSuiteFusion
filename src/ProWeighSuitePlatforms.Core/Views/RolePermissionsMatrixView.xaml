@@ -1,0 +1,210 @@
+<UserControl x:Class="ProWeighSuitePlatforms.Views.RolePermissionsMatrixView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="700" d:DesignWidth="1200">
+    
+    <Border Style="{StaticResource PageBackgroundStyle}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}" Padding="12" Margin="10,20,10,10">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Background="{DynamicResource BrandPrimaryBrush}" Width="32" Height="32" CornerRadius="16" Margin="0,0,10,0">
+                            <Image Source="/ProWeighSuitePlatforms.Core;component/Images/icon-role-permissions.png" Width="24" Height="24"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Role Permissions Matrix" Style="{StaticResource PageTitleStyle}"
+                                 VerticalAlignment="Center"/>
+                    </StackPanel>
+                    
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button Content="Sync Menus" Command="{Binding SyncMenusCommand}" 
+                                Style="{StaticResource InfoButtonStyle}" Margin="0,0,8,0"/>
+                        <Button Content="Refresh" Command="{Binding RefreshCommand}" 
+                                Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,8,0"/>
+                        <Button Content="Reset" Command="{Binding ResetToDefaultsCommand}" 
+                                Style="{StaticResource DangerOutlineButton}" Margin="0,0,8,0"/>
+                        <Button Content="Save" Command="{Binding SaveCommand}" 
+                                Style="{StaticResource PrimaryButtonStyle}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+            
+            <!-- Info Box -->
+            <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}"
+                    Padding="12" Margin="10,0,10,10">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,8">
+                        <Run Text="[i]" FontWeight="Bold"/> Role Permissions Configuration
+                    </TextBlock>
+                    <TextBlock TextWrapping="Wrap" Style="{StaticResource SubtitleStyle}" FontSize="13">
+                        Configure access permissions for each user role. Check the box to grant permission, uncheck to revoke.
+                        Changes take effect immediately after saving.
+                    </TextBlock>
+                    <Border Background="White" BorderBrush="#E5E7EB" BorderThickness="1" Padding="8" Margin="0,10,0,0" CornerRadius="8">
+                        <TextBlock Style="{StaticResource SubtitleStyle}" FontWeight="Bold" FontSize="12">
+                            <Run Text="[!]" FontWeight="Bold"/> Warning: Be careful when modifying Super Admin permissions!
+                        </TextBlock>
+                    </Border>
+                    <Border Style="{StaticResource StatusPillSuccess}" Margin="0,10,0,0" Padding="8"
+                            Visibility="{Binding HasSyncStatusMessage, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock Style="{StaticResource StatusPillTextSuccess}" FontSize="12" TextWrapping="Wrap" Text="{Binding SyncStatusMessage}"/>
+                    </Border>
+                </StackPanel>
+            </Border>
+            
+            <!-- Data Grid - Main Content -->
+            <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}"
+                    Margin="10,0,10,10" Padding="0">
+                <DataGrid AutoGenerateColumns="False" 
+                          ItemsSource="{Binding PermissionRows}"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          CanUserResizeRows="False"
+                          CanUserSortColumns="False"
+                          IsReadOnly="False"
+                          SelectionMode="Single"
+                          SelectionUnit="FullRow"
+                          HeadersVisibility="Column"
+                          GridLinesVisibility="Horizontal"
+                          BorderThickness="0"
+                          Style="{StaticResource AppDataGridStyle}">
+                    
+                    <DataGrid.Resources>
+                        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource AppDataGridHeaderStyle}">
+                        </Style>
+                    </DataGrid.Resources>
+                    
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow" BasedOn="{StaticResource AppDataGridRowStyle}">
+                        </Style>
+                    </DataGrid.RowStyle>
+                    
+                    <DataGrid.CellStyle>
+                        <Style TargetType="DataGridCell" BasedOn="{StaticResource AppDataGridCellStyle}">
+                        </Style>
+                    </DataGrid.CellStyle>
+                    
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Menu" Binding="{Binding Category}" Width="150" IsReadOnly="True">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}">
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        
+                        <DataGridTextColumn Header="Permission" Binding="{Binding PermissionName}" Width="*" IsReadOnly="True" MinWidth="200">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}">
+                                    <Setter Property="Margin" Value="10,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        
+                        <DataGridTemplateColumn Header="Super Admin" Width="150">
+                            <DataGridTemplateColumn.HeaderStyle>
+                                <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource AppDataGridHeaderCenterStyle}">
+                                </Style>
+                            </DataGridTemplateColumn.HeaderStyle>
+                            <DataGridTemplateColumn.CellStyle>
+                                <Style TargetType="DataGridCell" BasedOn="{StaticResource AppDataGridCellStyle}">
+                                </Style>
+                            </DataGridTemplateColumn.CellStyle>
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding SuperAdminGranted, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                             HorizontalAlignment="Center" VerticalAlignment="Center" Cursor="Hand"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        
+                        <DataGridTemplateColumn Header="Admin" Width="150">
+                            <DataGridTemplateColumn.HeaderStyle>
+                                <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource AppDataGridHeaderCenterStyle}">
+                                </Style>
+                            </DataGridTemplateColumn.HeaderStyle>
+                            <DataGridTemplateColumn.CellStyle>
+                                <Style TargetType="DataGridCell" BasedOn="{StaticResource AppDataGridCellStyle}">
+                                </Style>
+                            </DataGridTemplateColumn.CellStyle>
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding AdminGranted, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                             HorizontalAlignment="Center" VerticalAlignment="Center" Cursor="Hand"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        
+                        <DataGridTemplateColumn Header="Operator" Width="150">
+                            <DataGridTemplateColumn.HeaderStyle>
+                                <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource AppDataGridHeaderCenterStyle}">
+                                </Style>
+                            </DataGridTemplateColumn.HeaderStyle>
+                            <DataGridTemplateColumn.CellStyle>
+                                <Style TargetType="DataGridCell" BasedOn="{StaticResource AppDataGridCellStyle}">
+                                </Style>
+                            </DataGridTemplateColumn.CellStyle>
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding OperatorGranted, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                             HorizontalAlignment="Center" VerticalAlignment="Center" Cursor="Hand"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+            
+            <!-- Status Bar at Bottom -->
+            <Border Grid.Row="3" Style="{StaticResource PaginationBarStyle}" Margin="10,0,10,10" Background="White">
+                <Grid>
+                    <TextBlock Style="{StaticResource SubtitleStyle}" FontSize="14" HorizontalAlignment="Left">
+                        <Run Text="User: " FontWeight="Bold"/>
+                        <Run Text="{Binding CurrentUser.Username, Mode=OneWay, FallbackValue=Guest, TargetNullValue=Guest}"/>
+                        <Run Text="  |  " FontWeight="Bold"/>
+                        <Run Text="Role: " FontWeight="Bold"/>
+                        <Run Text="{Binding CurrentUser.Role, Mode=OneWay, FallbackValue=None, TargetNullValue=None}"/>
+                        <Run Text="  |  " FontWeight="Bold"/>
+                        <Run Text="Total Permissions: " FontWeight="Bold"/>
+                        <Run Text="{Binding PermissionRows.Count, Mode=OneWay, FallbackValue=0}"/>
+                        <Run Text="  |  " FontWeight="Bold"/>
+                        <Run Text="Scope: " FontWeight="Bold"/>
+                        <Run Text="{Binding ScopeDisplayName, Mode=OneWay, FallbackValue=All Modules}"/>
+                    </TextBlock>
+                    <TextBlock Style="{StaticResource StatusPillTextDanger}" FontSize="14" FontWeight="Bold" HorizontalAlignment="Right"
+                               Visibility="{Binding HasChanges, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}">
+                        ! UNSAVED CHANGES
+                    </TextBlock>
+                </Grid>
+            </Border>
+            
+            <!-- Loading Overlay -->
+            <Grid Grid.Row="0" Grid.RowSpan="4" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}"
+                  Background="#80000000">
+                <Border Background="White" Padding="40,30" CornerRadius="10" 
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        BorderBrush="{DynamicResource BrandPrimaryBrush}" BorderThickness="1">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="Loading Permissions..." FontSize="20" FontWeight="Bold" 
+                                 Foreground="{DynamicResource BrandPrimaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                        <ProgressBar IsIndeterminate="True" Height="10" Width="250" Margin="0,0,0,15"/>
+                        <TextBlock Text="Please wait while permissions are being loaded..." 
+                                 Style="{StaticResource SubtitleStyle}" FontSize="13"
+                                 HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

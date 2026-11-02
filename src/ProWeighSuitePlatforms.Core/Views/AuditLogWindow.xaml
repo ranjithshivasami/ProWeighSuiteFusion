@@ -1,0 +1,140 @@
+<Window x:Class="ProWeighSuitePlatforms.Views.AuditLogWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="Audit Logs"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
+        Style="{StaticResource MaterialDesignWindow}">
+    
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,10">
+            <TextBlock Text="?? Audit Logs" 
+                       Style="{StaticResource MaterialDesignHeadline4TextBlock}"
+                       Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+            <TextBlock Text="View all user activities and system events" 
+                       Style="{StaticResource MaterialDesignBody2TextBlock}"
+                       Foreground="{DynamicResource MaterialDesignBodyLight}"/>
+        </StackPanel>
+
+        <!-- Filters -->
+        <materialDesign:Card Grid.Row="1" Padding="15" Margin="0,0,0,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Search -->
+                <TextBox Grid.Column="0" Grid.Row="0"
+                         materialDesign:HintAssist.Hint="Search logs..."
+                         Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource FormTextBoxStyle}"
+                         Margin="0,0,10,0"/>
+
+                <!-- Date Filter -->
+                <ComboBox Grid.Column="1" Grid.Row="0"
+                          materialDesign:HintAssist.Hint="Date"
+                          ItemsSource="{Binding AvailableDates}"
+                          SelectedItem="{Binding SelectedDate}"
+                          Style="{StaticResource FormComboBoxStyle}"
+                          Margin="0,0,10,0"/>
+
+                <!-- Category Filter -->
+                <ComboBox Grid.Column="2" Grid.Row="0"
+                          materialDesign:HintAssist.Hint="Category"
+                          SelectedItem="{Binding SelectedCategory}"
+                          Style="{StaticResource FormComboBoxStyle}"
+                          Margin="0,0,10,0">
+                    <ComboBox.Items>
+                        <ComboBoxItem Content="All Categories" />
+                        <ComboBoxItem Content="Authentication" Tag="Authentication"/>
+                        <ComboBoxItem Content="User Management" Tag="UserManagement"/>
+                        <ComboBoxItem Content="Material" Tag="Material"/>
+                        <ComboBoxItem Content="Transaction" Tag="Transaction"/>
+                        <ComboBoxItem Content="Configuration" Tag="Configuration"/>
+                        <ComboBoxItem Content="Security" Tag="Security"/>
+                        <ComboBoxItem Content="System" Tag="System"/>
+                        <ComboBoxItem Content="Report" Tag="Report"/>
+                    </ComboBox.Items>
+                </ComboBox>
+
+                <!-- Buttons -->
+                <StackPanel Grid.Column="3" Grid.Row="0" Orientation="Horizontal">
+                    <Button Content="?? Refresh" 
+                            Command="{Binding RefreshCommand}"
+                            Style="{StaticResource MaterialDesignOutlinedButton}"
+                            Margin="0,0,5,0"/>
+                    <Button Content="?? Export" 
+                            Command="{Binding ExportCommand}"
+                            Style="{StaticResource MaterialDesignOutlinedButton}"
+                            Margin="0,0,5,0"/>
+                    <Button Content="? Clear" 
+                            Command="{Binding ClearFilterCommand}"
+                            Style="{StaticResource MaterialDesignOutlinedButton}"/>
+                </StackPanel>
+
+                <!-- Severity Filter -->
+                <StackPanel Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" 
+                            Orientation="Horizontal" Margin="0,10,0,0">
+                    <TextBlock Text="Severity: " VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <RadioButton Content="All" IsChecked="{Binding SelectedSeverity, Converter={StaticResource NullToBooleanConverter}}" Margin="0,0,10,0"/>
+                    <RadioButton Content="? Info" GroupName="Severity" Margin="0,0,10,0"/>
+                    <RadioButton Content="? Warning" GroupName="Severity" Margin="0,0,10,0"/>
+                    <RadioButton Content="? Error" GroupName="Severity" Margin="0,0,10,0"/>
+                    <RadioButton Content="?? Critical" GroupName="Severity"/>
+                </StackPanel>
+            </Grid>
+        </materialDesign:Card>
+
+        <!-- Data Grid -->
+        <DataGrid Grid.Row="2"
+                  ItemsSource="{Binding AuditLogs}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  CanUserSortColumns="True"
+                  CanUserResizeColumns="True"
+                  SelectionMode="Extended"
+                  GridLinesVisibility="Horizontal"
+                  HeadersVisibility="Column"
+                  ColumnHeaderStyle="{StaticResource AppDataGridHeaderStyle}"
+                  Style="{StaticResource MaterialDesignDataGrid}">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Severity" Binding="{Binding SeverityIcon}" MinWidth="100" Width="120"/>
+                <DataGridTextColumn Header="Timestamp" Binding="{Binding TimeString}" MinWidth="100" Width="150"/>
+                <DataGridTextColumn Header="Action" Binding="{Binding Action}" MinWidth="100" Width="150"/>
+                <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="120"/>
+                <DataGridTextColumn Header="User" Binding="{Binding Username}" Width="120"/>
+                <DataGridTextColumn Header="Entity" Binding="{Binding EntityType}" Width="100"/>
+                <DataGridTextColumn Header="Details" Binding="{Binding Details}" Width="*"/>
+                <DataGridTextColumn Header="Machine" Binding="{Binding MachineName}" Width="120"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Status Bar -->
+        <materialDesign:Card Grid.Row="3" Padding="10" Margin="0,10,0,0">
+            <Grid>
+                <TextBlock Text="{Binding StatusMessage}" 
+                           VerticalAlignment="Center"/>
+                <Button Content="? Close" 
+                        Command="{Binding CloseCommand}"
+                        HorizontalAlignment="Right"
+                        Style="{StaticResource MaterialDesignFlatButton}"/>
+            </Grid>
+        </materialDesign:Card>
+    </Grid>
+</Window>

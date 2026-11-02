@@ -1,0 +1,264 @@
+<UserControl x:Class="ProWeighSuitePlatforms.Views.SyncSettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:behaviors="clr-namespace:ProWeighSuitePlatforms.Behaviors"
+             mc:Ignorable="d"
+             Background="White"
+             behaviors:AutoFocusBehavior.IsEnabled="True">
+    <Border Style="{StaticResource PageBackgroundStyle}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            
+
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <Border Style="{StaticResource CardBorderStyle}" Padding="10" Margin="5">
+                    <Grid Margin="10" MaxWidth="1200">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Title and Required Fields Info -->
+                        <Grid Grid.Row="0" Margin="0,0,0,20">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="Sync" Width="32" Height="32" Foreground="{DynamicResource BrandPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <StackPanel>
+                                    <TextBlock Text="Transaction Sync Settings" Style="{StaticResource PageTitleStyle}"/>
+                                    <TextBlock Text="Configure API endpoint and retry policy for transaction synchronization (POST method)" Style="{StaticResource SubtitleStyle}" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <TextBlock Grid.Column="1" FontSize="12" Foreground="Gray" VerticalAlignment="Center">
+                                <Run Text="*" Foreground="Red" FontSize="14"/>
+                                <Run Text=" indicates required fields"/>
+                            </TextBlock>
+                        </Grid>
+
+                        <!-- Form fields -->
+                        <Grid Grid.Row="1" Margin="0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- API Base URL 1 (required) -->
+                            <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,20">
+                                <DockPanel LastChildFill="True">
+                                    <TextBlock DockPanel.Dock="Left" Text="* " Foreground="Red" FontSize="20" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                    <TextBox FontSize="16"
+                                             Style="{StaticResource FormTextBoxStyle}"
+                                             materialDesign:HintAssist.Hint="Primary API Base URL (Required)"
+                                             materialDesign:HintAssist.Background="White"
+                                             Padding="5"
+                                             Background="Transparent"
+                                             BorderBrush="#d9dee7"
+                                             Text="{Binding ApiBaseUrl, UpdateSourceTrigger=PropertyChanged}"/>
+                                </DockPanel>
+                                <TextBlock Text="e.g., http://localhost/api/transactions or http://localhost:8080/sync" FontSize="11" Foreground="Gray" Margin="20,3,0,0"/>
+                                <TextBlock Text="Required. Transactions are marked as synced once this endpoint succeeds." FontSize="10" Foreground="#E65100" Margin="20,2,0,0" FontStyle="Italic"/>
+                            </StackPanel>
+
+                            <!-- API Base URL 2 (optional) -->
+                            <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,20">
+                                <DockPanel LastChildFill="True">
+                                    <TextBlock DockPanel.Dock="Left" Text="  " FontSize="20" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                    <TextBox FontSize="16"
+                                             Style="{StaticResource FormTextBoxStyle}"
+                                             materialDesign:HintAssist.Hint="Secondary API Base URL (Optional - Testing Only)"
+                                             materialDesign:HintAssist.Background="White"
+                                             Padding="5"
+                                             Background="Transparent"
+                                             BorderBrush="#d9dee7"
+                                             Text="{Binding ApiBaseUrl2, UpdateSourceTrigger=PropertyChanged}"/>
+                                </DockPanel>
+                                <TextBlock Text="Optional. For internal testing purposes only. Transactions are mirrored to this endpoint." FontSize="11" Foreground="Gray" Margin="20,3,0,0"/>
+                                <TextBlock Text="⚠️ Does NOT affect Qumonitor status or sync failure counts. Only Primary URL determines sync success." FontSize="10" Foreground="#0277BD" Margin="20,2,0,0" FontWeight="SemiBold"/>
+                            </StackPanel>
+
+                            <!-- Retry settings on right column (spans both rows) -->
+                            <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" Margin="0,0,0,20" VerticalAlignment="Top">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0">Retries</TextBlock>
+                                    <TextBox Grid.Row="0" Grid.Column="1" FontSize="16" Style="{StaticResource FormTextBoxStyle}"
+                                             Padding="5" Background="Transparent" BorderBrush="#d9dee7"
+                                             Text="{Binding RetryCount, UpdateSourceTrigger=PropertyChanged}" />
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,6,8,0">Delay (s)</TextBlock>
+                                    <TextBox Grid.Row="1" Grid.Column="1" FontSize="16" Style="{StaticResource FormTextBoxStyle}"
+                                             Padding="5" Background="Transparent" BorderBrush="#d9dee7" Margin="0,6,0,0"
+                                             Text="{Binding RetryDelaySeconds, UpdateSourceTrigger=PropertyChanged}" />
+                                </Grid>
+                                <TextBlock Text="Number of retries and delay between retries on failure" FontSize="11" Foreground="Gray" Margin="0,6,0,0"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Field Mapping Section -->
+                        <Border Grid.Row="2" Style="{StaticResource SettingsCardBorderStyle}" Margin="0,10,0,10">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                                    <materialDesign:PackIcon Kind="PlaylistCheck" Width="20" Height="20" Foreground="{DynamicResource BrandPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Transaction Field Mapping" Style="{StaticResource SectionTitleStyle}"/>
+                                    <TextBlock Text="Select which fields to include in the sync payload" Style="{StaticResource SubtitleStyle}" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <Grid Grid.Row="1" Margin="0,4,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="30"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Background="White" BorderBrush="#DDD" BorderThickness="1" CornerRadius="3" Padding="8">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="*"/>
+                                            </Grid.RowDefinitions>
+                                            <TextBlock Grid.Row="0" Text="Available Fields" FontWeight="SemiBold" FontSize="12" Foreground="#666" Margin="0,0,0,4"/>
+                                            <ListBox Grid.Row="1" ItemsSource="{Binding AvailableFields}" BorderThickness="0" MinHeight="150" MaxHeight="250">
+                                                <ListBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0" Text="{Binding}" VerticalAlignment="Center" FontSize="12"/>
+                                                            <Button Grid.Column="1"
+                                                                    Command="{Binding DataContext.AddFieldCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Width="24" Height="24" Padding="0"
+                                                                    Background="Transparent" BorderThickness="0"
+                                                                    ToolTip="Add to mapped fields">
+                                                                <materialDesign:PackIcon Kind="PlusCircleOutline" Width="16" Height="16" Foreground="#4CAF50"/>
+                                                            </Button>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ListBox.ItemTemplate>
+                                            </ListBox>
+                                        </Grid>
+                                    </Border>
+                                    <Border Grid.Column="2" Background="White" BorderBrush="#DDD" BorderThickness="1" CornerRadius="3" Padding="8">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="*"/>
+                                            </Grid.RowDefinitions>
+                                            <TextBlock Grid.Row="0" Text="Mapped Fields" FontWeight="SemiBold" FontSize="12" Foreground="#666" Margin="0,0,0,4"/>
+                                            <ListBox Grid.Row="1" ItemsSource="{Binding SelectedFields}" BorderThickness="0" MinHeight="150" MaxHeight="250">
+                                                <ListBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0" Text="{Binding}" VerticalAlignment="Center" FontSize="12"/>
+                                                            <Button Grid.Column="1"
+                                                                    Command="{Binding DataContext.RemoveFieldCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Width="24" Height="24" Padding="0"
+                                                                    Background="Transparent" BorderThickness="0"
+                                                                    ToolTip="Remove from mapped fields">
+                                                                <materialDesign:PackIcon Kind="CloseCircleOutline" Width="16" Height="16" Foreground="#F44336"/>
+                                                            </Button>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ListBox.ItemTemplate>
+                                            </ListBox>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </Grid>
+                        </Border>
+
+                        <!-- Test API Section -->
+                        <Border Grid.Row="3" Style="{StaticResource SettingsCardBorderStyle}" Margin="0,10,0,20">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <materialDesign:PackIcon Kind="TestTube" Width="20" Height="20" Foreground="{DynamicResource BrandPrimaryBrush}" VerticalAlignment="Top" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Test API Endpoint" Style="{StaticResource SectionTitleStyle}" />
+                                </StackPanel>
+                                <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#424242" Margin="28,0,0,8">
+                                    Test your API connection by sending a sample transaction. The response will appear below.
+                                </TextBlock>
+                                <Button Command="{Binding TestApiCommand}" Style="{StaticResource InfoButtonStyle}" Margin="28,0,0,12" Padding="15,8" HorizontalAlignment="Left">
+                                    <Button.Content>
+                                        <StackPanel Orientation="Horizontal">
+                                            <materialDesign:PackIcon Kind="TestTube" Width="16" Height="16"
+                                                                     VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                            <TextBlock Text="Test Connection" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button.Content>
+                                </Button>
+                                
+                                <!-- Test Response Display - Scrollable -->
+                                <Border Margin="28,10,0,0" 
+                                        Background="White" 
+                                        BorderBrush="#DDD" 
+                                        BorderThickness="1" 
+                                        CornerRadius="3" 
+                                        Padding="8"
+                                        MaxHeight="400"
+                                        Visibility="{Binding TestResponseVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                                        <TextBlock Text="{Binding TestResponse}" 
+                                                   FontFamily="Consolas" 
+                                                   FontSize="11" 
+                                                   TextWrapping="Wrap" 
+                                                   Foreground="#333"/>
+                                    </ScrollViewer>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Action Buttons -->
+                        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                            <Button Command="{Binding SaveCommand}" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,8,0" Padding="15,8">
+                                <Button.Content>
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="ContentSave" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                        <TextBlock Text="Save Settings" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button.Content>
+                            </Button>
+                            <Button Content="Cancel" Command="{Binding CancelCommand}" Style="{StaticResource SecondaryButtonStyle}" Padding="15,8">
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </ScrollViewer>
+        </Grid>
+    </Border>
+</UserControl>

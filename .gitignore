@@ -1,0 +1,39 @@
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build outputs
+bin/
+obj/
+[Bb]uild/
+# Repo build tooling and recorded baselines (not generated output)
+!/build/
+!/build/**
+[Ll]og/	
+[Aa]rtifacts/
+publish/
+publish-small/
+
+# Rider / VS Code
+.idea/
+.vscode/
+
+# NuGet / Packages
+packages/
+*.nupkg
+
+# SQLite / App data
+*.db
+*.db-shm
+*.db-wal
+appdata.db
+
+# Others
+*.cache
+*.log
+TestResult*/
+# Built installer output (scripts and .iss sources stay tracked)
+*.exe
+releases/

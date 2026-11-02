@@ -1,0 +1,569 @@
+<UserControl x:Class="ProWeighSuitePlatforms.Views.ModbusSettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:behaviors="clr-namespace:ProWeighSuitePlatforms.Behaviors"
+             mc:Ignorable="d"
+             d:DesignHeight="720" d:DesignWidth="1000">
+    <Border Style="{StaticResource PageBackgroundStyle}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+                <Border Style="{StaticResource CardBorderStyle}" Padding="12" Margin="0,0,0,10">
+                    <TabControl Style="{StaticResource MaterialDesignTabControl}"
+                                materialDesign:ColorZoneAssist.Mode="PrimaryMid"
+                                Background="White">
+                        <!-- ===================== Tab 1: PLC Connection & Diagnostics ===================== -->
+                        <TabItem Header="PLC Connection">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,12,0,0">
+                                <StackPanel>
+                                    <!-- Serial Port Parameters -->
+                                    <Border Style="{StaticResource SettingsCardBorderStyle}"
+                                            Margin="0,0,0,15">
+                                        <StackPanel>
+                                        <TextBlock Text="Serial Port Parameters (Modbus RTU / RS-485)" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,10"/>
+                                        <UniformGrid Columns="3" Rows="2" Margin="0,10,0,5"
+                                                     IsEnabled="{Binding IsConnected, Converter={StaticResource InverseBoolConverter}}">
+                                            <ComboBox ItemsSource="{Binding AvailablePorts}"
+                                                      SelectedItem="{Binding SelectedPortName, Mode=TwoWay}"
+                                                      materialDesign:HintAssist.Hint="COM Port *"
+                                                      Style="{StaticResource FormComboBoxStyle}"
+                                                      Margin="0,0,10,12" Padding="8" FontSize="14" VerticalContentAlignment="Center"/>
+                                            <ComboBox ItemsSource="{Binding BaudRateOptions}"
+                                                      SelectedItem="{Binding SelectedBaudRate, Mode=TwoWay}"
+                                                      materialDesign:HintAssist.Hint="Baud Rate *"
+                                                      Style="{StaticResource FormComboBoxStyle}"
+                                                      Margin="0,0,10,12" Padding="8" FontSize="14" VerticalContentAlignment="Center"/>
+                                            <ComboBox ItemsSource="{Binding DataBitsOptions}"
+                                                      SelectedItem="{Binding SelectedDataBits, Mode=TwoWay}"
+                                                      materialDesign:HintAssist.Hint="Data Bits *"
+                                                      Style="{StaticResource FormComboBoxStyle}"
+                                                      Margin="0,0,10,12" Padding="8" FontSize="14" VerticalContentAlignment="Center"/>
+                                            <ComboBox ItemsSource="{Binding StopBitsOptions}"
+                                                      SelectedItem="{Binding SelectedStopBits, Mode=TwoWay}"
+                                                      materialDesign:HintAssist.Hint="Stop Bits *"
+                                                      Style="{StaticResource FormComboBoxStyle}"
+                                                      Margin="0,0,10,12" Padding="8" FontSize="14" VerticalContentAlignment="Center"/>
+                                            <ComboBox ItemsSource="{Binding ParityOptions}"
+                                                      SelectedItem="{Binding SelectedParity, Mode=TwoWay}"
+                                                      materialDesign:HintAssist.Hint="Parity *"
+                                                      Style="{StaticResource FormComboBoxStyle}"
+                                                      Margin="0,0,10,12" Padding="8" FontSize="14" VerticalContentAlignment="Center"/>
+                                            <TextBox Text="{Binding SlaveAddressText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                     materialDesign:HintAssist.Hint="Slave Address (1-247) *"
+                                                     Style="{StaticResource FormTextBoxStyle}"
+                                                     MaxLength="3" Margin="0,0,10,12" Padding="8" FontSize="14" VerticalContentAlignment="Center"/>
+                                        </UniformGrid>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Live I/O Diagnostics -->
+                                    <Border Style="{StaticResource SettingsCardBorderStyle}"
+                                            Margin="0,0,0,5">
+                                        <StackPanel Margin="0,10,0,5">
+                                            <TextBlock Text="Live I/O Diagnostics (Manual Write/Read + On-Demand Listen 0-7)" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,10"/>
+                                            <TextBlock Text="Inputs 0-7 via FC02 (Listen), Outputs 0-5 via FC06 (Write). Manual Write defaults to 0 (D0) - proven by Poll 01 06 00 00 00 01 48 0A = OK. Output window is 0-5 (D0=under, D1=over, D2=accept, D3-D5 spare)."
+                                                       FontSize="12" Foreground="#666" Margin="0,0,0,12" TextWrapping="Wrap"/>
+                                            <Grid IsEnabled="{Binding IsConnected}">
+                                                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                                <Grid.ColumnDefinitions><ColumnDefinition Width="70"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Write" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,12"/>
+                                                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ManualWriteAddress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="Target Holding Reg (0-65535, e.g. 0)" Style="{StaticResource FormTextBoxStyle}" MaxLength="5" Margin="0,0,10,12" Padding="8" FontSize="14" VerticalContentAlignment="Center"/>
+                                                <TextBox Grid.Row="0" Grid.Column="2" Text="{Binding ManualWriteValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="Value (0-65535 or 0/1 via FC06)" Style="{StaticResource FormTextBoxStyle}" MaxLength="10" Margin="0,0,10,12" Padding="8" FontSize="14" VerticalContentAlignment="Center"/>
+                                                <Button Grid.Row="0" Grid.Column="3" Command="{Binding SendManualWriteCommand}" Content="Send Manual Write" Style="{StaticResource PrimaryButtonStyle}" FontSize="13" FontWeight="Bold" Height="38" MinWidth="150" Margin="0,0,0,12"/>
+                                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Read" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,12"/>
+                                                <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding ManualReadAddress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="Source Address (holding reg / discrete input - auto-probed)" Style="{StaticResource FormTextBoxStyle}" MaxLength="5" Margin="0,15,10,12" Padding="8" FontSize="14" VerticalContentAlignment="Center"/>
+                                                <Button Grid.Row="1" Grid.Column="3" Command="{Binding ReceiveManualReadCommand}" Content="Receive Manual Read" Style="{StaticResource InfoButtonStyle}" FontSize="13" FontWeight="Bold" Height="38" MinWidth="150" Margin="0,15,0,12"/>
+                                            </Grid>
+                                            <Grid Margin="0,4,0,8">
+                                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0" Text="{Binding ListeningStatusText}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="#333">
+                                                    <TextBlock.Style><Style TargetType="TextBlock"><Style.Triggers><DataTrigger Binding="{Binding IsListening}" Value="True"><Setter Property="Foreground" Value="#2E7D32"/></DataTrigger><DataTrigger Binding="{Binding IsConnected}" Value="False"><Setter Property="Foreground" Value="#999"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                                                </TextBlock>
+                                                <Button Grid.Column="1" Command="{Binding ToggleListeningCommand}" Content="{Binding ListeningButtonText}" FontSize="13" FontWeight="Bold" Height="38" MinWidth="170" Margin="10,0,0,0">
+                                                    <Button.Style><Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}"><Setter Property="Background" Value="#2196F3"/><Setter Property="Foreground" Value="White"/><Style.Triggers><DataTrigger Binding="{Binding IsListening}" Value="True"><Setter Property="Background" Value="#E53935"/></DataTrigger><DataTrigger Binding="{Binding IsConnected}" Value="False"><Setter Property="IsEnabled" Value="False"/><Setter Property="Opacity" Value="0.6"/></DataTrigger></Style.Triggers></Style></Button.Style>
+                                                </Button>
+                                            </Grid>
+                                            <Border Background="#2c2c2c" CornerRadius="5" Padding="8" Margin="0,4,0,0">
+                                                <StackPanel>
+                                                    <TextBlock Text="LAST RESULT" FontSize="10" Foreground="#9E9E9E"/>
+                                                    <TextBlock Text="{Binding DiagnosticDisplayResult, Mode=OneWay}" FontFamily="Consolas" FontSize="12" Foreground="#FFD54F" TextWrapping="Wrap" Margin="0,2,0,8"/>
+                                                    <Rectangle Height="1" Fill="#444444" Margin="0,0,0,8"/>
+                                                    <TextBlock Text="STATUS LOG" FontSize="10" Foreground="#9E9E9E"/>
+                                                    <TextBox Text="{Binding StatusLogMessage, Mode=OneWay}" IsReadOnly="True" Background="Transparent" BorderThickness="0" Foreground="#E8E8E8" FontFamily="Consolas" FontSize="12" MinHeight="110" MaxHeight="180" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" TextWrapping="NoWrap"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+
+                        <!-- ===================== Tab 2: PLC Address Mapping ===================== -->
+                        <TabItem Header="PLC Address Mapping">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,12,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="FC02 (Discrete Inputs) and FC06 (Holding Registers) are INDEPENDENT address spaces. Inputs 0-7 are read-only (Listen), Outputs 0-5 (D0-D5) are write-only via FC06. Numeric overlap is allowed: FC02 @0 (sensor) ≠ FC06 @0 (D0). Defaults: Input 0 = Item Arrived, Outputs 0=Under-Weight, 1=Over-Weight, 2=Accept, 3-5 Spare. Poll proven @0: 01 06 00 00 00 01 48 0A → OK."
+                                               FontSize="12" Foreground="#666" Margin="0,0,0,12" TextWrapping="Wrap"/>
+
+                                    <!-- Input mapping -->
+                                    <Border Style="{StaticResource SettingsCardBorderStyle}" Margin="0,0,0,12">
+                                        <StackPanel Margin="0,8,0,4">
+                                            <TextBlock Text="Discrete Inputs — FC02 Listen 0-7 (Read-only)" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,10"/>
+
+                                            <!-- Discrete table: Address | Value | WPF Define (Weighing in process / Capture) | Delete — same pattern as Holding -->
+                                            <Border BorderBrush="Transparent" BorderThickness="0" CornerRadius="6" Background="White" Padding="0" Margin="0,12,0,0">
+                                                <DataGrid ItemsSource="{Binding DiscreteInputMaps}"
+                                                          AutoGenerateColumns="False"
+                                                          CanUserAddRows="False"
+                                                          CanUserDeleteRows="False"
+                                                          HeadersVisibility="Column"
+                                                          GridLinesVisibility="All"
+                                                          HorizontalGridLinesBrush="Transparent"
+                                                          VerticalGridLinesBrush="Transparent"
+                                                          BorderThickness="0"
+                                                          RowHeight="52"
+                                                          FontSize="13"
+                                                          Background="White"
+                                                          RowBackground="White"
+                                                          AlternatingRowBackground="White"
+                                                          HorizontalScrollBarVisibility="Disabled"
+                                                          SelectionMode="Single"
+                                                          SelectionUnit="FullRow">
+                                                    <DataGrid.Resources>
+                                                        <Style TargetType="DataGridColumnHeader">
+                                                            <Setter Property="Background" Value="#F1F5F9"/>
+                                                            <Setter Property="Foreground" Value="#475569"/>
+                                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                                            <Setter Property="FontSize" Value="12"/>
+                                                            <Setter Property="Padding" Value="8,8"/>
+                                                            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+                                                            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                                            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                                        </Style>
+                                                        <Style TargetType="DataGridCell">
+                                                            <Setter Property="BorderThickness" Value="0"/>
+                                                            <Setter Property="Padding" Value="4"/>
+                                                            <Setter Property="Background" Value="Transparent"/>
+                                                            <Setter Property="Template">
+                                                                <Setter.Value>
+                                                                    <ControlTemplate TargetType="DataGridCell">
+                                                                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" BorderBrush="#E2E8F0" BorderThickness="0,0,1,1">
+                                                                            <ContentPresenter VerticalAlignment="Center"/>
+                                                                        </Border>
+                                                                    </ControlTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                            <Style.Triggers>
+                                                                <Trigger Property="IsSelected" Value="True">
+                                                                    <Setter Property="Background" Value="Transparent"/>
+                                                                    <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource Self}}"/>
+                                                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                                                </Trigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                        <Style TargetType="DataGridRow">
+                                                            <Setter Property="Background" Value="White"/>
+                                                            <Setter Property="BorderBrush" Value="Transparent"/>
+                                                            <Setter Property="BorderThickness" Value="1.5"/>
+                                                            <Setter Property="SnapsToDevicePixels" Value="True"/>
+                                                            <Style.Triggers>
+                                                                <Trigger Property="IsSelected" Value="True">
+                                                                    <Setter Property="Background" Value="White"/>
+                                                                    <Setter Property="BorderBrush" Value="{DynamicResource BrandPrimaryBrush}"/>
+                                                                    <Setter Property="BorderThickness" Value="1.5"/>
+                                                                </Trigger>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter Property="BorderBrush" Value="{DynamicResource BrandPrimaryBrush}"/>
+                                                                </Trigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </DataGrid.Resources>
+                                                    <DataGrid.Columns>
+                                                        <DataGridTemplateColumn Header="Address" Width="0.9*">
+                                                            <DataGridTemplateColumn.CellTemplate>
+                                                                <DataTemplate>
+                                                                    <TextBox Text="{Binding Address, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                             Style="{StaticResource FormTextBoxStyle}"
+                                                                             Padding="6,4" FontSize="13" BorderBrush="#E2E8F0" materialDesign:TextFieldAssist.UnderlineBrush="{DynamicResource BrandPrimaryBrush}"/>
+                                                                </DataTemplate>
+                                                            </DataGridTemplateColumn.CellTemplate>
+                                                        </DataGridTemplateColumn>
+                                                        <DataGridTemplateColumn Width="0.9*">
+                                                            <DataGridTemplateColumn.Header>
+                                                                <TextBlock Text="Value" Foreground="#92400E" FontWeight="Bold"/>
+                                                            </DataGridTemplateColumn.Header>
+                                                            <DataGridTemplateColumn.HeaderStyle>
+                                                                <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                                                    <Setter Property="Background" Value="#FEF3C7"/>
+                                                                </Style>
+                                                            </DataGridTemplateColumn.HeaderStyle>
+                                                            <DataGridTemplateColumn.CellTemplate>
+                                                                <DataTemplate>
+                                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                                        <RadioButton Content="False" IsChecked="{Binding IsValueFalse, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                                     Style="{StaticResource MaterialDesignRadioButton}"
+                                                                                     Margin="0,0,10,0" FontSize="13" VerticalAlignment="Center"/>
+                                                                        <RadioButton Content="True" IsChecked="{Binding IsValueTrue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                                     Style="{StaticResource MaterialDesignRadioButton}"
+                                                                                     FontSize="13" VerticalAlignment="Center"/>
+                                                                    </StackPanel>
+                                                                </DataTemplate>
+                                                            </DataGridTemplateColumn.CellTemplate>
+                                                        </DataGridTemplateColumn>
+                                                        <DataGridTemplateColumn Header="Function defenation" Width="1.2*">
+                                                            <DataGridTemplateColumn.CellTemplate>
+                                                                <DataTemplate>
+                                                                    <ComboBox SelectedValue="{Binding WpfDefine, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                              SelectedValuePath="Key"
+                                                                              DisplayMemberPath="Display"
+                                                                              ItemsSource="{Binding DataContext.DiscreteWpfOptions, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                              Style="{StaticResource FormComboBoxStyle}"
+                                                                               Padding="6,2" FontSize="13"/>
+                                                                </DataTemplate>
+                                                            </DataGridTemplateColumn.CellTemplate>
+                                                        </DataGridTemplateColumn>
+                                                        <DataGridTemplateColumn Header="Input Name" Width="1.2*">
+                                                            <DataGridTemplateColumn.CellTemplate>
+                                                                <DataTemplate>
+                                                                    <TextBox Text="{Binding InputName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                             Style="{StaticResource FormTextBoxStyle}"
+                                                                             MaxLength="50"
+                                                                             Padding="6,4" FontSize="13" BorderBrush="#E2E8F0"
+                                                                             materialDesign:HintAssist.Hint="3-50 chars"
+                                                                             ToolTip="Input Name — 3 to 50 characters"/>
+                                                                </DataTemplate>
+                                                            </DataGridTemplateColumn.CellTemplate>
+                                                        </DataGridTemplateColumn>
+                                                        <DataGridTemplateColumn Header="Cut off time (ms)" Width="0.8*">
+                                                            <DataGridTemplateColumn.CellTemplate>
+                                                                <DataTemplate>
+                                                                    <TextBox Text="{Binding CutOffTimeMsText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                             Style="{StaticResource FormTextBoxStyle}"
+                                                                             behaviors:NumericInputBehavior.Mode="Integer"
+                                                                             MaxLength="6"
+                                                                             Padding="6,4" FontSize="13" BorderBrush="#E2E8F0"
+                                                                             materialDesign:HintAssist.Hint="ms"
+                                                                             ToolTip="Only numbers — milliseconds"/>
+                                                                </DataTemplate>
+                                                            </DataGridTemplateColumn.CellTemplate>
+                                                        </DataGridTemplateColumn>
+                                                        <DataGridTemplateColumn Header="Actions" Width="0.5*">
+                                                            <DataGridTemplateColumn.CellTemplate>
+                                                                <DataTemplate>
+                                                                    <Button Command="{Binding DataContext.DeleteDiscreteInputMapRowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                            CommandParameter="{Binding}"
+                                                                            ToolTip="Delete"
+                                                                            Width="32" Height="28" Padding="0"
+                                                                            Background="Transparent" Foreground="#EF4444" BorderBrush="#EF4444" BorderThickness="1"
+                                                                            Style="{StaticResource MaterialDesignOutlinedButton}">
+                                                                        <materialDesign:PackIcon Kind="Delete" Width="18" Height="18" />
+                                                                        <Button.Resources>
+                                                                            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignOutlinedButton}">
+                                                                                <Style.Triggers>
+                                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                                        <Setter Property="Background" Value="#EF4444"/>
+                                                                                        <Setter Property="Foreground" Value="White"/>
+                                                                                    </Trigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </Button.Resources>
+                                                                    </Button>
+                                                                </DataTemplate>
+                                                            </DataGridTemplateColumn.CellTemplate>
+                                                        </DataGridTemplateColumn>
+                                                    </DataGrid.Columns>
+                                                </DataGrid>
+                                            </Border>
+                                            <Grid Margin="0,10,0,0">
+                                                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                                <Button Grid.Column="0" Content="+ Add Row" Command="{Binding AddDiscreteInputMapRowCommand}"
+                                                        Foreground="White" FontSize="13" FontWeight="Medium" Padding="16,6" Height="36" HorizontalAlignment="Left"
+                                                        ToolTip="Maximum 7 rows">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
+                                                            <Style.Triggers>
+                                                                <Trigger Property="IsEnabled" Value="False">
+                                                                    <Setter Property="Opacity" Value="0.5"/>
+                                                                </Trigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                </Button>
+                                                <TextBlock Grid.Column="1" Text="{Binding DiscreteInputMaps.Count, StringFormat={}{0}/7 rows}" VerticalAlignment="Center" FontSize="11" Foreground="#888" Margin="12,0,0,0"/>
+                                            </Grid>
+                                            <TextBlock Text="Discrete mapping — same Address|Value|WPF Define pattern as Holding; WPF Define = Weighing in process / Capture. Add Row max 7." FontSize="11" Foreground="#999" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Output mapping — replicated from mapping.html: Address | Value | WPF Define | Actions -->
+                                    <Border Style="{StaticResource SettingsCardBorderStyle}" Margin="0,0,0,8">
+                                        <StackPanel Margin="0,8,0,4">
+                                            <TextBlock Text="Holding Registers — FC06 Write (Address | Value | WPF Define)" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,10"/>
+                                            <!-- HTML-faithful table: Address | Value (amber) | WPF Define | Delete -->
+                                            
+                                            <Border BorderBrush="Transparent" BorderThickness="0"  CornerRadius="6" Background="White" Padding="0">
+                                                <DataGrid ItemsSource="{Binding HoldingRegisterMaps}"
+                                                          AutoGenerateColumns="False"
+                                                          CanUserAddRows="False"
+                                                          CanUserDeleteRows="False"
+                                                          HeadersVisibility="Column"
+                                                          GridLinesVisibility="All"
+                                                          HorizontalGridLinesBrush="Transparent"
+                                                          VerticalGridLinesBrush="Transparent"
+                                                          BorderThickness="0"
+                                                          RowHeight="52"
+                                                          FontSize="13"
+                                                          Background="White"
+                                                          RowBackground="White"
+                                                          AlternatingRowBackground="White"
+                                                          HorizontalScrollBarVisibility="Disabled"
+                                                          SelectionMode="Single"
+                                                          SelectionUnit="FullRow">
+                                                    <DataGrid.Resources>
+                                                        <Style TargetType="DataGridColumnHeader">
+                                                            <Setter Property="Background" Value="#F1F5F9"/>
+                                                            <Setter Property="Foreground" Value="#475569"/>
+                                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                                            <Setter Property="FontSize" Value="12"/>
+                                                            <Setter Property="Padding" Value="8,8"/>
+                                                            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+                                                            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                                            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                                        </Style>
+                                                        <Style TargetType="DataGridCell">
+                                                            <Setter Property="BorderThickness" Value="0"/>
+                                                            <Setter Property="Padding" Value="4"/>
+                                                            <Setter Property="Background" Value="Transparent"/>
+                                                            <Setter Property="Template">
+                                                                <Setter.Value>
+                                                                    <ControlTemplate TargetType="DataGridCell">
+                                                                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" BorderBrush="#E2E8F0" BorderThickness="0,0,1,1">
+                                                                            <ContentPresenter VerticalAlignment="Center"/>
+                                                                        </Border>
+                                                                    </ControlTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                            <Style.Triggers>
+                                                                <Trigger Property="IsSelected" Value="True">
+                                                                    <Setter Property="Background" Value="Transparent"/>
+                                                                    <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource Self}}"/>
+                                                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                                                </Trigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                        <Style TargetType="DataGridRow">
+                                                            <Setter Property="Background" Value="White"/>
+                                                            <Setter Property="BorderBrush" Value="Transparent"/>
+                                                            <Setter Property="BorderThickness" Value="1.5"/>
+                                                            <Setter Property="SnapsToDevicePixels" Value="True"/>
+                                                            <Style.Triggers>
+                                                                <Trigger Property="IsSelected" Value="True">
+                                                                    <Setter Property="Background" Value="White"/>
+                                                                    <Setter Property="BorderBrush" Value="{DynamicResource BrandPrimaryBrush}"/>
+                                                                    <Setter Property="BorderThickness" Value="1.5"/>
+                                                                </Trigger>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter Property="BorderBrush" Value="{DynamicResource BrandPrimaryBrush}"/>
+                                                                </Trigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </DataGrid.Resources>
+                                                    <DataGrid.Columns>
+                                                        <!-- Address 25% -->
+                                                        <DataGridTemplateColumn Header="Address" Width="0.9*">
+                                                            <DataGridTemplateColumn.CellTemplate>
+                                                                <DataTemplate>
+                                                                    <TextBox Text="{Binding Address, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                             Style="{StaticResource FormTextBoxStyle}"
+                                                                             Padding="6,4" FontSize="13" BorderBrush="#E2E8F0" materialDesign:TextFieldAssist.UnderlineBrush="{DynamicResource BrandPrimaryBrush}"/>
+                                                                </DataTemplate>
+                                                            </DataGridTemplateColumn.CellTemplate>
+                                                        </DataGridTemplateColumn>
+                                                        <!-- Value 25% — amber header + bold centered -->
+                                                        <DataGridTemplateColumn Width="0.9*">
+                                                            <DataGridTemplateColumn.Header>
+                                                                <TextBlock Text="Value" Foreground="#92400E" FontWeight="Bold"/>
+                                                            </DataGridTemplateColumn.Header>
+                                                            <DataGridTemplateColumn.HeaderStyle>
+                                                                <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                                                    <Setter Property="Background" Value="#FEF3C7"/>
+                                                                </Style>
+                                                            </DataGridTemplateColumn.HeaderStyle>
+                                                            <DataGridTemplateColumn.CellTemplate>
+                                                                <DataTemplate>
+                                                                    <TextBox Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                             FontWeight="Bold" TextAlignment="Center"
+                                                                             Style="{StaticResource FormTextBoxStyle}"
+                                                                             Padding="6,4" FontSize="13" BorderBrush="#E2E8F0"/>
+                                                                </DataTemplate>
+                                                            </DataGridTemplateColumn.CellTemplate>
+                                                        </DataGridTemplateColumn>
+                                                        <!-- WPF Define 40% — stores short key (idleReset/ok/under/over/buzzer/reject), displays friendly text -->
+                                                        <DataGridTemplateColumn Header="Function defenation" Width="1.6*">
+                                                            <DataGridTemplateColumn.CellTemplate>
+                                                                <DataTemplate>
+                                                                    <ComboBox SelectedValue="{Binding WpfDefine, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                              SelectedValuePath="Key"
+                                                                              DisplayMemberPath="Display"
+                                                                              ItemsSource="{Binding DataContext.WpfDefineOptions, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                              Style="{StaticResource FormComboBoxStyle}"
+                                                                               Padding="6,2" FontSize="13"/>
+                                                                </DataTemplate>
+                                                            </DataGridTemplateColumn.CellTemplate>
+                                                        </DataGridTemplateColumn>
+                                                        <!-- Actions 10% -->
+                                                        <DataGridTemplateColumn Header="Actions" Width="0.6*">
+                                                            <DataGridTemplateColumn.CellTemplate>
+                                                                <DataTemplate>
+                                                                    <Button Command="{Binding DataContext.DeleteHoldingMapRowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                            CommandParameter="{Binding}"
+                                                                            ToolTip="Delete"
+                                                                            Width="32" Height="28" Padding="0"
+                                                                            Background="Transparent" Foreground="#EF4444" BorderBrush="#EF4444" BorderThickness="1"
+                                                                            Style="{StaticResource MaterialDesignOutlinedButton}">
+                                                                        <materialDesign:PackIcon Kind="Delete" Width="18" Height="18" />
+                                                                        <Button.Resources>
+                                                                            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignOutlinedButton}">
+                                                                                <Style.Triggers>
+                                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                                        <Setter Property="Background" Value="#EF4444"/>
+                                                                                        <Setter Property="Foreground" Value="White"/>
+                                                                                    </Trigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </Button.Resources>
+                                                                    </Button>
+                                                                </DataTemplate>
+                                                            </DataGridTemplateColumn.CellTemplate>
+                                                        </DataGridTemplateColumn>
+                                                    </DataGrid.Columns>
+                                                </DataGrid>
+                                            </Border>
+
+                                            <!-- Actions row: + Add Row (max 6) -->
+                                            <Grid Margin="0,12,0,0">
+                                                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                                <Button Grid.Column="0" Content="+ Add Row" Command="{Binding AddHoldingMapRowCommand}"
+                                                        Foreground="White"
+                                                        FontSize="13" FontWeight="Medium" Padding="16,6" Height="36" HorizontalAlignment="Left"
+                                                        ToolTip="Maximum 6 rows">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
+                                                            <Style.Triggers>
+                                                                <Trigger Property="IsEnabled" Value="False">
+                                                                    <Setter Property="Opacity" Value="0.5"/>
+                                                                </Trigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                </Button>
+                                                <TextBlock Grid.Column="1" Text="{Binding HoldingRegisterMaps.Count, StringFormat={}{0}/6 rows}" VerticalAlignment="Center" FontSize="11" Foreground="#888" Margin="12,0,0,0"/>
+                                            </Grid>
+                                            <TextBlock Text="Address defaults to 0, Value auto-increments (last+1). Add Row disabled at 6 rows (delete to add)." FontSize="11" Foreground="#999" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <TextBlock Text="Workflow note: Item Arrived (FC02 @cfg) → weigh → set one of D0/D1/D2 (FC06 @cfg) via batch logic. Spare D3-D5 available for reject divert / stack light without PLC rewire." FontSize="11" Foreground="#888" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+                    </TabControl>
+                </Border>
+            </ScrollViewer>
+
+            <!-- ===================== Action Panel ===================== -->
+            <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Padding="15,10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Status message -->
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding StatusMessage}"
+                               FontSize="13"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center"
+                               TextWrapping="Wrap"
+                               Margin="0,0,15,0">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="#2E7D32"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsStatusError}" Value="True">
+                                        <Setter Property="Foreground" Value="#C62828"/>
+                                    </DataTrigger>
+                                    <Trigger Property="Text" Value="">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+
+                    <!-- Test Connection -->
+                    <Button Grid.Column="1"
+                            Command="{Binding TestConnectionCommand}"
+                            Content="Test Connection"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            FontSize="14"
+                            FontWeight="Bold"
+                            Width="160"
+                            Height="38"
+                            Margin="0,0,10,0"/>
+
+                    <!-- Connect / Disconnect toggle -->
+                    <Button Grid.Column="2"
+                            Command="{Binding ToggleConnectionCommand}"
+                            Foreground="White"
+                            FontSize="14"
+                            FontWeight="Bold"
+                            Height="38"
+                            MinWidth="140"
+                            Margin="0,0,10,0">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                                <Setter Property="Content" Value="Connect"/>
+                                <Setter Property="Background" Value="#616161"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                                        <Setter Property="Content" Value="Disconnect"/>
+                                        <Setter Property="Background" Value="#E53935"/>
+                                    </DataTrigger>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="Opacity" Value="0.6"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <!-- Save Settings -->
+                    <Button Grid.Column="3"
+                            Command="{Binding SaveSettingsCommand}"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            FontSize="14"
+                            FontWeight="Bold"
+                            Width="160"
+                            Height="38">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="ContentSave" Width="20" Height="20"
+                                                     VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBlock Text="Save Settings" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

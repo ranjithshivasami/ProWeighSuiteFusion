@@ -1,0 +1,536 @@
+<UserControl x:Class="ProWeighSuitePlatforms.Views.ZplTemplateView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:converters="clr-namespace:ProWeighSuitePlatforms.Converters"
+             mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <converters:InverseBooleanConverter x:Key="InverseBool"/>
+        <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVis"/>
+    </UserControl.Resources>
+
+    <Border Style="{StaticResource PageBackgroundStyle}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Toolbar: Search + Page Size + New Button -->
+            <Border Grid.Row="1" Margin="5" Padding="10" Style="{StaticResource CardBorderStyle}"
+                    Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVis}}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox Grid.Column="0" Width="300" Margin="0,0,10,0" FontSize="16"
+                             Style="{StaticResource FormTextBoxStyle}"
+                             Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"
+                             materialDesign:HintAssist.Hint="Search"
+                             materialDesign:HintAssist.Background="white"
+                             Padding="5"
+                             ToolTip="Filter by template name or description"/>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
+                        <TextBlock FontSize="16" Text="Page Size:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <ComboBox Width="60" FontSize="16" HorizontalContentAlignment="Right"
+                                  SelectedValue="{Binding PageSize}" SelectedValuePath="Content">
+                            <ComboBoxItem Content="10" IsSelected="True"/>
+                            <ComboBoxItem Content="25"/>
+                            <ComboBoxItem Content="50"/>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <Button Grid.Column="3"
+                            Margin="10,0,0,0"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Content="New"
+                            Command="{Binding NewTemplateCommand}"
+                            VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+
+            <!-- Data Grid / Editor area -->
+            <Border Grid.Row="2" Margin="5" Padding="10" Style="{StaticResource CardBorderStyle}">
+                <Grid>
+                    <!-- Template List (visible when NOT editing) -->
+                    <Grid Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVis}}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                            <DataGrid Style="{StaticResource AppDataGridStyle}" AutoGenerateColumns="False" CanUserAddRows="False"
+                                      HeadersVisibility="Column"
+                                      ItemsSource="{Binding PagedTemplates}"
+                                      SelectedItem="{Binding SelectedTemplate}"
+                                      SelectionMode="Single"
+                                      SelectionUnit="FullRow"
+                                      CanUserResizeRows="False"
+                                      GridLinesVisibility="Horizontal"
+                                      VerticalScrollBarVisibility="Disabled"
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      materialDesign:DataGridAssist.CellPadding="8 8 8 8"
+                                      materialDesign:DataGridAssist.ColumnHeaderPadding="8 4 8 4"
+                                      materialDesign:DataGridAssist.SelectedCellBorderBrush="Transparent">
+                            <DataGrid.Resources>
+                                <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource AppDataGridHeaderStyle}">
+                                    <Setter Property="Background" Value="#F5F5F5"/>
+                                    <Setter Property="Foreground" Value="#424242"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="FontSize" Value="13"/>
+                                    <Setter Property="BorderBrush" Value="#E0E0E0"/>
+                                    <Setter Property="BorderThickness" Value="0,0,0,2"/>
+                                    <Setter Property="Padding" Value="8,8,8,8"/>
+                                    <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                </Style>
+                            </DataGrid.Resources>
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow" BasedOn="{StaticResource AppDataGridRowStyle}">
+                                    <Setter Property="Background" Value="White"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#F5F5F5"/>
+                                        </Trigger>
+                                        <Trigger Property="AlternationIndex" Value="1">
+                                            <Setter Property="Background" Value="#FAFAFA"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
+                            <DataGrid.CellStyle>
+                                <Style TargetType="DataGridCell" BasedOn="{StaticResource AppDataGridCellStyle}">
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                    <Setter Property="Padding" Value="8,4,8,4"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="DataGridCell">
+                                                <Border Background="{TemplateBinding Background}"
+                                                        BorderThickness="0"
+                                                        Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter VerticalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="Transparent"/>
+                                            <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
+                                        </Trigger>
+                                        <Trigger Property="IsFocused" Value="True">
+                                            <Setter Property="Background" Value="Transparent"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.CellStyle>
+                            <DataGrid.Columns>
+                                <!-- S No -->
+                                <DataGridTextColumn Header="S No" Width="60" MinWidth="60" IsReadOnly="True" Binding="{Binding SerialNumber}">
+                                    <DataGridTextColumn.HeaderStyle>
+                                        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource AppDataGridHeaderStyle}">
+                                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                            <Setter Property="Background" Value="#F5F5F5"/>
+                                            <Setter Property="Foreground" Value="#424242"/>
+                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                            <Setter Property="FontSize" Value="13"/>
+                                            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+                                            <Setter Property="BorderThickness" Value="0,0,0,2"/>
+                                            <Setter Property="Padding" Value="8,8,8,8"/>
+                                        </Style>
+                                    </DataGridTextColumn.HeaderStyle>
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Padding" Value="8,6,8,6"/>
+                                            <Setter Property="FontSize" Value="13"/>
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <!-- Template Name -->
+                                <DataGridTextColumn Header="Template Name" Binding="{Binding Name}" Width="*" IsReadOnly="True" MinWidth="150">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Padding" Value="8,6,8,6"/>
+                                            <Setter Property="FontSize" Value="13"/>
+                                            <Setter Property="FontWeight" Value="Medium"/>
+                                            <Setter Property="HorizontalAlignment" Value="Left"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <!-- Description -->
+                                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" IsReadOnly="True" MinWidth="120">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Padding" Value="8,6,8,6"/>
+                                            <Setter Property="FontSize" Value="13"/>
+                                            <Setter Property="HorizontalAlignment" Value="Left"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <!-- Label Size -->
+                                <DataGridTextColumn Header="Label Size" Binding="{Binding LabelSizeText}" Width="Auto" MinWidth="150" IsReadOnly="True">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Padding" Value="8,6,8,6"/>
+                                            <Setter Property="FontSize" Value="13"/>
+                                            <Setter Property="HorizontalAlignment" Value="Left"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <!-- DPI -->
+                                <DataGridTextColumn Header="DPI" Binding="{Binding Dpi}" Width="Auto" MinWidth="60" IsReadOnly="True">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Padding" Value="8,6,8,6"/>
+                                            <Setter Property="FontSize" Value="13"/>
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <!-- Status (colored) -->
+                                <DataGridTemplateColumn Header="Status" Width="Auto" MinWidth="70" IsReadOnly="True">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border Background="Transparent" Padding="8,6">
+                                                <TextBlock Text="{Binding ActiveStatusText}" HorizontalAlignment="Left" FontSize="13"
+                                                           FontWeight="Medium">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Foreground" Value="#4CAF50"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding ActiveStatusText}" Value="Inactive">
+                                                                    <Setter Property="Foreground" Value="#F44336"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Actions (icons) -->
+                                <DataGridTemplateColumn Header="Actions" Width="Auto" MinWidth="120" IsReadOnly="True">
+                                    <DataGridTemplateColumn.HeaderStyle>
+                                        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource AppDataGridHeaderStyle}">
+                                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                            <Setter Property="Background" Value="#F5F5F5"/>
+                                            <Setter Property="Foreground" Value="#424242"/>
+                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                            <Setter Property="FontSize" Value="13"/>
+                                            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+                                            <Setter Property="BorderThickness" Value="0,0,0,2"/>
+                                            <Setter Property="Padding" Value="8,8,8,8"/>
+                                        </Style>
+                                    </DataGridTemplateColumn.HeaderStyle>
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border Background="Transparent" Padding="4">
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                    <!-- Active indicator: filled green tick, shown only on the active template -->
+                                                    <Button Style="{StaticResource IconButtonStyle}"
+                                                            ToolTip="Currently Active Template"
+                                                          Margin="0,2,12,0"
+                                                            Command="{Binding DataContext.SetActiveCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                            CommandParameter="{Binding}"
+                                                            Visibility="{Binding IsActive, Converter={StaticResource BoolToVis}}">
+                                                        <materialDesign:PackIcon Kind="CheckCircle" Width="20" Height="20" Foreground="#4CAF50"/>
+                                                    </Button>
+                                                    <!-- Set Active button: outline tick, shown only on inactive templates -->
+                                                    <Button Style="{StaticResource IconButtonStyle}" ToolTip="Set as Active Template" Margin="0,2,12,0"
+                                                            Command="{Binding DataContext.SetActiveCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                            CommandParameter="{Binding}"
+                                                            Visibility="{Binding IsActive, Converter={StaticResource InverseBoolToVis}}">
+                                                        <materialDesign:PackIcon Kind="CheckCircleOutline" Width="20" Height="20" Foreground="#9E9E9E"/>
+                                                    </Button>
+                                                    <!-- Edit -->
+                                                    <Button Style="{StaticResource IconButtonStyle}" ToolTip="Edit" Margin="0,0,4,0"
+                                                            Command="{Binding DataContext.EditTemplateCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                            CommandParameter="{Binding}">
+                                                        <Image Source="/ProWeighSuitePlatforms.Core;component/Images/edit.png" Width="20" Height="20"/>
+                                                    </Button>
+                                                    <!-- Delete -->
+                                                    <Button Style="{StaticResource IconButtonStyle}" ToolTip="Delete"
+                                                            Command="{Binding DataContext.DeleteTemplateCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                            CommandParameter="{Binding}">
+                                                        <Image Source="/ProWeighSuitePlatforms.Core;component/Images/delete.png" Width="20" Height="20"/>
+                                                    </Button>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        </ScrollViewer>
+                    </Grid>
+
+                    <!-- Editor Panel (visible when editing) -->
+                    <Grid Visibility="{Binding IsEditing, Converter={StaticResource BoolToVis}}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Row 0: Name + Description -->
+                                <Grid Grid.Row="0" Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="16"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBox Grid.Column="0" Margin="0,5,0,0"
+                                             Text="{Binding EditName, UpdateSourceTrigger=PropertyChanged}"
+                                             materialDesign:HintAssist.Hint="Template Name *"
+                                             materialDesign:HintAssist.Background="White"
+                                             Style="{StaticResource FormTextBoxStyle}"
+                                             FontSize="14" Padding="5"/>
+
+                                    <TextBox Grid.Column="2" Margin="0,5,0,0"
+                                             Text="{Binding EditDescription, UpdateSourceTrigger=PropertyChanged}"
+                                             materialDesign:HintAssist.Hint="Description"
+                                             materialDesign:HintAssist.Background="White"
+                                             Style="{StaticResource FormTextBoxStyle}"
+                                             FontSize="14" Padding="5"/>
+                                </Grid>
+
+                                <!-- Row 1: Label size (Width x Height x DPI) -->
+                                <Grid Grid.Row="1" Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="16"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="16"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="0" Text="Width (mm):" VerticalAlignment="Center"
+                                               FontSize="13" Margin="0,0,8,0"/>
+                                    <TextBox Grid.Column="1"
+                                             Text="{Binding EditWidthMm, UpdateSourceTrigger=PropertyChanged}"
+                                             materialDesign:HintAssist.Hint="Width"
+                                             materialDesign:HintAssist.Background="White"
+                                             Style="{StaticResource FormTextBoxStyle}"
+                                             FontSize="13" Padding="4"/>
+
+                                    <TextBlock Grid.Column="3" Text="Height (mm):" VerticalAlignment="Center"
+                                               FontSize="13" Margin="0,0,8,0"/>
+                                    <TextBox Grid.Column="4"
+                                             Text="{Binding EditHeightMm, UpdateSourceTrigger=PropertyChanged}"
+                                             materialDesign:HintAssist.Hint="Height"
+                                             materialDesign:HintAssist.Background="White"
+                                             Style="{StaticResource FormTextBoxStyle}"
+                                             FontSize="13" Padding="4"/>
+
+                                    <TextBlock Grid.Column="6" Text="DPI:" VerticalAlignment="Center"
+                                               FontSize="13" Margin="0,0,8,0"/>
+                                    <ComboBox Grid.Column="7"
+                                              ItemsSource="{Binding DpiOptions}"
+                                              SelectedItem="{Binding EditDpi}"
+                                              materialDesign:HintAssist.Hint="DPI"
+                                              materialDesign:HintAssist.Background="White"
+                                              Style="{StaticResource FormComboBoxStyle}"
+                                              FontSize="13" Padding="4"/>
+                                </Grid>
+
+                                <!-- Row 2: Action buttons -->
+                                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,12">
+                                    <Button Command="{Binding PreviewCommand}"
+                                            Content="Preview" Height="32" Padding="16,0" Margin="0,0,8,0"
+                                            Style="{StaticResource InfoButtonStyle}"/>
+                                    <Button Command="{Binding TestPrintCommand}"
+                                            Content="Test Print" Height="32" Padding="16,0" Margin="0,0,8,0"
+                                            Style="{StaticResource PrimaryButtonStyle}"/>
+                                    <Button Command="{Binding SaveCommand}"
+                                            Content="Save Template" Height="32" Padding="16,0" Margin="0,0,8,0"
+                                            Style="{StaticResource PrimaryButtonStyle}"/>
+                                    <Button Command="{Binding CancelCommand}"
+                                            Content="Cancel" Height="32" Padding="16,0"
+                                            Style="{StaticResource SecondaryButtonStyle}"/>
+                                </StackPanel>
+
+                                <!-- Row 3: ZPL Code Editor (left) + Preview (right) side by side -->
+                                <Grid Grid.Row="3" Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="12"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Left column: ZPL Code Editor -->
+                                    <Grid Grid.Column="0">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Grid.Row="0" Text="ZPL Code (paste from Labelary designer, then replace values with {{placeholders}}):"
+                                                   FontSize="12" Foreground="#666" Margin="0,0,0,4"/>
+
+                                        <TextBox Grid.Row="1" x:Name="ZplCodeEditor"
+                                                 Text="{Binding EditZplCode, UpdateSourceTrigger=PropertyChanged}"
+                                                 AcceptsReturn="True" AcceptsTab="True"
+                                                 TextWrapping="Wrap"
+                                                 VerticalScrollBarVisibility="Auto"
+                                                 HorizontalScrollBarVisibility="Auto"
+                                                 FontFamily="Consolas" FontSize="12"
+                                                 MinHeight="300"
+                                                 BorderBrush="#d9dee7" BorderThickness="1"
+                                                 Padding="6"/>
+                                    </Grid>
+
+                                    <!-- Right column: Preview image + resolved ZPL -->
+                                    <Grid Grid.Column="2">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Grid.Row="0" Text="Preview:"
+                                                   FontSize="12" Foreground="#666" Margin="0,0,0,4"/>
+
+                                        <!-- Loading indicator -->
+                                        <ProgressBar Grid.Row="1" IsIndeterminate="True" Height="4" Margin="0,0,0,4"
+                                                     Visibility="{Binding IsPreviewLoading, Converter={StaticResource BoolToVis}}"/>
+
+                                        <!-- Preview image (from Labelary) -->
+                                        <Border Grid.Row="2" BorderBrush="#ddd" BorderThickness="1"
+                                                CornerRadius="4" Padding="4" Margin="0,0,0,8"
+                                                Visibility="{Binding PreviewImage, Converter={StaticResource NullToVisibilityConverter}}">
+                                            <Image MaxHeight="300" Stretch="Uniform" HorizontalAlignment="Left">
+                                                <Image.Source>
+                                                    <Binding Path="PreviewImage">
+                                                        <Binding.Converter>
+                                                            <converters:ByteArrayToImageConverter/>
+                                                        </Binding.Converter>
+                                                    </Binding>
+                                                </Image.Source>
+                                            </Image>
+                                        </Border>
+
+                                        <!-- Resolved ZPL text -->
+                                        <TextBox Grid.Row="3"
+                                                 Text="{Binding PreviewZpl, Mode=OneWay}"
+                                                 IsReadOnly="True"
+                                                 AcceptsReturn="True"
+                                                 TextWrapping="Wrap"
+                                                 VerticalScrollBarVisibility="Auto"
+                                                 FontFamily="Consolas" FontSize="11"
+                                                 MaxHeight="160"
+                                                 BorderBrush="#ddd" BorderThickness="1"
+                                                 Background="#f9f9f9" Padding="6"
+                                                 Visibility="{Binding PreviewZpl, Converter={StaticResource StringNotEmptyToVisibilityConverter}}"/>
+                                    </Grid>
+                                </Grid>
+
+                                <!-- Row 4: Available Placeholders -->
+                                <Grid Grid.Row="4" Margin="0,12,0,8">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Text="Available Placeholders (click to insert at cursor):"
+                                               FontSize="12" Foreground="#666" Margin="0,0,0,4"/>
+
+                                    <ItemsControl Grid.Row="1" ItemsSource="{Binding Placeholders}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Content="{Binding Token}" Margin="2"
+                                                        Padding="6,2" FontSize="11" Height="24"
+                                                        FontFamily="Consolas"
+                                                        Tag="{Binding Token}"
+                                                        ToolTip="{Binding Description}"
+                                                        Click="PlaceholderButton_Click"
+                                                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                                                        BorderBrush="#AB47BC" Foreground="#AB47BC"/>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Grid>
+
+                            </Grid>
+                        </ScrollViewer>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- Pagination Controls -->
+            <Border Grid.Row="3"
+                    Margin="10,5,10,5"
+                    Background="White"
+                    BorderBrush="#DDD"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Style="{StaticResource PaginationBarStyle}"
+                    VerticalAlignment="Bottom"
+                    Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVis}}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="{Binding PageInfo}"
+                               FontSize="12" Foreground="#555"
+                               VerticalAlignment="Center" Margin="5,0,0,0"/>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Button Style="{StaticResource PaginationButtonStyle}" Margin="0,0,4,0" Command="{Binding FirstPageCommand}" ToolTip="First page">
+                            <materialDesign:PackIcon Kind="PageFirst" Width="18" Height="18" Foreground="#434242"/>
+                        </Button>
+                        <Button Style="{StaticResource PaginationButtonStyle}" Margin="0,0,10,0" Command="{Binding PrevPageCommand}" ToolTip="Previous page">
+                            <materialDesign:PackIcon Kind="ChevronLeft" Width="24" Height="24" Foreground="#434242"/>
+                        </Button>
+                        <Border Background="#F5F5F5" CornerRadius="4" Padding="15,5" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Page " FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding CurrentPage}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource BrandPrimaryBrush}" VerticalAlignment="Center" Margin="4,0"/>
+                                <TextBlock Text=" of " FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding TotalPages}" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <Button Style="{StaticResource PaginationButtonStyle}" Margin="10,0,4,0" Command="{Binding NextPageCommand}" ToolTip="Next page">
+                            <materialDesign:PackIcon Kind="ChevronRight" Width="24" Height="24" Foreground="#434242"/>
+                        </Button>
+                        <Button Style="{StaticResource PaginationButtonStyle}" Margin="0,0,0,0" Command="{Binding LastPageCommand}" ToolTip="Last page">
+                            <materialDesign:PackIcon Kind="PageLast" Width="18" Height="18" Foreground="#434242"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

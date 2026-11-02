@@ -1,0 +1,16 @@
+{
+  "brand": "Fusion",
+  "title": "ProWeigh Fusion",
+  "name": "ProWeigh",
+  "suffix": "Fusion",
+  "tagline": "Intelligent Weighing Management System",
+  "primary": "#009688",
+  "secondary": "#CDDC39",
+  "logo": "branding/fusion/Images/Logo.png",
+  "banner": "branding/fusion/Images/fusion-bg-login.jpg",
+  "icon": "branding/fusion/Images/app-icon.ico",
+  "flavor": "Fusion",
+  "installerName": "ProWeigh Fusion",
+  "issAppId": "{D4E5F6A7-4444-4555-B666-777788889999}",
+  "updateFeedSubdir": "fusion"
+}

@@ -1,0 +1,29 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageVersion Include="ClosedXML" Version="0.95.4" />
+    <PackageVersion Include="DotNetKit.Wpf.AutoCompleteComboBox" Version="2.0.0" />
+    <PackageVersion Include="LiveChartsCore.SkiaSharpView.WPF" Version="2.0.0-rc4.5" />
+    <PackageVersion Include="SkiaSharp.Views.WPF" Version="3.0.0-preview.4.1" />
+    <PackageVersion Include="MaterialDesignColors" Version="5.2.0" />
+    <PackageVersion Include="MaterialDesignThemes" Version="4.8.0" />
+    <PackageVersion Include="Microsoft.Data.Sqlite" Version="8.0.16" />
+    <PackageVersion Include="System.Drawing.Common" Version="8.0.14" />
+    <PackageVersion Include="System.IO.Ports" Version="8.0.0" />
+    <PackageVersion Include="Polly" Version="7.2.3" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
+    <PackageVersion Include="LiteQueue" Version="1.0.0" />
+    <PackageVersion Include="UUIDNext" Version="2.0.0" />
+    <PackageVersion Include="Velopack" Version="1.2.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Tests">
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageVersion Include="xunit" Version="2.9.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+</Project>

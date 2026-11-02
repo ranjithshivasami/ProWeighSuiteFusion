@@ -1,0 +1,698 @@
+<UserControl x:Class="ProWeighSuitePlatforms.Modules.Fusion.TubMasterView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:behaviors="clr-namespace:ProWeighSuitePlatforms.Behaviors;assembly=ProWeighSuitePlatforms.Core"
+             xmlns:converters="clr-namespace:ProWeighSuitePlatforms.Converters;assembly=ProWeighSuitePlatforms.Core">
+    <UserControl.Resources>
+        <Style x:Key="BasicTableHeaderStyle" TargetType="DataGridColumnHeader" BasedOn="{StaticResource AppDataGridHeaderStyle}">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#111827"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="20,6"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        </Style>
+        <Style x:Key="KpiIconStyle" TargetType="Border">
+            <Setter Property="Width" Value="48"/>
+            <Setter Property="Height" Value="48"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Margin" Value="0,0,12,0"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <!-- Outlined teal action buttons like reference (Block / Mark replaced) -->
+        <Style x:Key="TubOutlineButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#0E9F6E"/>
+            <Setter Property="BorderBrush" Value="#C9E7DA"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,4"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#EAF7F0"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <!-- Tiny spinner arrows for Used cycles -->
+        <Style x:Key="SpinnerArrowStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="4,0"/>
+            <Setter Property="FontSize" Value="8"/>
+            <Setter Property="Foreground" Value="#9CA3AF"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="#374151"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <!-- Thin rounded life-used bar -->
+        <Style x:Key="LifeUsedBarStyle" TargetType="ProgressBar">
+            <Setter Property="Height" Value="6"/>
+            <Setter Property="Background" Value="#E9ECEF"/>
+            <Setter Property="Foreground" Value="#14B8A6"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ProgressBar">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="3">
+                            <Grid>
+                                <Border x:Name="PART_Track" CornerRadius="3" Background="Transparent"/>
+                                <Border x:Name="PART_Indicator" CornerRadius="3" Background="{TemplateBinding Foreground}" HorizontalAlignment="Left"/>
+                            </Grid>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="TablePagerButtonStyle" TargetType="Button">
+            <Setter Property="MinWidth" Value="34"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrandPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F3F4F6"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Foreground" Value="#9CA3AF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="RowActionButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#3B82F6"/>
+            <Setter Property="Background" Value="#E8EEFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#D6E4FF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <Border Style="{StaticResource PageBackgroundStyle}" Padding="8,12" behaviors:AutoFocusBehavior.IsEnabled="True">
+     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                   CanContentScroll="False" PanningMode="VerticalOnly">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <UniformGrid Grid.Row="0" Margin="4,0,4,8">
+                <!-- 5 cards: default 4 columns, responsive via Style setters only. -->
+                <UniformGrid.Style>
+                    <Style TargetType="UniformGrid">
+                        <Setter Property="Columns" Value="4"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={x:Static converters:IsLessThanConverter.Instance}, ConverterParameter=1280}" Value="True">
+                                <Setter Property="Columns" Value="3"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={x:Static converters:IsLessThanConverter.Instance}, ConverterParameter=650}" Value="True">
+                                <Setter Property="Columns" Value="2"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={x:Static converters:IsLessThanConverter.Instance}, ConverterParameter=450}" Value="True">
+                                <Setter Property="Columns" Value="1"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </UniformGrid.Style>
+                <Border Margin="0,0,6,6" Padding="12" Background="White" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="12">
+                    <DockPanel LastChildFill="True" VerticalAlignment="Center">
+                        <Border DockPanel.Dock="Left" Style="{StaticResource KpiIconStyle}" Background="#10B981">
+                            <TextBlock Text="▦" Foreground="White" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{Binding KpiTotal}" FontSize="22" FontWeight="Bold" Foreground="#111827" TextWrapping="Wrap" LineHeight="26"/>
+                            <TextBlock Text="Total tubs" FontSize="13" Foreground="#9CA3AF" Margin="0,1,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+                <Border Margin="0,0,6,6" Padding="12" Background="White" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="12">
+                    <DockPanel LastChildFill="True" VerticalAlignment="Center">
+                        <Border DockPanel.Dock="Left" Style="{StaticResource KpiIconStyle}" Background="#34D399">
+                            <TextBlock Text="◐" Foreground="White" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{Binding KpiColours}" FontSize="20" FontWeight="Bold" Foreground="#111827" TextWrapping="Wrap" LineHeight="24"/>
+                            <TextBlock Text="Orange / Blue" FontSize="13" Foreground="#9CA3AF" Margin="0,1,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+                <Border Margin="0,0,6,6" Padding="12" Background="White" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="12">
+                    <DockPanel LastChildFill="True" VerticalAlignment="Center">
+                        <Border DockPanel.Dock="Left" Style="{StaticResource KpiIconStyle}" Background="#A3A847">
+                            <TextBlock Text="◉" Foreground="White" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{Binding KpiInUse}" FontSize="22" FontWeight="Bold" Foreground="#111827" TextWrapping="Wrap" LineHeight="26"/>
+                            <TextBlock Text="In use" FontSize="13" Foreground="#9CA3AF" Margin="0,1,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+                <Border Margin="0,0,6,6" Padding="12" Background="White" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="12">
+                    <DockPanel LastChildFill="True" VerticalAlignment="Center">
+                        <Border DockPanel.Dock="Left" Style="{StaticResource KpiIconStyle}" Background="#F05252">
+                            <TextBlock Text="▲" Foreground="White" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{Binding KpiReplace}" FontSize="22" FontWeight="Bold" Foreground="#111827" TextWrapping="Wrap" LineHeight="26"/>
+                            <TextBlock Text="Plan or replace" FontSize="13" Foreground="#9CA3AF" Margin="0,1,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+                <Border Margin="0,0,0,6" Padding="12" Background="White" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="12">
+                    <DockPanel LastChildFill="True" VerticalAlignment="Center">
+                        <Border DockPanel.Dock="Left" Style="{StaticResource KpiIconStyle}" Background="#38BDF8">
+                            <TextBlock Text="◆" Foreground="White" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{Binding KpiHighest}" FontSize="20" FontWeight="Bold" Foreground="#111827" TextWrapping="Wrap" LineHeight="24"/>
+                            <TextBlock Text="Highest cycles" FontSize="13" Foreground="#9CA3AF" Margin="0,1,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+            </UniformGrid>
+
+            <Grid Grid.Row="1" Margin="4,0,4,8" Visibility="{Binding IsFormExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Border Padding="16,12" Background="White" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8">
+                    <StackPanel>
+                        <TextBlock Text="{Binding FormTitle}" FontWeight="SemiBold" FontSize="14" Foreground="#111827" Margin="0,0,0,4"/>
+                        <UniformGrid>
+                            <!-- 3 columns on 15" and above, stacked below 650px. Columns via Style setters only. -->
+                            <UniformGrid.Style>
+                                <Style TargetType="UniformGrid">
+                                    <Setter Property="Columns" Value="3"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={x:Static converters:IsLessThanConverter.Instance}, ConverterParameter=650}" Value="True">
+                                            <Setter Property="Columns" Value="1"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </UniformGrid.Style>
+                            <StackPanel Margin="6,8,6,8">
+                                <TextBox Style="{StaticResource FormTextBoxStyle}" Text="{Binding NewTubNo, UpdateSourceTrigger=PropertyChanged}" MaxLength="30" IsReadOnly="{Binding IsTubNoLocked}">
+                                    <materialDesign:HintAssist.Hint>
+                                        <TextBlock FontSize="14">
+                                            <Run Text="*" Foreground="Red"/>
+                                            <Run Text=" Tub no"/>
+                                        </TextBlock>
+                                    </materialDesign:HintAssist.Hint>
+                                </TextBox>
+                                <TextBlock Text="{Binding NewTubNoError}" FontSize="11" Foreground="#C81E1E" Margin="4,2,0,0" TextWrapping="Wrap"
+                                           Visibility="{Binding NewTubNoError, Converter={StaticResource NullToVisibilityConverter}}"/>
+                            </StackPanel>
+                            <StackPanel Margin="6,8,6,8">
+                                <TextBox Style="{StaticResource FormTextBoxStyle}" Text="{Binding NewEpc, UpdateSourceTrigger=PropertyChanged}" MaxLength="32">
+                                    <materialDesign:HintAssist.Hint>
+                                        <TextBlock FontSize="14">
+                                            <Run Text="*" Foreground="Red"/>
+                                            <Run Text=" EPC ID"/>
+                                        </TextBlock>
+                                    </materialDesign:HintAssist.Hint>
+                                </TextBox>
+                                <TextBlock Text="{Binding NewEpcError}" FontSize="11" Foreground="#C81E1E" Margin="4,2,0,0" TextWrapping="Wrap"
+                                           Visibility="{Binding NewEpcError, Converter={StaticResource NullToVisibilityConverter}}"/>
+                            </StackPanel>
+                            <StackPanel Margin="6,8,6,8">
+                                <ComboBox Style="{StaticResource FormComboBoxStyle}" ItemsSource="{Binding ColourCreateOptions}" SelectedItem="{Binding NewColour, UpdateSourceTrigger=PropertyChanged}">
+                                    <materialDesign:HintAssist.Hint>
+                                        <TextBlock FontSize="14">
+                                            <Run Text="*" Foreground="Red"/>
+                                            <Run Text=" Colour"/>
+                                        </TextBlock>
+                                    </materialDesign:HintAssist.Hint>
+                                </ComboBox>
+                                <TextBlock Text="{Binding NewColourError}" FontSize="11" Foreground="#C81E1E" Margin="4,2,0,0" TextWrapping="Wrap"
+                                           Visibility="{Binding NewColourError, Converter={StaticResource NullToVisibilityConverter}}"/>
+                            </StackPanel>
+                            <StackPanel Margin="6,8,6,8">
+                                <TextBox Style="{StaticResource FormTextBoxStyle}" Text="{Binding NewCapacity, UpdateSourceTrigger=PropertyChanged}" MaxLength="10" InputScope="Number" PreviewTextInput="Capacity_PreviewTextInput" DataObject.Pasting="Capacity_Pasting">
+                                    <materialDesign:HintAssist.Hint>
+                                        <TextBlock FontSize="14">
+                                            <Run Text="*" Foreground="Red"/>
+                                            <Run Text=" Capacity (kg)"/>
+                                        </TextBlock>
+                                    </materialDesign:HintAssist.Hint>
+                                </TextBox>
+                                <TextBlock Text="{Binding NewCapacityError}" FontSize="11" Foreground="#C81E1E" Margin="4,2,0,0" TextWrapping="Wrap"
+                                           Visibility="{Binding NewCapacityError, Converter={StaticResource NullToVisibilityConverter}}"/>
+                            </StackPanel>
+                            <StackPanel Margin="6,8,6,8">
+                                <TextBox Style="{StaticResource FormTextBoxStyle}" Text="{Binding NewBay, UpdateSourceTrigger=PropertyChanged}" MaxLength="30" materialDesign:HintAssist.Hint="Bay (optional)"/>
+                                <TextBlock Text="{Binding NewBayError}" FontSize="11" Foreground="#C81E1E" Margin="4,2,0,0" TextWrapping="Wrap"
+                                           Visibility="{Binding NewBayError, Converter={StaticResource NullToVisibilityConverter}}"/>
+                            </StackPanel>
+                            <StackPanel Margin="6,8,6,8" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Button VerticalAlignment="Center" Style="{StaticResource PrimaryButtonStyle}" Content="{Binding SubmitButtonText}" Command="{Binding AddTubCommand}"/>
+                                <Button Margin="8,0,0,0" VerticalAlignment="Center" Style="{StaticResource SecondaryButtonStyle}" Content="Cancel" Command="{Binding CancelEditCommand}"
+                                        Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            </StackPanel>
+                        </UniformGrid>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Border Grid.Row="2" Margin="4,0,4,8" Padding="12" Background="White" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Replacement rule and filters" FontWeight="SemiBold" FontSize="14" Foreground="#1c2430" Margin="0,0,0,8"/>
+                    <WrapPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Top">
+                        <StackPanel Width="150" Margin="0,0,8,4">
+                            <TextBox Style="{StaticResource FormTextBoxStyle}" Text="{Binding ReplaceAt, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="Replace at (cycles)"/>
+                            <TextBlock Text="{Binding ReplaceAtError}" FontSize="11" Foreground="#C81E1E" Margin="4,2,0,0" TextWrapping="Wrap"
+                                       Visibility="{Binding ReplaceAtError, Converter={StaticResource NullToVisibilityConverter}}"/>
+                        </StackPanel>
+                        <StackPanel Width="140" Margin="0,0,8,4">
+                            <TextBox Style="{StaticResource FormTextBoxStyle}" Text="{Binding WarnPercent, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="Warn at (% of life)"/>
+                            <TextBlock Text="{Binding WarnPercentError}" FontSize="11" Foreground="#C81E1E" Margin="4,2,0,0" TextWrapping="Wrap"
+                                       Visibility="{Binding WarnPercentError, Converter={StaticResource NullToVisibilityConverter}}"/>
+                        </StackPanel>
+                        <ComboBox Width="130" Margin="0,0,8,4" Style="{StaticResource FormComboBoxStyle}" ItemsSource="{Binding ColourOptions}" SelectedItem="{Binding ColourFilter}" materialDesign:HintAssist.Hint="Colour"/>
+                        <ComboBox Width="140" Margin="0,0,8,4" Style="{StaticResource FormComboBoxStyle}" ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding StatusFilter}" materialDesign:HintAssist.Hint="Status"/>
+                        <Button Margin="0,0,0,4" Style="{StaticResource SecondaryButtonStyle}" Content="Refresh" Command="{Binding RefreshCommand}"/>
+                    </WrapPanel>
+                </Grid>
+            </Border>
+
+            <TextBlock Grid.Row="3" Text="Tub master (50 RFID tubs)" FontWeight="SemiBold" FontSize="14" Foreground="#1c2430" Margin="4,0,4,4"/>
+
+            <Border Grid.Row="4" Margin="4,0,4,8" Background="White" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="16,16,24,8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Grid.Row="0" LastChildFill="False">
+                        <DockPanel.Style>
+                            <Style TargetType="DockPanel">
+                                <Setter Property="Margin" Value="0,0,0,0"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={x:Static converters:IsLessThanConverter.Instance}, ConverterParameter=1280}" Value="True">
+                                        <Setter Property="Margin" Value="0,0,0,4"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DockPanel.Style>
+                        <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Margin" Value="0,0,12,0"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={x:Static converters:IsLessThanConverter.Instance}, ConverterParameter=1280}" Value="True">
+                                            <Setter Property="Margin" Value="0,0,12,4"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+                            <TextBlock Text="Show" FontSize="12" Foreground="#374151" VerticalAlignment="Center"/>
+                            <ComboBox Width="70" Margin="6,0" SelectedValue="{Binding PageSize}" SelectedValuePath="Content" Style="{StaticResource FormComboBoxStyle}" FontSize="12" Padding="4">
+                                <ComboBoxItem Content="10"/>
+                                <ComboBoxItem Content="25"/>
+                                <ComboBoxItem Content="50"/>
+                                <ComboBoxItem Content="100"/>
+                            </ComboBox>
+                            <TextBlock Text="entries" FontSize="12" Foreground="#374151" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Margin" Value="0,0,0,0"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={x:Static converters:IsLessThanConverter.Instance}, ConverterParameter=1280}" Value="True">
+                                            <Setter Property="Margin" Value="0,0,0,4"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+                            <TextBlock Text="Search:" FontSize="12" Foreground="#374151" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBox MinWidth="140" MaxWidth="220" Style="{StaticResource FormTextBoxStyle}" FontSize="12" Padding="5,4"
+                                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                     materialDesign:HintAssist.Hint="Search EPC or tub no..."
+                                     ToolTip="Search EPC or tub no..."/>
+                            <Button Margin="8,0,0,0" Style="{StaticResource SecondaryButtonStyle}"
+                                    Click="TubConfigButton_Click" Content="⋮" Padding="10,2" ToolTip="Template / Import / Export / Release selected tubs">
+                                <Button.ContextMenu>
+                                    <ContextMenu Padding="4" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                        <MenuItem Header="Template" Command="{Binding DownloadTemplateCommand}"/>
+                                        <MenuItem Header="Import" Command="{Binding ImportCsvCommand}"/>
+                                        <MenuItem Header="Export" Command="{Binding ExportCsvCommand}"/>
+                                        <Separator/>
+                                        <MenuItem Header="Release selected tubs" Command="{Binding ReleaseSelectedTubsCommand}"
+                                                  IsEnabled="{Binding HasSelectedTubs}"/>
+                                    </ContextMenu>
+                                </Button.ContextMenu>
+                            </Button>
+                        </StackPanel>
+                    </DockPanel>
+
+                    <DataGrid Grid.Row="1" MaxHeight="420" VerticalAlignment="Top" HorizontalAlignment="Stretch" Margin="0,0,16,0" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="False"
+                          CanUserSortColumns="True"
+                          HeadersVisibility="Column"
+                           ItemsSource="{Binding PagedRows}" CellEditEnding="OnCellEditEnding"
+                          SelectionMode="Single" SelectionUnit="FullRow"
+                          CanUserResizeRows="False"
+                          GridLinesVisibility="Horizontal"
+                          HorizontalGridLinesBrush="#E5E7EB"
+                          BorderBrush="#E5E7EB" BorderThickness="0"
+                           HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                           EnableRowVirtualization="True" EnableColumnVirtualization="True"
+                           Style="{StaticResource AppDataGridStyle}">
+                    <DataGrid.Resources>
+                        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource BasicTableHeaderStyle}">
+                            <Setter Property="Padding" Value="12,6"/>
+                        </Style>
+                    </DataGrid.Resources>
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow" BasedOn="{StaticResource AppDataGridRowStyle}">
+                            <Setter Property="MinHeight" Value="32"/>
+                        </Style>
+                    </DataGrid.RowStyle>
+                    <DataGrid.CellStyle>
+                        <Style TargetType="DataGridCell" BasedOn="{StaticResource AppDataGridCellStyle}">
+                            <Setter Property="Padding" Value="12,4"/>
+                            <Setter Property="FontSize" Value="12.5"/>
+                        </Style>
+                    </DataGrid.CellStyle>
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Width="46" MinWidth="46" CanUserSort="False" IsReadOnly="True">
+                            <DataGridTemplateColumn.Header>
+                                <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          ToolTip="Select all tubs"
+                                          IsChecked="{Binding DataContext.IsAllSelected, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            </DataGridTemplateColumn.Header>
+                            <DataGridTemplateColumn.HeaderStyle>
+                                <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource BasicTableHeaderStyle}">
+                                    <Setter Property="ContentTemplate" Value="{x:Null}"/>
+                                </Style>
+                            </DataGridTemplateColumn.HeaderStyle>
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Sl.No" Binding="{Binding Index}" IsReadOnly="True" Width="60" MinWidth="60" SortMemberPath="Index">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}"/>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="EPC ID" Binding="{Binding Tub.Epc}" IsReadOnly="True" Width="110" MinWidth="110" SortMemberPath="Tub.Epc">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}"/>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Tub no" Binding="{Binding Tub.TubId}" IsReadOnly="True" Width="80" MinWidth="90" SortMemberPath="Tub.TubId">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}">
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                    <Setter Property="Foreground" Value="#111827"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTemplateColumn Header="Colour" Width="90" MinWidth="90" IsReadOnly="True" SortMemberPath="Tub.Colour">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Ellipse Width="11" Height="11" VerticalAlignment="Center" Margin="0,0,7,0">
+                                            <Ellipse.Style>
+                                                <Style TargetType="Ellipse">
+                                                    <Setter Property="Fill" Value="#f28c1e"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Tub.Colour}" Value="Blue"><Setter Property="Fill" Value="#2f7fe0"/></DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Ellipse.Style>
+                                        </Ellipse>
+                                        <TextBlock Text="{Binding Tub.Colour}" VerticalAlignment="Center" Style="{StaticResource GridCellTextLeftStyle}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Tub ageing" Binding="{Binding AgeingDisplay}" IsReadOnly="True" Width="120" MinWidth="110" SortMemberPath="AgeingDays">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}"/>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTemplateColumn Header="Used cycles" Width="100" MinWidth="100" IsReadOnly="True" SortMemberPath="Tub.UsedCycles">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border Background="#F3F4F6" CornerRadius="6" Padding="8,4" HorizontalAlignment="Left" MinWidth="78">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{Binding Tub.UsedCycles, UpdateSourceTrigger=LostFocus}"
+                                                     Background="Transparent" BorderThickness="0" FontSize="12.5"
+                                                     VerticalAlignment="Center" HorizontalContentAlignment="Left"
+                                                     LostFocus="CyclesTextBox_LostFocus" Tag="{Binding}"/>
+                                            <StackPanel Grid.Column="1" Orientation="Vertical" VerticalAlignment="Center" Margin="4,0,0,0">
+                                                <Button Style="{StaticResource SpinnerArrowStyle}" Content="▲"
+                                                        Command="{Binding DataContext.StepUpCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"/>
+                                                <Button Style="{StaticResource SpinnerArrowStyle}" Content="▼"
+                                                        Command="{Binding DataContext.StepDownCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Life used" Width="*" MinWidth="150" IsReadOnly="True" SortMemberPath="LifePct">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel VerticalAlignment="Center" Width="140">
+                                        <ProgressBar Value="{Binding LifePct}" Maximum="100" Minimum="0" Style="{StaticResource LifeUsedBarStyle}"/>
+                                        <TextBlock FontSize="11" Foreground="#6B7280" Margin="0,3,0,0">
+                                            <TextBlock.Text>
+                                                <MultiBinding StringFormat="{}{0:F0}% of life - {1:N0} left">
+                                                    <Binding Path="LifePct"/>
+                                                    <Binding Path="CyclesLeft"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Assigned to" Binding="{Binding AssignedDisplay}" IsReadOnly="True" Width="90" MinWidth="90" SortMemberPath="Tub.AssignedTo">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}"/>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTemplateColumn Header="Status" Width="90" MinWidth="80" IsReadOnly="True" SortMemberPath="Tub.DisplayStatus">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="4" Padding="8,3" HorizontalAlignment="Left" Background="#EDEFf1">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="#EDEFf1"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Tub.DisplayStatus}" Value="In use"><Setter Property="Background" Value="#DEF7EC"/></DataTrigger>
+                                                    <DataTrigger Binding="{Binding Tub.DisplayStatus}" Value="Blocked"><Setter Property="Background" Value="#FCE8E8"/></DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="{Binding Tub.DisplayStatus}" FontSize="11" FontWeight="SemiBold" Foreground="#6B7280">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="#6B7280"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Tub.DisplayStatus}" Value="In use"><Setter Property="Foreground" Value="#03543F"/></DataTrigger>
+                                                        <DataTrigger Binding="{Binding Tub.DisplayStatus}" Value="Blocked"><Setter Property="Foreground" Value="#C81E1E"/></DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Replacement" Width="115" MinWidth="115" IsReadOnly="True" SortMemberPath="Replacement">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="4" Padding="8,3" HorizontalAlignment="Left">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="#DEF7EC"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Replacement}" Value="Plan replacement"><Setter Property="Background" Value="#FDF1CC"/></DataTrigger>
+                                                    <DataTrigger Binding="{Binding Replacement}" Value="Replace now"><Setter Property="Background" Value="#FDE3E1"/></DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="{Binding Replacement}" FontSize="11" FontWeight="SemiBold">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="#03543F"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Replacement}" Value="Plan replacement"><Setter Property="Foreground" Value="#C28200"/></DataTrigger>
+                                                        <DataTrigger Binding="{Binding Replacement}" Value="Replace now"><Setter Property="Foreground" Value="#C81E1E"/></DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Action" Width="80" MinWidth="70" CanUserSort="False">
+                            <DataGridTemplateColumn.HeaderStyle>
+                                <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource BasicTableHeaderStyle}">
+                                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTemplateColumn.HeaderStyle>
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Style="{StaticResource RowActionButtonStyle}" Content="⋯" Click="RowActionButton_Click" Margin="0,0,8,0"
+                                            ToolTip="Actions">
+                                        <Button.ContextMenu>
+                                            <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                                <MenuItem Header="Edit" FontSize="14" Padding="10,8"
+                                                          Click="EditMenuItem_Click"/>
+                                                <MenuItem Header="Block" FontSize="14" Padding="10,8"
+                                                          Click="BlockMenuItem_Click"/>
+                                                <MenuItem Header="Unblock" FontSize="14" Padding="10,8"
+                                                          Click="UnblockMenuItem_Click"/>
+                                                <MenuItem Header="Mark replaced" FontSize="14" Padding="10,8"
+                                                          Click="ReplaceMenuItem_Click"/>
+                                            </ContextMenu>
+                                        </Button.ContextMenu>
+                                    </Button>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                    </DataGrid>
+
+                    <DockPanel Grid.Row="2" Margin="0,14,0,0" LastChildFill="False">
+                        <TextBlock DockPanel.Dock="Left" Text="{Binding ShowingText, Mode=OneWay}" FontSize="12" Foreground="#374151" VerticalAlignment="Center" Margin="0,0,12,4"/>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,0">
+                            <Button Style="{StaticResource TablePagerButtonStyle}" Content="Previous" Command="{Binding PrevPageCommand}"/>
+                            <ItemsControl ItemsSource="{Binding PageNumbers}" Margin="4,0">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Content="{Binding Number}" Command="{Binding DataContext.GoToPageCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Number}">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource TablePagerButtonStyle}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                                            <Setter Property="Background" Value="{DynamicResource BrandPrimaryBrush}"/>
+                                                            <Setter Property="Foreground" Value="{DynamicResource BrandOnPrimaryBrush}"/>
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource BrandPrimaryBrush}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Button Style="{StaticResource TablePagerButtonStyle}" Content="Next" Command="{Binding NextPageCommand}"/>
+                        </StackPanel>
+                    </DockPanel>
+                </Grid>
+            </Border>
+
+            <Button Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,6,4" Width="30" Height="30"
+                    Command="{Binding ToggleFormCommand}" ToolTip="Show/hide the tub form">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
+                        <Setter Property="Content" Value="✕"/>
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="FontSize" Value="13"/>
+                        <Setter Property="FontWeight" Value="Bold"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsFormExpanded}" Value="False">
+                                <Setter Property="Content" Value="+"/>
+                                <Setter Property="FontSize" Value="16"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+            
+        </Grid>
+     </ScrollViewer>
+    </Border>
+</UserControl>
+

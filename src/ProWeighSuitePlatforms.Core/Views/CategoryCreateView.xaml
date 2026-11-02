@@ -1,0 +1,131 @@
+<UserControl x:Class="ProWeighSuitePlatforms.Views.CategoryCreateView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:behaviors="clr-namespace:ProWeighSuitePlatforms.Behaviors"
+             mc:Ignorable="d">
+    <Border Background="White"
+            BorderBrush="{StaticResource CardBorderBrush}"
+            BorderThickness="1"
+            CornerRadius="8"
+            Padding="16">
+    <Grid behaviors:AutoFocusBehavior.IsEnabled="True">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Required fields note (title now shown in top bar dynamically) -->
+        <Grid Grid.Row="0" Margin="0,0,0,10" VerticalAlignment="Top">
+            <TextBlock HorizontalAlignment="Right"
+                       FontSize="12"
+                       Foreground="Gray"
+                       VerticalAlignment="Center">
+                <Run Text="*" Foreground="Red" FontSize="14"/>
+                <Run Text=" indicates required fields"/>
+            </TextBlock>
+        </Grid>
+
+        <!-- Two Column Layout for Form Fields -->
+        <Grid Grid.Row="1" Margin="0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Left Column - Row 0: Name Field -->
+            <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,20">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Left" 
+                               Text="* " 
+                               Foreground="Red" 
+                               FontSize="20" 
+                               Margin="0,0,5,0" 
+                               VerticalAlignment="Center"/>
+                    <TextBox FontSize="16" Style="{StaticResource FormTextBoxStyle}" materialDesign:HintAssist.Background="White" Padding="5" Background="Transparent" BorderBrush="#d9dee7" MaxLength="100" Text="{Binding CreateName, UpdateSourceTrigger=PropertyChanged}">
+                                            <materialDesign:HintAssist.Hint>
+                                                <TextBlock Text="Name" FontSize="15" />
+                                            </materialDesign:HintAssist.Hint>
+                                        </TextBox>
+                </DockPanel>
+                <TextBlock Text="Must be 2-100 characters (unique)" 
+                           FontSize="11" 
+                           Foreground="Gray"
+                           Margin="20,3,0,0"/>
+                <TextBlock Text="{Binding NameError}" 
+                           FontSize="11" 
+                           Foreground="Red"
+                           Margin="30,3,0,0"
+                           Visibility="{Binding NameError, Converter={StaticResource NullToVisibilityConverter}}"/>
+            </StackPanel>
+
+            <!-- Right Column - Row 0: Status Field -->
+            <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,20">
+                <CheckBox Content="Active"
+                          FontSize="16"
+                          IsChecked="{Binding CreateStatus}"
+                          Margin="0,5,0,0"/>
+                <TextBlock Text="Set category as active or inactive" 
+                           FontSize="11" 
+                           Foreground="Gray"
+                           Margin="5,3,0,0"/>
+            </StackPanel>
+
+            <!-- Full Width - Row 1: Description Field -->
+            <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Margin="20,0,0,20">
+                <TextBox FontSize="16" Style="{StaticResource FormTextBoxStyle}" materialDesign:HintAssist.Background="White" Padding="5" Background="Transparent" BorderBrush="#d9dee7" MaxLength="500" MinLines="3" MaxLines="5" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Text="{Binding CreateDescription, UpdateSourceTrigger=PropertyChanged}">
+                                            <materialDesign:HintAssist.Hint>
+                                                <TextBlock Text="Description (Optional)" FontSize="15" />
+                                            </materialDesign:HintAssist.Hint>
+                                        </TextBox>
+                <TextBlock Text="Optional description for this category (max 500 characters)" 
+                           FontSize="11" 
+                           Foreground="Gray"
+                           Margin="5,3,0,0"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Action Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <!-- Save button shown when not updating -->
+            <Button Content="Save" Command="{Binding CreateCommand}" Margin="6,0"
+                    Background="{DynamicResource BrandPrimaryBrush}" BorderBrush="{DynamicResource BrandPrimaryBrush}" Foreground="#000000">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                        <Setter Property="Visibility" Value="Visible"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsUpdating}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+            <!-- Update button shown when updating -->
+            <Button Content="Update" Command="{Binding UpdateCommand}" Margin="6,0"
+                    Background="{DynamicResource BrandPrimaryBrush}" BorderBrush="{DynamicResource BrandPrimaryBrush}" Foreground="#434242">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsUpdating}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+            <Button Content="Cancel" Command="{Binding CancelCreateCommand}" Margin="6,0"
+                    Background="#555555" BorderBrush="#555555" Foreground="White"/>
+        </StackPanel>
+    </Grid>
+    </Border>
+</UserControl>

@@ -1,0 +1,51 @@
+<Project>
+  <PropertyGroup>
+    <HostFlavor Condition="'$(HostFlavor)'==''">Fusion</HostFlavor>
+    <HostRepoRoot Condition="'$(HostRepoRoot)'==''">$(MSBuildProjectDirectory)</HostRepoRoot>
+    <HostBrandDir Condition="'$(HostBrandDir)'==''">$(HostRepoRoot)\branding\$(HostFlavor)</HostBrandDir>
+    <HostBrandProfile>$(HostBrandDir)\branding.json</HostBrandProfile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="Exists('$(HostBrandDir)\Images\app-icon.ico')">
+    <ApplicationIcon>$(HostBrandDir)\Images\app-icon.ico</ApplicationIcon>
+    <PackageIcon>$(HostBrandDir)\Images\app-icon.ico</PackageIcon>
+  </PropertyGroup>
+
+  <ItemGroup Condition="Exists('$(HostBrandProfile)')">
+    <None Remove="$(HostBrandProfile)" />
+    <EmbeddedResource Include="$(HostBrandProfile)">
+      <LogicalName>ProWeighSuitePlatforms.Branding.$(HostFlavor).branding.json</LogicalName>
+    </EmbeddedResource>
+    <Content Include="$(HostBrandProfile)">
+      <Link>Branding\branding.json</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup Condition="Exists('$(HostBrandDir)\active-brand.txt')">
+    <None Remove="$(HostBrandDir)\active-brand.txt" />
+    <Content Include="$(HostBrandDir)\active-brand.txt">
+      <Link>Branding\active-brand.txt</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup Condition="Exists('$(HostBrandDir)\Images')">
+    <None Remove="$(HostBrandDir)\Images\**\*" />
+    <Resource Include="$(HostBrandDir)\Images\*.png" Link="branding\$(HostFlavor)\Images\%(Filename)%(Extension)" />
+    <Resource Include="$(HostBrandDir)\Images\*.jpg" Link="branding\$(HostFlavor)\Images\%(Filename)%(Extension)" />
+    <Resource Include="$(HostBrandDir)\Images\*.ico" Link="branding\$(HostFlavor)\Images\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <Target Name="ValidateHostBranding" BeforeTargets="PrepareForBuild"
+          Condition="'$(DesignTimeBuild)' != 'true'">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;$ErrorActionPreference = 'Stop'; $path = '$(HostBrandProfile)'; if (-not (Test-Path -LiteralPath $path)) { throw 'Host branding profile not found: ' + $path }; $p = Get-Content -Raw -LiteralPath $path | ConvertFrom-Json; $required = @('brand','title','name','suffix','tagline','primary','secondary','logo','banner','icon','flavor','installerName','issAppId','updateFeedSubdir'); foreach ($f in $required) { if (-not $p.$f) { throw 'Host branding is missing required field: ' + $f } }; foreach ($f in @('primary','secondary')) { if ($p.$f -notmatch '^#[0-9A-Fa-f]{6}$') { throw 'Host branding color must be #RRGGBB: ' + $f } }; if ($p.flavor -ne '$(HostFlavor)') { throw 'Host branding flavor mismatch: ' + $p.flavor + ' != $(HostFlavor)' }; foreach ($f in @('logo','banner','icon')) { $file = Join-Path '$(HostRepoRoot)' $p.$f; if (-not (Test-Path -LiteralPath $file)) { throw 'Host branding asset not found: ' + $file } }&quot;" />
+  </Target>
+
+  <Target Name="ClearStaleHostBranding" BeforeTargets="PrepareForBuild;Publish"
+          Condition="!Exists('$(HostBrandProfile)')">
+    <Delete Files="$(OutDir)Branding\branding.json;$(OutDir)Branding\active-brand.txt;$(PublishDir)Branding\branding.json;$(PublishDir)Branding\active-brand.txt" />
+  </Target>
+</Project>

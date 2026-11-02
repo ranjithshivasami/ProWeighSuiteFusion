@@ -1,0 +1,55 @@
+<Window x:Class="ProWeighSuitePlatforms.Views.ImageCropWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="Crop Material Image" Height="640" Width="680"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        Background="#F5F5F5">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Drag to create area • Drag center to move • Drag handles to resize (min 80×80). Click Save." FontSize="12" Foreground="#555" Margin="0,0,0,8"/>
+
+        <!-- Image + overlay -->
+        <Border Grid.Row="1" Background="White" BorderBrush="#DDD" BorderThickness="1" CornerRadius="6" ClipToBounds="True">
+            <Grid x:Name="ImageContainer" Background="#111">
+                <Image x:Name="SourceImage" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <!-- Selection overlay -->
+                <Canvas x:Name="OverlayCanvas" Background="Transparent"
+                        MouseLeftButtonDown="OverlayCanvas_MouseLeftButtonDown"
+                        MouseMove="OverlayCanvas_MouseMove"
+                        MouseLeftButtonUp="OverlayCanvas_MouseLeftButtonUp">
+                    <!-- dim outside -->
+                    <Rectangle x:Name="DimRect" Fill="#80000000" Visibility="Collapsed"/>
+                    <!-- selection -->
+                    <Rectangle x:Name="SelectionRect" Stroke="{DynamicResource BrandPrimaryBrush}" StrokeThickness="2" Fill="#20FF9F00" Visibility="Collapsed" IsHitTestVisible="False"/>
+                    <!-- corner handles for smooth resize -->
+                    <Rectangle x:Name="HandleTL" Fill="White" Stroke="{DynamicResource BrandPrimaryBrush}" StrokeThickness="2" Width="12" Height="12" Visibility="Collapsed" Cursor="SizeNWSE"/>
+                    <Rectangle x:Name="HandleTR" Fill="White" Stroke="{DynamicResource BrandPrimaryBrush}" StrokeThickness="2" Width="12" Height="12" Visibility="Collapsed" Cursor="SizeNESW"/>
+                    <Rectangle x:Name="HandleBL" Fill="White" Stroke="{DynamicResource BrandPrimaryBrush}" StrokeThickness="2" Width="12" Height="12" Visibility="Collapsed" Cursor="SizeNESW"/>
+                    <Rectangle x:Name="HandleBR" Fill="{DynamicResource BrandPrimaryBrush}" Width="12" Height="12" Visibility="Collapsed" Cursor="SizeNWSE"/>
+                    <!-- edge handles -->
+                    <Rectangle x:Name="HandleT" Fill="White" Stroke="{DynamicResource BrandPrimaryBrush}" StrokeThickness="1.5" Width="14" Height="8" Visibility="Collapsed" Cursor="SizeNS"/>
+                    <Rectangle x:Name="HandleB" Fill="White" Stroke="{DynamicResource BrandPrimaryBrush}" StrokeThickness="1.5" Width="14" Height="8" Visibility="Collapsed" Cursor="SizeNS"/>
+                    <Rectangle x:Name="HandleL" Fill="White" Stroke="{DynamicResource BrandPrimaryBrush}" StrokeThickness="1.5" Width="8" Height="14" Visibility="Collapsed" Cursor="SizeWE"/>
+                    <Rectangle x:Name="HandleR" Fill="White" Stroke="{DynamicResource BrandPrimaryBrush}" StrokeThickness="1.5" Width="8" Height="14" Visibility="Collapsed" Cursor="SizeWE"/>
+                    <!-- center handle to move -->
+                    <Grid x:Name="CenterHandle" Width="36" Height="36" Visibility="Collapsed" Cursor="SizeAll" Background="Transparent">
+                        <Ellipse Fill="{DynamicResource BrandPrimaryBrush}" Stroke="White" StrokeThickness="2" Width="30" Height="30" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <materialDesign:PackIcon Kind="CursorMove" Width="16" Height="16" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                </Canvas>
+            </Grid>
+        </Border>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="Cancel" Width="90" Margin="0,0,8,0" Style="{StaticResource MaterialDesignOutlinedButton}" Click="Cancel_Click"/>
+            <Button Content="Save Crop" Width="110" Background="{DynamicResource BrandPrimaryBrush}" BorderBrush="{DynamicResource BrandPrimaryBrush}" Foreground="#434242" FontWeight="SemiBold"
+                    Style="{StaticResource MaterialDesignRaisedButton}" Click="Save_Click" IsDefault="True"/>
+        </StackPanel>
+    </Grid>
+</Window>
