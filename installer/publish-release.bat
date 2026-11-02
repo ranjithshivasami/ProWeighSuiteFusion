@@ -1,14 +1,14 @@
 @echo off
 REM ============================================================================
 REM ProWeigh Fusion - Single-File Publisher
-REM Publishes ProWeighSuitePlatforms.csproj as a self-contained win-x64
+REM Publishes ProWeighFusion.csproj as a self-contained win-x64
 REM single-file executable into installer\Publish.
 REM ============================================================================
 
 setlocal
 set "SCRIPT_DIR=%~dp0"
 set "ROOT=%SCRIPT_DIR%.."
-set "PROJECT_FILE=%ROOT%\ProWeighSuitePlatforms.csproj"
+set "PROJECT_FILE=%ROOT%\ProWeighFusion.csproj"
 set "PUBLISH_DIR=%SCRIPT_DIR%Publish"
 
 if not exist "%PROJECT_FILE%" (

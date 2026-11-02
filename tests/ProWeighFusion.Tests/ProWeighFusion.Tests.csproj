@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\ProWeighSuitePlatforms.csproj" />
+    <ProjectReference Include="..\..\ProWeighFusion.csproj" />
   </ItemGroup>
 
 </Project>

@@ -8,7 +8,7 @@ and tub masters, supplier master, reports and settings.
 
 ```text
 proweigh-fusion/
-├── ProWeighSuitePlatforms.csproj     # the one and only project (WinExe)
+├── ProWeighFusion.csproj               # the one and only project (WinExe)
 ├── App.xaml / App.xaml.cs            # startup, services, crash handling
 ├── MainWindow.xaml / MainWindow.xaml.cs
 ├── Program.cs                        # entry point (Velopack + App)

@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProWeighSuitePlatforms", "ProWeighSuitePlatforms.csproj", "{AA4424A4-3CD6-4E0C-9A7C-EEE8FECA6602}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProWeighFusion", "ProWeighFusion.csproj", "{AA4424A4-3CD6-4E0C-9A7C-EEE8FECA6602}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProWeighFusion.Tests", "tests\ProWeighFusion.Tests\ProWeighFusion.Tests.csproj", "{1592696C-66CC-4AA4-9F21-1D89CEA9EEE3}"
 EndProject

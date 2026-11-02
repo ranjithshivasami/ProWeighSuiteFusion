@@ -9,7 +9,7 @@ setlocal
 set "SCRIPT_DIR=%~dp0"
 set "ROOT=%SCRIPT_DIR%.."
 set "PROFILE=%ROOT%\branding\fusion\branding.json"
-set "PROJECT_FILE=%ROOT%\ProWeighSuitePlatforms.csproj"
+set "PROJECT_FILE=%ROOT%\ProWeighFusion.csproj"
 set "PUBLISH_DIR=%SCRIPT_DIR%Publish"
 set "ISC=C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
 
