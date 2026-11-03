@@ -1222,8 +1222,8 @@ namespace ProWeighSuitePlatforms.ViewModels
                     $"Lot {lot.LotNo} in batch {_batch.BatchNo} completed automatically at {lot.DoneTubs + 1}/{lot.Tubs} tubs.");
             }
             var fresh = await repo.GetPlanLotsAsync(_batch.BatchNo);
-            if (fresh.Count > 0 && fresh.All(l => l.IsCompleted || l.DoneTubs >= l.Tubs))
-                await CompleteBatchInternalAsync(repo, auto: true);
+            if (fresh.Count > 0 && BatchTargetReached(fresh, out var reason))
+                await CompleteBatchInternalAsync(repo, auto: true, reason);
             await RefreshBatchAsync();
             if (warn != null) StatusText = warn;
             else if (grnNote != null) StatusText = grnNote;
@@ -1342,17 +1342,57 @@ namespace ProWeighSuitePlatforms.ViewModels
             }
         }
 
-        private async Task CompleteBatchInternalAsync(FusionRepository repo, bool auto)
+        /// <summary>
+        /// Returns true when the live batch has reached any configured target
+        /// (target weight kg, target tubs, or target nuts), whichever is hit first.
+        /// A target value of 0 means "not configured" and is ignored.
+        /// </summary>
+        private bool BatchTargetReached(List<FusionPlanLot> lots, out string reason)
+        {
+            reason = string.Empty;
+            if (_batch == null || lots == null || lots.Count == 0) return false;
+
+            double doneKg = lots.Sum(l => l.DoneKg);
+            int doneTubs = lots.Sum(l => l.DoneTubs);
+            int nutsPerTub = Math.Max(1, _batch.NutsPerTub);
+            int doneNuts = doneTubs * nutsPerTub;
+
+            // Target weight reached first.
+            if (_batch.TargetKg > 0 && doneKg >= _batch.TargetKg)
+            {
+                reason = $"target weight {_batch.TargetKg:N0} kg reached ({doneKg:N0} kg)";
+                return true;
+            }
+            // Target tub count reached first.
+            if (_batch.TargetTubs > 0 && doneTubs >= _batch.TargetTubs)
+            {
+                reason = $"target tubs {_batch.TargetTubs} reached ({doneTubs})";
+                return true;
+            }
+            // Target nut count reached first.
+            if (_batch.TargetNuts > 0 && doneNuts >= _batch.TargetNuts)
+            {
+                reason = $"target nuts {_batch.TargetNuts} reached ({doneNuts})";
+                return true;
+            }
+            return false;
+        }
+
+        private async Task CompleteBatchInternalAsync(FusionRepository repo, bool auto, string? reason = null)
         {
             if (_batch == null) return;
             await repo.CompleteBatchRunAsync(_batch.BatchNo);
             await repo.AddBatchEventAsync(_batch.BatchNo, "Batch Completed");
             await repo.ClearBatchAssignmentsAsync(_batch.BatchNo);
+            var detail = reason != null
+                ? $"Batch {_batch.BatchNo} completed automatically — {reason}; assigned tubs released."
+                : $"Batch {_batch.BatchNo} completed {(auto ? "automatically" : "manually")}; assigned tubs released.";
             await _audit.LogFusionEventAsync(_username, "Fusion_Batch_Completed",
-                "FusionBatch", _batch.BatchNo,
-                $"Batch {_batch.BatchNo} completed {(auto ? "automatically" : "manually")}; assigned tubs released.");
+                "FusionBatch", _batch.BatchNo, detail);
             StopAutoRun();
-            StatusText = auto ? $"Batch {_batch.BatchNo} completed automatically." : $"Batch {_batch.BatchNo} completed.";
+            StatusText = reason != null
+                ? $"Batch {_batch.BatchNo} completed automatically ({reason})."
+                : auto ? $"Batch {_batch.BatchNo} completed automatically." : $"Batch {_batch.BatchNo} completed.";
         }
 
         public async Task PauseLotAsync(LiveLotRow row)
@@ -1402,8 +1442,8 @@ namespace ProWeighSuitePlatforms.ViewModels
                     $"Lot {row.Lot.LotNo} in batch {_batch.BatchNo} completed manually at {row.Lot.DoneTubs}/{row.Lot.Tubs} tubs.");
                 StatusText = $"Completed {row.Lot.LotNo}.";
                 var fresh = await repo.GetPlanLotsAsync(_batch.BatchNo);
-                if (fresh.Count > 0 && fresh.All(l => l.IsCompleted || l.DoneTubs >= l.Tubs))
-                    await CompleteBatchInternalAsync(repo, auto: true);
+                if (fresh.Count > 0 && BatchTargetReached(fresh, out var reason))
+                    await CompleteBatchInternalAsync(repo, auto: true, reason);
                 await RefreshBatchAsync();
             }
             catch (Exception ex)
