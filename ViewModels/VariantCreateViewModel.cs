@@ -66,7 +66,7 @@ namespace ProWeighSuitePlatforms.ViewModels
 
             var dbPath = System.IO.Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "ProWeighSuitePlatforms", "proweighsuiteplatform.db");
+                "ProWeighSuiteFusion", "proweigh_suite_fusion.db");
             _variantService = new VariantService(new Data.VariantRepository(dbPath));
 
             if (_editingVariant != null)

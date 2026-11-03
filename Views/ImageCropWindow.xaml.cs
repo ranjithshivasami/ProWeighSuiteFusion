@@ -289,7 +289,7 @@ namespace ProWeighSuitePlatforms.Views
                     return;
                 }
 
-                var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ProWeighSuitePlatforms", "MaterialImages");
+                var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ProWeighSuiteFusion", "MaterialImages");
                 Directory.CreateDirectory(dir);
                 var fileName = $"mat_{DateTime.Now:yyyyMMdd_HHmmss}_{Guid.NewGuid():N}.jpg";
                 var outPath = Path.Combine(dir, fileName);

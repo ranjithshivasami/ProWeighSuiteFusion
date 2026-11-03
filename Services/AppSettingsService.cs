@@ -22,7 +22,7 @@ namespace ProWeighSuitePlatforms.Services
         {
             var appData = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "ProWeighSuitePlatforms");
+                "ProWeighSuiteFusion");
 
             if (!Directory.Exists(appData))
                 Directory.CreateDirectory(appData);

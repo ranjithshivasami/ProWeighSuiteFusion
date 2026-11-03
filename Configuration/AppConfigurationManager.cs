@@ -21,11 +21,11 @@ namespace ProWeighSuitePlatforms.Configuration
                 return _databaseConfig;
 
             // Default configuration for SQLite
-            // Use roaming (AppData\Roaming) and the filename 'proweighsuiteplatform.db' where current transactions are stored
+            // Use roaming (AppData\Roaming) and the filename 'proweigh_suite_fusion.db' where current transactions are stored
             var dbPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "ProWeighSuitePlatforms",
-                "proweighsuiteplatform.db"
+                "ProWeighSuiteFusion",
+                "proweigh_suite_fusion.db"
             );
 
             _databaseConfig = new DatabaseConfiguration

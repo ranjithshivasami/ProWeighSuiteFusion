@@ -22,7 +22,7 @@ namespace ProWeighSuitePlatforms.Infrastructure
 
         private string LicensePath => Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "ProWeighSuitePlatforms", "license.json");
+            "ProWeighSuiteFusion", "license.json");
 
         public async Task<HashSet<string>> GetEntitledModulesAsync(CancellationToken ct = default)
         {

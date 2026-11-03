@@ -36,7 +36,7 @@ namespace ProWeighSuitePlatforms.Infrastructure
             LogSnapshot("periodic");
         }
 
-        /// <summary>Immediately appends a snapshot line to %AppData%\ProWeighSuitePlatforms\resources.log.</summary>
+        /// <summary>Immediately appends a snapshot line to %AppData%\ProWeighSuiteFusion\resources.log.</summary>
         public static void LogSnapshot(string reason)
         {
             try
@@ -49,7 +49,7 @@ namespace ProWeighSuitePlatforms.Infrastructure
                 System.Diagnostics.Debug.WriteLine($"[Resources] {line}");
                 var dir = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "ProWeighSuitePlatforms");
+                    "ProWeighSuiteFusion");
                 Directory.CreateDirectory(dir);
                 File.AppendAllText(Path.Combine(dir, "resources.log"), line + Environment.NewLine);
             }

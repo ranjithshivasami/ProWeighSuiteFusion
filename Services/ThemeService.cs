@@ -131,7 +131,7 @@ namespace ProWeighSuitePlatforms.Services
             {
                 var dir = System.IO.Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "ProWeighSuitePlatforms");
+                    "ProWeighSuiteFusion");
                 System.IO.Directory.CreateDirectory(dir);
                 var file = System.IO.Path.Combine(dir, "theme.log");
                 System.IO.File.AppendAllText(file,

@@ -17,7 +17,7 @@ namespace ProWeighSuitePlatforms.Services
     {
         private static readonly string ConfigDirectory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "ProWeighSuitePlatforms");
+            "ProWeighSuiteFusion");
 
         private static readonly string PlcConfigFilePath = Path.Combine(ConfigDirectory, "plc-config.json");
 

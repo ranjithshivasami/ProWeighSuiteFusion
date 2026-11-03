@@ -7,7 +7,7 @@ namespace ProWeighSuitePlatforms.Models
         public string SmtpUsername { get; set; } = string.Empty;
         public string SmtpPassword { get; set; } = string.Empty;
         public string FromEmail { get; set; } = string.Empty;
-        public string FromName { get; set; } = "ProWeighSuitePlatforms";
+        public string FromName { get; set; } = "ProWeighSuiteFusion";
         public string AppName { get; set; } = "Pro Weigh Suite";
         public bool UseSsl { get; set; } = true;
     }

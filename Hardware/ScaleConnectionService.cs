@@ -75,7 +75,7 @@ namespace ProWeighSuitePlatforms.Services
             {
                 var dir = System.IO.Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "ProWeighSuitePlatforms", "logs");
+                    "ProWeighSuiteFusion", "logs");
                 System.IO.Directory.CreateDirectory(dir);
                 System.IO.File.AppendAllText(
                     System.IO.Path.Combine(dir, "scale.log"),

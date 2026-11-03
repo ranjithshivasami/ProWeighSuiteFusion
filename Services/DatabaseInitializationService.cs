@@ -51,7 +51,7 @@ namespace ProWeighSuitePlatforms.Services
                 {
                     if (string.IsNullOrEmpty(appBase)) continue;
 
-                    var appDir = Path.Combine(appBase, "ProWeighSuitePlatforms");
+                    var appDir = Path.Combine(appBase, "ProWeighSuiteFusion");
                     if (!Directory.Exists(appDir)) continue;
 
                     foreach (var legacy in legacyNames)

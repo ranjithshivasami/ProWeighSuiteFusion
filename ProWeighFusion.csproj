@@ -31,6 +31,9 @@
          side folders (installer scripts, tests). -->
     <DefaultItemExcludes>$(DefaultItemExcludes);branding\**;installer\**;tests\**;publish\**;Publish\**;artifacts\**</DefaultItemExcludes>
   </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Images\ta-logo.jpeg" />
+  </ItemGroup>
 
   <ItemGroup>
     <AssemblyMetadata Include="ProWeighFlavor" Value="Fusion" />
@@ -114,6 +117,12 @@
     <PackageReference Include="LiteQueue" Version="1.0.0" />
     <PackageReference Include="UUIDNext" Version="2.0.0" />
     <PackageReference Include="Velopack" Version="1.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\ta-logo.jpeg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
 </Project>

@@ -86,7 +86,7 @@ namespace ProWeighSuitePlatforms.ViewModels
         private string _lotMode = "Auto FEFO, all lots now";
         public string LotMode { get => _lotMode; set { if (SetProperty(ref _lotMode, value)) Replan(); } }
         public bool IsManual => LotMode.StartsWith("Supplier wise", StringComparison.Ordinal);
-        private string _targetWeight = "100000";
+        private string _targetWeight = string.Empty;
         public string TargetWeight { get => _targetWeight; set { if (SetProperty(ref _targetWeight, value)) Replan(); } }
         private string _targetApw = "0.5";
         public string TargetApw { get => _targetApw; set { if (SetProperty(ref _targetApw, value)) Replan(); } }

@@ -279,7 +279,7 @@ namespace ProWeighSuitePlatforms.ViewModels
 
             var dbPath = System.IO.Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "ProWeighSuitePlatforms", "proweighsuiteplatform.db");
+                "ProWeighSuiteFusion", "proweigh_suite_fusion.db");
             var svc = GetSharedScaleReader();
 
             bool ok = await svc.StartReadingAsync(settings);
@@ -947,9 +947,9 @@ namespace ProWeighSuitePlatforms.ViewModels
                 Permissions: new[] { Permission.ViewSupplierMaster }),
             new("TubMaster", "Tub master", "PackageVariantClosed", "TubMaster", MenuRegion.ModuleTop, 50,
                 Permissions: new[] { Permission.ViewTubMaster }),
-            new("InwardStock", "Inward and supplier stock", "PackageVariantClosedPlus", "InwardStock", MenuRegion.ModuleTop, 60,
+            new("InwardStock", "Inward", "PackageVariantClosedPlus", "InwardStock", MenuRegion.ModuleTop, 60,
                 Permissions: new[] { Permission.ViewInwardStock }),
-            new("BatchLots", "Batch creation and lots", "LayersTriple", "BatchLots", MenuRegion.ModuleTop, 70,
+            new("BatchLots", "Batch Creation", "LayersTriple", "BatchLots", MenuRegion.ModuleTop, 70,
                 Permissions: new[] { Permission.ViewBatchLots }),
             new("BatchStatus", "Batch status", "ListStatus", "BatchStatus", MenuRegion.ModuleTop, 75,
                 Permissions: new[] { Permission.ViewBatchStatus }),
@@ -973,8 +973,8 @@ namespace ProWeighSuitePlatforms.ViewModels
             ["BayStatus"] = "Bay status",
             ["SupplierMaster"] = "Supplier master",
             ["TubMaster"] = "Tub master",
-            ["InwardStock"] = "Inward and supplier stock",
-            ["BatchLots"] = "Batch creation and lots",
+            ["InwardStock"] = "Inward",
+            ["BatchLots"] = "Batch Creation",
             ["BatchStatus"] = "Batch status",
             ["LiveView"] = "Live view",
             ["FusionReports"] = "Reports",

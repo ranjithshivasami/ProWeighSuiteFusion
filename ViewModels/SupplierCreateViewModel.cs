@@ -103,7 +103,7 @@ namespace ProWeighSuitePlatforms.ViewModels
             _existing = existing;
             _auditService = new AuditService();
             _username = parent.GetCurrentUsername();
-            var dbPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ProWeighSuitePlatforms", "proweighsuiteplatform.db");
+            var dbPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ProWeighSuiteFusion", "proweigh_suite_fusion.db");
             _service = new SupplierService(new SupplierRepository(dbPath));
 
             if (existing != null)

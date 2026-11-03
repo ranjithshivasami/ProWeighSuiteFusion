@@ -100,7 +100,7 @@ namespace ProWeighSuitePlatforms.ViewModels
 
             var dbPath = System.IO.Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "ProWeighSuitePlatforms", "proweighsuiteplatform.db");
+                "ProWeighSuiteFusion", "proweigh_suite_fusion.db");
 
             _service = new RolePermissionService(new RolePermissionRepository(dbPath));
             _syncService = new PermissionSyncService(dbPath);
@@ -531,7 +531,7 @@ namespace ProWeighSuitePlatforms.ViewModels
                 Permission.ViewBayStatus => "View Bay status",
                 Permission.ViewSupplierMaster => "View Supplier master",
                 Permission.ViewTubMaster => "View Tub master",
-                Permission.ViewInwardStock => "View Inward and supplier stock",
+                Permission.ViewInwardStock => "View Inward",
                 Permission.ViewBatchLots => "View Batch creation and lots",
                 Permission.ViewBatchStatus => "View Batch status",
                 Permission.ViewLiveView => "View Live view",
@@ -632,7 +632,7 @@ namespace ProWeighSuitePlatforms.ViewModels
                 Permission.ViewBayStatus => "Fusion - Bay status",
                 Permission.ViewSupplierMaster => "Fusion - Supplier master",
                 Permission.ViewTubMaster => "Fusion - Tub master",
-                Permission.ViewInwardStock => "Fusion - Inward and supplier stock",
+                Permission.ViewInwardStock => "Fusion - Inward",
                 Permission.ViewBatchLots => "Fusion - Batch creation and lots",
                 Permission.ViewBatchStatus => "Fusion - Batch status",
                 Permission.ViewLiveView => "Fusion - Live view",

@@ -56,7 +56,7 @@ namespace ProWeighSuitePlatforms.ViewModels
                     ValidateNewBayId();
             }
         }
-        private string _newCapacityText = "250000";
+        private string _newCapacityText = string.Empty;
         public string NewCapacityText
         {
             get => _newCapacityText;
@@ -269,7 +269,7 @@ namespace ProWeighSuitePlatforms.ViewModels
                 StatusText = $"Added bay {bayId} with {cap:N0} nuts capacity.";
                 _newBayId = string.Empty;
                 RaisePropertyChanged(nameof(NewBayId));
-                _newCapacityText = DefaultCapacityNuts.ToString("F0", CultureInfo.InvariantCulture);
+                _newCapacityText = string.Empty;
                 RaisePropertyChanged(nameof(NewCapacityText));
                 NewBayIdError = null;
                 NewCapacityError = null;

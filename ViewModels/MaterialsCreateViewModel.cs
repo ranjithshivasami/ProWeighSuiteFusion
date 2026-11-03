@@ -490,7 +490,7 @@ namespace ProWeighSuitePlatforms.ViewModels
 
             var dbPath = System.IO.Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "ProWeighSuitePlatforms", "proweighsuiteplatform.db");
+                "ProWeighSuiteFusion", "proweigh_suite_fusion.db");
             _materialService = new MaterialService(new MaterialRepository(dbPath));
 
             if (_editingMaterial != null)
@@ -816,7 +816,7 @@ namespace ProWeighSuitePlatforms.ViewModels
             {
                 var repo = new MaterialRepository(System.IO.Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "ProWeighSuitePlatforms", "proweighsuiteplatform.db"));
+                    "ProWeighSuiteFusion", "proweigh_suite_fusion.db"));
 
                 int? excludeId = _editingMaterial?.Id;
                 bool codeExists = await repo.ProductCodeExistsAsync(ProductCode.Trim(), excludeId);

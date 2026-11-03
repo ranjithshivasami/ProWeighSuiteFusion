@@ -229,7 +229,7 @@ namespace ProWeighSuitePlatforms.Services
         public async Task<string> SaveZplToFileAsync(WeighingTransaction transaction, string? outputFolder = null, bool isReprint = false)
         {
             var zpl = await GenerateZplFromTemplateOrFallbackAsync(transaction, isReprint);
-            var dir = outputFolder ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ProWeighSuitePlatforms", "zpl");
+            var dir = outputFolder ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ProWeighSuiteFusion", "zpl");
             try
             {
                 if (!Directory.Exists(dir))
@@ -251,7 +251,7 @@ namespace ProWeighSuitePlatforms.Services
         private async Task<string> SaveToFileAsync(string zplCode)
         {
             // Save to AppData ProWeighSuitePlatforms/zpl for easier debugging
-            var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ProWeighSuitePlatforms", "zpl");
+            var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ProWeighSuiteFusion", "zpl");
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
             var tempFile = Path.Combine(dir, $"Label_{DateTime.Now:yyyyMMdd_HHmms}.zpl");

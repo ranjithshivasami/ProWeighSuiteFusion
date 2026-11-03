@@ -76,7 +76,8 @@ namespace ProWeighSuitePlatforms.Data
                 batch_no TEXT NOT NULL DEFAULT '' REFERENCES fusion_batches(batch_no) ON DELETE RESTRICT,
                 tub_id TEXT NOT NULL DEFAULT '' REFERENCES fusion_tubs(tub_id) ON DELETE RESTRICT,
                 supplier_id INTEGER NOT NULL DEFAULT 0,
-                weight_kg REAL NOT NULL DEFAULT 0,
+                weight REAL NOT NULL DEFAULT 0,
+                uom TEXT NOT NULL DEFAULT 'kg',
                 recorded_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
                 is_synced INTEGER NOT NULL DEFAULT 0
             );
@@ -218,7 +219,7 @@ namespace ProWeighSuitePlatforms.Data
             await AddColumnAsync(conn, "fusion_inward", inward, "inward_date", "inward_date TEXT NOT NULL DEFAULT ''");
             await AddColumnAsync(conn, "fusion_inward", inward, "bay_id", "bay_id TEXT NOT NULL DEFAULT ''");
             await AddColumnAsync(conn, "fusion_inward", inward, "material_name", "material_name TEXT NOT NULL DEFAULT ''");
-            await AddColumnAsync(conn, "fusion_inward", inward, "shelf_life_days", "shelf_life_days INTEGER NOT NULL DEFAULT 10");
+            await AddColumnAsync(conn, "fusion_inward", inward, "shelf_life_days", "shelf_life_days INTEGER NOT NULL DEFAULT 0");
             await AddColumnAsync(conn, "fusion_inward", inward, "coconut_count", "coconut_count REAL NOT NULL DEFAULT 0");
             await AddColumnAsync(conn, "fusion_inward", inward, "sample_kg", "sample_kg REAL NOT NULL DEFAULT 0");
             await AddColumnAsync(conn, "fusion_inward", inward, "spoil_kg", "spoil_kg REAL NOT NULL DEFAULT 0");
@@ -293,6 +294,17 @@ namespace ProWeighSuitePlatforms.Data
             await AddColumnAsync(conn, "fusion_transactions", runTx, "lot_no", "lot_no TEXT NOT NULL DEFAULT ''");
             await AddColumnAsync(conn, "fusion_transactions", runTx, "nuts", "nuts INTEGER NOT NULL DEFAULT 0");
             await AddColumnAsync(conn, "fusion_transactions", runTx, "operator_name", "operator_name TEXT NOT NULL DEFAULT ''");
+
+            // Split legacy weight_kg into weight + uom (uom captured from the scale at weigh time).
+            await AddColumnAsync(conn, "fusion_transactions", runTx, "weight", "weight REAL NOT NULL DEFAULT 0");
+            await AddColumnAsync(conn, "fusion_transactions", runTx, "uom", "uom TEXT NOT NULL DEFAULT 'kg'");
+            if (runTx.Contains("weight_kg"))
+            {
+                using var backfill = conn.CreateCommand();
+                backfill.CommandText = "UPDATE fusion_transactions SET weight = weight_kg, uom = 'kg'";
+                await backfill.ExecuteNonQueryAsync();
+                await DropColumnIfExistsAsync(conn, "fusion_transactions", runTx, "weight_kg");
+            }
 
             // Persisted tub assignment (batch_no) so a restart never strands tubs.
             var runTubs = await GetColumnsAsync(conn, "fusion_tubs");

@@ -521,6 +521,28 @@
                                 <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}"/>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
+                        <DataGridTemplateColumn Header="Tub colour" Width="100" MinWidth="90" SortMemberPath="Colour">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Ellipse Width="12" Height="12" Margin="0,0,6,0" VerticalAlignment="Center">
+                                            <Ellipse.Style>
+                                                <Style TargetType="Ellipse">
+                                                    <Setter Property="Fill" Value="#9E9E9E"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Colour}" Value="Orange"><Setter Property="Fill" Value="#f28c1e"/></DataTrigger>
+                                                        <DataTrigger Binding="{Binding Colour}" Value="Blue"><Setter Property="Fill" Value="#2f7fe0"/></DataTrigger>
+                                                        <DataTrigger Binding="{Binding Colour}" Value="Virtual"><Setter Property="Fill" Value="#8B5CF6"/></DataTrigger>
+                                                        <DataTrigger Binding="{Binding Colour}" Value="Mixed"><Setter Property="Fill" Value="#10B981"/></DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Ellipse.Style>
+                                        </Ellipse>
+                                        <TextBlock Text="{Binding Colour}" FontSize="11" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTextColumn Header="RFID EPC" Binding="{Binding Epc}" Width="110">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}"/>
@@ -551,7 +573,12 @@
                                 <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}"/>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
-                        <DataGridTextColumn Header="Weight" Binding="{Binding Weight, StringFormat={}{0:N2} kg}" Width="100">
+                        <DataGridTextColumn Header="Weight" Binding="{Binding Weight, StringFormat={}{0:N2}}" Width="100">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextRightStyle}"/>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Uom" Binding="{Binding Uom}" Width="50" MinWidth="100">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextRightStyle}"/>
                             </DataGridTextColumn.ElementStyle>

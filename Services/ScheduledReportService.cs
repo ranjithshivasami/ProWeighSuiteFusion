@@ -17,7 +17,7 @@ namespace ProWeighSuitePlatforms.Services
     {
         private static readonly string _logPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "ProWeighSuitePlatforms", "scheduled-report.log");
+            "ProWeighSuiteFusion", "scheduled-report.log");
 
         private readonly ReportScheduleService _scheduleService;
         private readonly ReportExportService _exportService;

@@ -171,22 +171,57 @@
                             <TextBox Style="{StaticResource FormTextBoxStyle}" Text="{Binding BatchNo, Mode=OneWay}" IsReadOnly="True" materialDesign:HintAssist.Hint="Batch no"/>
                         </StackPanel>
                         <StackPanel Margin="6,8,6,8">
-                            <DatePicker Style="{StaticResource FormDatePickerStyle}" SelectedDate="{Binding BatchDate}" materialDesign:HintAssist.Hint="Date"/>
+                            <DatePicker Style="{StaticResource FormDatePickerStyle}" SelectedDate="{Binding BatchDate}">
+                                <materialDesign:HintAssist.Hint>
+                                    <TextBlock FontSize="14">
+                                        <Run Text="*" Foreground="Red"/>
+                                        <Run Text=" Date"/>
+                                    </TextBlock>
+                                </materialDesign:HintAssist.Hint>
+                            </DatePicker>
                         </StackPanel>
                         <StackPanel Margin="6,8,6,8">
-                            <ComboBox Style="{StaticResource FormComboBoxStyle}" ItemsSource="{Binding SupplierModes}" SelectedItem="{Binding SupplierMode}" materialDesign:HintAssist.Hint="Supplier selection"/>
+                            <ComboBox Style="{StaticResource FormComboBoxStyle}" ItemsSource="{Binding SupplierModes}" SelectedItem="{Binding SupplierMode}">
+                                <materialDesign:HintAssist.Hint>
+                                    <TextBlock FontSize="14">
+                                        <Run Text="*" Foreground="Red"/>
+                                        <Run Text=" Supplier selection"/>
+                                    </TextBlock>
+                                </materialDesign:HintAssist.Hint>
+                            </ComboBox>
                         </StackPanel>
                         <StackPanel Margin="6,8,6,8">
                             <ComboBox Style="{StaticResource FormComboBoxStyle}" ItemsSource="{Binding SupplierNames}" SelectedItem="{Binding SingleSupplier}" IsEnabled="{Binding IsSingle}" materialDesign:HintAssist.Hint="Supplier (single mode)"/>
                         </StackPanel>
                         <StackPanel Margin="6,8,6,8">
-                            <ComboBox Style="{StaticResource FormComboBoxStyle}" ItemsSource="{Binding TubModes}" SelectedItem="{Binding TubMode}" materialDesign:HintAssist.Hint="Tub assignment"/>
+                            <ComboBox Style="{StaticResource FormComboBoxStyle}" ItemsSource="{Binding TubModes}" SelectedItem="{Binding TubMode}">
+                                <materialDesign:HintAssist.Hint>
+                                    <TextBlock FontSize="14">
+                                        <Run Text="*" Foreground="Red"/>
+                                        <Run Text=" Tub assignment"/>
+                                    </TextBlock>
+                                </materialDesign:HintAssist.Hint>
+                            </ComboBox>
                         </StackPanel>
                         <StackPanel Margin="6,8,6,8">
-                            <ComboBox Style="{StaticResource FormComboBoxStyle}" ItemsSource="{Binding LotModes}" SelectedItem="{Binding LotMode}" materialDesign:HintAssist.Hint="Lot creation"/>
+                            <ComboBox Style="{StaticResource FormComboBoxStyle}" ItemsSource="{Binding LotModes}" SelectedItem="{Binding LotMode}">
+                                <materialDesign:HintAssist.Hint>
+                                    <TextBlock FontSize="14">
+                                        <Run Text="*" Foreground="Red"/>
+                                        <Run Text=" Lot creation"/>
+                                    </TextBlock>
+                                </materialDesign:HintAssist.Hint>
+                            </ComboBox>
                         </StackPanel>
                         <StackPanel Margin="6,8,6,8">
-                            <TextBox Style="{StaticResource FormTextBoxStyle}" Text="{Binding TargetWeight, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="Target weight (kg)"/>
+                            <TextBox Style="{StaticResource FormTextBoxStyle}" Text="{Binding TargetWeight, UpdateSourceTrigger=PropertyChanged}">
+                                <materialDesign:HintAssist.Hint>
+                                    <TextBlock FontSize="14">
+                                        <Run Text="*" Foreground="Red"/>
+                                        <Run Text=" Target weight (kg)"/>
+                                    </TextBlock>
+                                </materialDesign:HintAssist.Hint>
+                            </TextBox>
                         </StackPanel>
                         <StackPanel Margin="6,8,6,8">
                             <TextBox Style="{StaticResource FormTextBoxStyle}" Text="{Binding TargetApw, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="Target APW (kg)"/>

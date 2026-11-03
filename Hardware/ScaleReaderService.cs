@@ -84,6 +84,13 @@ namespace ProWeighSuitePlatforms.Services
         public ScaleSettings? CurrentSettings => _currentSettings;
 
         /// <summary>
+        /// Unit of measure last parsed from a scale line ("kg", "g", "lb", ...). Null when the
+        /// scale did not send a UOM token with the reading; callers can then fall back to the
+        /// material's configured UOM. Defaults to null.
+        /// </summary>
+        public string? LastUnit { get; private set; }
+
+        /// <summary>
         /// Pauses the SICS/continuous polling loop without closing the transport connection.
         /// Call this when navigating away from the Batch Weighing view.
         /// </summary>
@@ -803,10 +810,10 @@ namespace ProWeighSuitePlatforms.Services
         {
             if (string.IsNullOrWhiteSpace(data)) return null;
 
-            // Record lines (e.g. IND570 with a configured delimiter) start with date and
-            // time fields: "18-10-2026^23:12:55^111^kg^...". Splitting on the delimiter (or
-            // whitespace for plain weight streams) and skipping date/time/text tokens makes
-            // the first remaining numeric field the weight.
+            // Capture the UOM the scale sent with this reading (e.g. "kg", "g", "lb"). Null when
+            // the scale did not send a UOM token — callers may fall back to the material's UOM.
+            LastUnit = ParseUnit(data, _currentSettings?.Delimiter);
+
             return ParseWeightFromTokens(TokenizeLine(data, _currentSettings?.Delimiter));
         }
 
@@ -897,6 +904,9 @@ namespace ProWeighSuitePlatforms.Services
             var numStr = numMatch.Groups[1].Value.Replace(" ", "").Replace(",", ".");
             if (double.TryParse(numStr, NumberStyles.Float | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var weight))
             {
+                // Capture the unit token trailing the SICS weight (e.g. "S S  +   1.234 kg"). Null
+                // when the scale did not send a UOM token — callers may fall back to material UOM.
+                LastUnit = ParseUnit(trimmed, null);
                 System.Diagnostics.Debug.WriteLine($"[ScaleReaderService] Parsed {weight} from '{trimmed}'");
                 return weight;
             }

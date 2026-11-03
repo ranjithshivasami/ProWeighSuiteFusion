@@ -194,11 +194,11 @@ namespace ProWeighSuitePlatforms.ViewModels
                     var localPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
                     // Check Roaming AppData (primary location)
-                    var roamingAuditLogs = Path.Combine(roamingPath, "ProWeighSuitePlatforms", "AuditLogs");
+                    var roamingAuditLogs = Path.Combine(roamingPath, "ProWeighSuiteFusion", "AuditLogs");
                     CleanAuditLogsDirectory(roamingAuditLogs);
 
                     // Check Local AppData (fallback location)
-                    var localAuditLogs = Path.Combine(localPath, "ProWeighSuitePlatforms", "AuditLogs");
+                    var localAuditLogs = Path.Combine(localPath, "ProWeighSuiteFusion", "AuditLogs");
                     CleanAuditLogsDirectory(localAuditLogs);
                 }
 

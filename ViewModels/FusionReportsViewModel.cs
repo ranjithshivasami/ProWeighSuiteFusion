@@ -2,6 +2,7 @@
 // Date-filtered grid + CSV export (same SaveFileDialog pattern as other VMs).
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -50,8 +51,8 @@ namespace ProWeighSuitePlatforms.ViewModels
                     From.ToString("yyyy-MM-dd"), To.ToString("yyyy-MM-dd"));
                 Rows.Clear();
                 double total = 0;
-                foreach (var r in rows) { Rows.Add(r); total += r.WeightKg; }
-                StatusText = $"{Rows.Count} transaction(s), {total:0.###} kg from {From:dd-MM-yyyy} to {To:dd-MM-yyyy}.";
+                foreach (var r in rows) { Rows.Add(r); total += r.Weight; }
+                StatusText = $"{Rows.Count} transaction(s), {total:0.###} {rows.FirstOrDefault()?.Uom ?? "kg"} from {From:dd-MM-yyyy} to {To:dd-MM-yyyy}.";
             }
             catch (System.Exception ex)
             {
@@ -74,9 +75,9 @@ namespace ProWeighSuitePlatforms.ViewModels
                     Filter = "CSV file (*.csv)|*.csv",
                 };
                 if (dlg.ShowDialog() != true) return;
-                var sb = new StringBuilder("Id,BatchNo,TubId,Supplier,WeightKg,RecordedAt\r\n");
+                var sb = new StringBuilder("Id,BatchNo,TubId,Supplier,Weight,Uom,RecordedAt\r\n");
                 foreach (var r in Rows)
-                    sb.Append($"{r.Id},{r.BatchNo},{r.TubId},{r.SupplierName},{r.WeightKg},{r.RecordedAt}\r\n");
+                    sb.Append($"{r.Id},{r.BatchNo},{r.TubId},{r.SupplierName},{r.Weight},{r.Uom},{r.RecordedAt}\r\n");
                 await System.IO.File.WriteAllTextAsync(dlg.FileName, sb.ToString(), Encoding.UTF8);
                 await _audit.LogReportExportedAsync(_username,
                     $"Fusion Transactions ({From:dd-MM-yyyy} to {To:dd-MM-yyyy}, CSV)", Rows.Count);

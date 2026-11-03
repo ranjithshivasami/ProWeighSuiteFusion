@@ -56,6 +56,7 @@ namespace ProWeighSuitePlatforms.ViewModels
         public string Bay { get; set; } = string.Empty;
         public string Lot { get; set; } = string.Empty;
         public double Weight { get; set; }
+        public string Uom { get; set; } = "kg";
         public int Nuts { get; set; }
         public string Colour { get; set; } = string.Empty;
     }
@@ -892,7 +893,8 @@ namespace ProWeighSuitePlatforms.ViewModels
                         Grn = t.GrnNo,
                         Bay = t.BayId,
                         Lot = t.LotNo,
-                        Weight = t.WeightKg,
+                        Weight = t.Weight,
+                        Uom = t.Uom,
                         Nuts = t.Nuts,
                         Colour = ColourOf(tubs, t.TubId),
                     });
@@ -1154,6 +1156,9 @@ namespace ProWeighSuitePlatforms.ViewModels
                 return false;
             }
             double w = Math.Round(single.Value, 2);
+            // UOM: scale first, then material (from GRN), then default "kg".
+            string? scaleUom = string.IsNullOrWhiteSpace(_scale?.LastUnit) ? null : _scale.LastUnit;
+            string uom = scaleUom ?? await GetMaterialUomByGrnAsync(repo, lot.GrnNo) ?? "kg";
             // AppSettings scale limits: capacity / resolution / presence gate.
             string? limitError = CheckScaleLimits(w);
             if (limitError != null)
@@ -1188,7 +1193,8 @@ namespace ProWeighSuitePlatforms.ViewModels
                 BatchNo = _batch.BatchNo,
                 TubId = tub.TubId,
                 SupplierId = supplierId,
-                WeightKg = w,
+                Weight = w,
+                Uom = uom,
                 RecordedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
                 Epc = tub.Epc,
                 TubCycles = tub.UsedCycles + 1,
@@ -1247,6 +1253,28 @@ namespace ProWeighSuitePlatforms.ViewModels
                     }
                     return null;
                 }
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Resolves the unit of measure from the material tied to a GRN. Used as a fallback when
+        /// the scale does not send a UOM token with the weight reading.
+        /// </summary>
+        private async Task<string?> GetMaterialUomByGrnAsync(FusionRepository repo, string grnNo)
+        {
+            if (string.IsNullOrWhiteSpace(grnNo)) return null;
+            try
+            {
+                var g = await repo.GetInwardByGrnAsync(grnNo);
+                if (g == null || string.IsNullOrWhiteSpace(g.MaterialName)) return null;
+                var materialRepo = new MaterialRepository(AppConfigurationManager.GetDatabasePath());
+                var material = (await materialRepo.GetAllAsync())
+                    .FirstOrDefault(m => string.Equals(m.ProductName, g.MaterialName, StringComparison.OrdinalIgnoreCase));
+                return material?.UOMText;
             }
             catch
             {

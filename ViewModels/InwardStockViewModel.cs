@@ -17,7 +17,7 @@ namespace ProWeighSuitePlatforms.ViewModels
 {
     public sealed class InwardStockViewModel : ViewModels.BaseViewModel
     {
-        public string Title => "Inward and supplier stock";
+        public string Title => "Inward";
 
         private readonly AuditService _audit = new();
         private readonly string _username;
@@ -158,7 +158,7 @@ namespace ProWeighSuitePlatforms.ViewModels
                 }
             }
         }
-        private string _shelfLifeText = "10";
+        private string _shelfLifeText = string.Empty;
         public string ShelfLifeText { get => _shelfLifeText; set { if (SetProperty(ref _shelfLifeText, value)) Recalc(); } }
         private string _weightKgText = string.Empty;
         public string WeightKgText { get => _weightKgText; set { if (SetProperty(ref _weightKgText, value)) { ValidateWeightKgText(); Recalc(); } } }
@@ -308,7 +308,7 @@ namespace ProWeighSuitePlatforms.ViewModels
             double.TryParse(WeightKgText, out var w);
             double.TryParse(CountText, out var c);
             int.TryParse(ShelfLifeText, out var sl);
-            if (sl <= 0) sl = 10;
+            if (sl <= 0) sl = 0;
             ApwText = (w > 0 && c > 0) ? (w / c).ToString("F3") : string.Empty;
             var d = InwardDate ?? DateTime.Today;
             var bb = d.AddDays(sl);
@@ -545,7 +545,7 @@ namespace ProWeighSuitePlatforms.ViewModels
             int sl;
             if (!string.IsNullOrWhiteSpace(MaterialName) && _materialShelf.TryGetValue(MaterialName.Trim(), out var masterShelf) && masterShelf > 0)
                 sl = masterShelf;
-            else if (!int.TryParse(ShelfLifeText, out sl) || sl <= 0) sl = 10;
+            else if (!int.TryParse(ShelfLifeText, out sl) || sl <= 0) sl = 0;
             try
             {
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());
@@ -654,7 +654,7 @@ namespace ProWeighSuitePlatforms.ViewModels
             int sl;
             if (!string.IsNullOrWhiteSpace(material) && _materialShelf.TryGetValue(material, out var masterShelf) && masterShelf > 0)
                 sl = masterShelf;
-            else if (!int.TryParse(ShelfLifeText, out sl) || sl <= 0) sl = 10;
+            else if (!int.TryParse(ShelfLifeText, out sl) || sl <= 0) sl = 0;
             try
             {
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());

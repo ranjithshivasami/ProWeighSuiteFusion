@@ -11,7 +11,7 @@ namespace ProWeighSuitePlatforms.Services
     {
         private static readonly string ConfigDirectory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "ProWeighSuitePlatforms");
+            "ProWeighSuiteFusion");
 
         private static readonly string ConfigFilePath = Path.Combine(ConfigDirectory, "printer_config.json");
 

@@ -129,7 +129,8 @@ namespace ProWeighSuitePlatforms.Models
         public string BatchNo { get; set; } = string.Empty;
         public string TubId { get; set; } = string.Empty;
         public int SupplierId { get; set; }
-        public double WeightKg { get; set; }
+        public double Weight { get; set; }
+        public string Uom { get; set; } = "kg";
         public string RecordedAt { get; set; } = string.Empty;
         // Live ledger enrichment
         public string Epc { get; set; } = string.Empty;

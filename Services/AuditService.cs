@@ -216,7 +216,7 @@ namespace ProWeighSuitePlatforms.Services
                 Username = username,
                 EntityType = "FusionTransaction",
                 EntityId = transaction.Id,
-                Details = $"Fusion weigh: batch {transaction.BatchNo}, tub {transaction.TubId}, lot {transaction.LotNo}, {transaction.WeightKg:0.###} kg, {transaction.Nuts} nuts",
+                Details = $"Fusion weigh: batch {transaction.BatchNo}, tub {transaction.TubId}, lot {transaction.LotNo}, {transaction.Weight:0.###} {transaction.Uom}, {transaction.Nuts} nuts",
                 NewValue = JsonSerializer.Serialize(new
                 {
                     transaction.Id,
@@ -229,7 +229,8 @@ namespace ProWeighSuitePlatforms.Services
                     transaction.GrnNo,
                     transaction.BayId,
                     transaction.LotNo,
-                    transaction.WeightKg,
+                    transaction.Weight,
+                    transaction.Uom,
                     transaction.Nuts,
                     transaction.OperatorName,
                     transaction.RecordedAt

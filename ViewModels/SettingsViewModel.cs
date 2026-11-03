@@ -499,7 +499,7 @@ namespace ProWeighSuitePlatforms.ViewModels
                 // Reset the shared scale connection so Batch Weighing reconnects with the new settings.
                 var dbPath = System.IO.Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "ProWeighSuitePlatforms", "proweighsuiteplatform.db");
+                    "ProWeighSuiteFusion", "proweigh_suite_fusion.db");
                 var scaleService = ScaleReaderService.GetShared(new Data.ScaleSettingsRepository(dbPath));
                 scaleService.StopReading();
                 System.Diagnostics.Debug.WriteLine("[SettingsViewModel] Scale connection reset after settings save.");

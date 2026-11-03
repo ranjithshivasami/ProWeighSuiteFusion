@@ -134,7 +134,7 @@ namespace ProWeighSuitePlatforms
                 var fullMessage = GetFullExceptionMessage(e.Exception);
                 try
                 {
-                    MessageBox.Show($"Unexpected error: {fullMessage}\n\nThe app will continue. If this repeats, restart the app.\n\nDetails logged to %AppData%\\ProWeighSuitePlatforms\\crashes\\", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show($"Unexpected error: {fullMessage}\n\nThe app will continue. If this repeats, restart the app.\n\nDetails logged to %AppData%\\ProWeighSuiteFusion\\crashes\\", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
                 catch (InvalidOperationException)
                 {
@@ -201,7 +201,7 @@ namespace ProWeighSuitePlatforms
         {
             try
             {
-                var dir = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ProWeighSuitePlatforms", "crashes");
+                var dir = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ProWeighSuiteFusion", "crashes");
                 System.IO.Directory.CreateDirectory(dir);
                 var file = System.IO.Path.Combine(dir, $"crash_{DateTime.Now:yyyyMMdd}.log");
                 System.IO.File.AppendAllText(file, $"[{DateTime.Now:O}] {kind}: {ex}{Environment.NewLine}---{Environment.NewLine}");
@@ -264,7 +264,7 @@ namespace ProWeighSuitePlatforms
             {
                 var dir = System.IO.Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "ProWeighSuitePlatforms");
+                    "ProWeighSuiteFusion");
                 var file = System.IO.Path.Combine(dir, "appsettings.json");
                 if (!System.IO.File.Exists(file))
                 {

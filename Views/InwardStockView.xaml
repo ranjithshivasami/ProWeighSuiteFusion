@@ -396,22 +396,22 @@
                             </Style>
                         </DataGrid.CellStyle>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="GRN" Binding="{Binding GrnNo}" Width="100" MinWidth="70" SortMemberPath="GrnNo">
+                            <DataGridTextColumn Header="GRN" Binding="{Binding GrnNo}" Width="100" MinWidth="100" SortMemberPath="GrnNo">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
-                            <DataGridTextColumn Header="Date" Binding="{Binding InwardDate}" Width="110" MinWidth="100" SortMemberPath="InwardDate">
+                            <DataGridTextColumn Header="Date" Binding="{Binding InwardDate}" Width="140" MinWidth="130" SortMemberPath="InwardDate">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
-                            <DataGridTextColumn Header="Ticket" Binding="{Binding TicketNo}" Width="90" MinWidth="100" SortMemberPath="TicketNo">
+                            <DataGridTextColumn Header="Ticket" Binding="{Binding TicketNo}" Width="100" MinWidth="110" SortMemberPath="TicketNo">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
-                            <DataGridTextColumn Header="Supplier" Binding="{Binding SupplierName}" Width="110" MinWidth="110" SortMemberPath="SupplierName">
+                            <DataGridTextColumn Header="Supplier" Binding="{Binding SupplierName}" Width="120" MinWidth="115" SortMemberPath="SupplierName">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
@@ -421,47 +421,47 @@
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
-                            <DataGridTextColumn Header="Bay" Binding="{Binding BayId}" Width="80" MinWidth="70" SortMemberPath="BayId">
+                            <DataGridTextColumn Header="Bay" Binding="{Binding BayId}" Width="110" MinWidth="120" SortMemberPath="BayId">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
-                            <DataGridTextColumn Header="Shelf" Binding="{Binding ShelfLifeDays}" Width="110" MinWidth="60" SortMemberPath="ShelfLifeDays">
+                            <DataGridTextColumn Header="Shelf" Binding="{Binding ShelfLifeDays}" Width="110" MinWidth="100" SortMemberPath="ShelfLifeDays">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextRightStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
-                            <DataGridTextColumn Header="Best before" Binding="{Binding BestBefore}" Width="110" MinWidth="100" SortMemberPath="BestBefore">
+                            <DataGridTextColumn Header="Best before" Binding="{Binding BestBefore}" Width="120" MinWidth="110" SortMemberPath="BestBefore">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
-                            <DataGridTextColumn Header="Days left" Binding="{Binding DaysLeft}" Width="90" MinWidth="80" SortMemberPath="DaysLeft">
+                            <DataGridTextColumn Header="Days left" Binding="{Binding DaysLeft}" Width="120" MinWidth="110" SortMemberPath="DaysLeft">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextRightStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
-                            <DataGridTextColumn Header="Weight kg" Binding="{Binding WeightKg, StringFormat=N0}" Width="110" MinWidth="80" SortMemberPath="WeightKg">
+                            <DataGridTextColumn Header="Weight kg" Binding="{Binding WeightKg, StringFormat=N0}" Width="120" MinWidth="100" SortMemberPath="WeightKg">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextRightStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
-                            <DataGridTextColumn Header="Nuts" Binding="{Binding CoconutCount, StringFormat=N0}" Width="90" MinWidth="80" SortMemberPath="CoconutCount">
+                            <DataGridTextColumn Header="Nuts" Binding="{Binding CoconutCount, StringFormat=N0}" Width="120" MinWidth="100" SortMemberPath="CoconutCount">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextRightStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
-                            <DataGridTextColumn Header="APW" Binding="{Binding ApwKg, StringFormat=N3}" Width="80" MinWidth="70" SortMemberPath="ApwKg">
+                            <DataGridTextColumn Header="APW" Binding="{Binding ApwKg, StringFormat=N3}" Width="120" MinWidth="100" SortMemberPath="ApwKg">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextRightStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
-                            <DataGridTextColumn Header="Bal kg" Binding="{Binding BalanceKg, StringFormat=N0}" Width="110" MinWidth="80" SortMemberPath="BalanceKg">
+                            <DataGridTextColumn Header="Bal kg" Binding="{Binding BalanceKg, StringFormat=N0}" Width="110" MinWidth="100" SortMemberPath="BalanceKg">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextRightStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
-                            <DataGridTextColumn Header="Bal nuts" Binding="{Binding BalanceNuts, StringFormat=N0}" Width="150" MinWidth="80" SortMemberPath="BalanceNuts">
+                            <DataGridTextColumn Header="Bal nuts" Binding="{Binding BalanceNuts, StringFormat=N0}" Width="150" MinWidth="100" SortMemberPath="BalanceNuts">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextRightStyle}"/>
                                 </DataGridTextColumn.ElementStyle>

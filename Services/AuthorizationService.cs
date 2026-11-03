@@ -23,7 +23,7 @@ namespace ProWeighSuitePlatforms.Services
         {
             var dbPath = System.IO.Path.Combine(
                 System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData),
-                "ProWeighSuitePlatforms", "proweighsuiteplatform.db");
+                "ProWeighSuiteFusion", "proweigh_suite_fusion.db");
 
             var repository = new RolePermissionRepository(dbPath);
             await repository.InitializeAsync();

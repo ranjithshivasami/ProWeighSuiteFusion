@@ -29,7 +29,8 @@
                         <DataGridTextColumn Header="Batch" Binding="{Binding BatchNo}" Width="*"/>
                         <DataGridTextColumn Header="Tub" Binding="{Binding TubId}" Width="*"/>
                         <DataGridTextColumn Header="Supplier" Binding="{Binding SupplierName}" Width="*"/>
-                        <DataGridTextColumn Header="kg" Binding="{Binding WeightKg}" Width="*"/>
+                        <DataGridTextColumn Header="Weight" Binding="{Binding Weight, StringFormat=0.###}" Width="*"/>
+                        <DataGridTextColumn Header="Uom" Binding="{Binding Uom}" Width="Auto"/>
                         <DataGridTextColumn Header="At" Binding="{Binding RecordedAt}" Width="*"/>
                     </DataGrid.Columns>
                 </DataGrid>

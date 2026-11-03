@@ -26,7 +26,7 @@ namespace ProWeighSuitePlatforms.Services
             try
             {
                 var localApp = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                var appDir = Path.Combine(localApp, "ProWeighSuitePlatforms");
+                var appDir = Path.Combine(localApp, "ProWeighSuiteFusion");
                 var legacyNames = new[] { "materials.db", "jitscale.db" };
 
                 if (!Directory.Exists(appDir)) return;

@@ -174,7 +174,7 @@ namespace ProWeighSuitePlatforms.ViewModels
             _auditService = new AuditService();
             var dbPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "ProWeighSuitePlatforms", "proweighsuiteplatform.db");
+                "ProWeighSuiteFusion", "proweigh_suite_fusion.db");
             _supplierService = new SupplierService(new SupplierRepository(dbPath));
 
             StartCreateCommand = new RelayCommand(_ => StartCreate(), _ => CanCreateSupplier);

@@ -620,13 +620,14 @@ namespace ProWeighSuitePlatforms.Data
                 using var cmd = conn.CreateCommand();
                 cmd.Transaction = txx;
                 cmd.CommandText = @"
-                INSERT INTO fusion_transactions (id, batch_no, tub_id, supplier_id, weight_kg, recorded_at, is_synced, epc, tub_cycles, supplier_name, grn_no, bay_id, lot_no, nuts, operator_name)
-                VALUES ($id, $batch, $tub, $sup, $w, datetime('now','localtime'), 0, $epc, $cyc, $sn, $grn, $bay, $lot, $nuts, $op);";
+                INSERT INTO fusion_transactions (id, batch_no, tub_id, supplier_id, weight, uom, recorded_at, is_synced, epc, tub_cycles, supplier_name, grn_no, bay_id, lot_no, nuts, operator_name)
+                VALUES ($id, $batch, $tub, $sup, $w, $uom, datetime('now','localtime'), 0, $epc, $cyc, $sn, $grn, $bay, $lot, $nuts, $op);";
                 cmd.Parameters.AddWithValue("$id", tx.Id);
                 cmd.Parameters.AddWithValue("$batch", tx.BatchNo);
                 cmd.Parameters.AddWithValue("$tub", tx.TubId);
                 cmd.Parameters.AddWithValue("$sup", tx.SupplierId);
-                cmd.Parameters.AddWithValue("$w", tx.WeightKg);
+                cmd.Parameters.AddWithValue("$w", tx.Weight);
+                cmd.Parameters.AddWithValue("$uom", tx.Uom ?? "kg");
                 cmd.Parameters.AddWithValue("$epc", tx.Epc ?? string.Empty);
                 cmd.Parameters.AddWithValue("$cyc", tx.TubCycles);
                 cmd.Parameters.AddWithValue("$sn", tx.SupplierName ?? string.Empty);
@@ -643,7 +644,7 @@ namespace ProWeighSuitePlatforms.Data
                 INSERT INTO fusion_tub_events (tub_id, event_type, weight_kg, created_at)
                 VALUES ($tub, 'WEIGHED', $w, datetime('now','localtime'));";
                 ev.Parameters.AddWithValue("$tub", tx.TubId);
-                ev.Parameters.AddWithValue("$w", tx.WeightKg);
+                ev.Parameters.AddWithValue("$w", tx.Weight);
                 await ev.ExecuteNonQueryAsync();
 
                 using var cy = conn.CreateCommand();
@@ -685,13 +686,14 @@ namespace ProWeighSuitePlatforms.Data
                 using var cmd = conn.CreateCommand();
                 cmd.Transaction = txx;
                 cmd.CommandText = @"
-                INSERT INTO fusion_transactions (id, batch_no, tub_id, supplier_id, weight_kg, recorded_at, is_synced, epc, tub_cycles, supplier_name, grn_no, bay_id, lot_no, nuts, operator_name)
-                VALUES ($id, $batch, $tub, $sup, $w, datetime('now','localtime'), 0, $epc, $cyc, $sn, $grn, $bay, $lot, $nuts, $op);";
+                INSERT INTO fusion_transactions (id, batch_no, tub_id, supplier_id, weight, uom, recorded_at, is_synced, epc, tub_cycles, supplier_name, grn_no, bay_id, lot_no, nuts, operator_name)
+                VALUES ($id, $batch, $tub, $sup, $w, $uom, datetime('now','localtime'), 0, $epc, $cyc, $sn, $grn, $bay, $lot, $nuts, $op);";
                 cmd.Parameters.AddWithValue("$id", tx.Id);
                 cmd.Parameters.AddWithValue("$batch", tx.BatchNo);
                 cmd.Parameters.AddWithValue("$tub", tx.TubId);
                 cmd.Parameters.AddWithValue("$sup", tx.SupplierId);
-                cmd.Parameters.AddWithValue("$w", tx.WeightKg);
+                cmd.Parameters.AddWithValue("$w", tx.Weight);
+                cmd.Parameters.AddWithValue("$uom", tx.Uom ?? "kg");
                 cmd.Parameters.AddWithValue("$epc", tx.Epc ?? string.Empty);
                 cmd.Parameters.AddWithValue("$cyc", tx.TubCycles);
                 cmd.Parameters.AddWithValue("$sn", tx.SupplierName ?? string.Empty);
@@ -708,7 +710,7 @@ namespace ProWeighSuitePlatforms.Data
                 INSERT INTO fusion_tub_events (tub_id, event_type, weight_kg, created_at)
                 VALUES ($tub, 'WEIGHED', $w, datetime('now','localtime'));";
                 ev.Parameters.AddWithValue("$tub", tx.TubId);
-                ev.Parameters.AddWithValue("$w", tx.WeightKg);
+                ev.Parameters.AddWithValue("$w", tx.Weight);
                 await ev.ExecuteNonQueryAsync();
 
                 using var cy = conn.CreateCommand();
@@ -732,7 +734,7 @@ namespace ProWeighSuitePlatforms.Data
                     using var inw = conn.CreateCommand();
                     inw.Transaction = txx;
                     inw.CommandText = "UPDATE fusion_inward SET consumed_kg=consumed_kg+$k, consumed_nuts=consumed_nuts+$n WHERE grn_no=$g";
-                    inw.Parameters.AddWithValue("$k", Math.Max(0, tx.WeightKg));
+                    inw.Parameters.AddWithValue("$k", Math.Max(0, tx.Weight));
                     inw.Parameters.AddWithValue("$n", Math.Max(0, tx.Nuts));
                     inw.Parameters.AddWithValue("$g", tx.GrnNo);
                     await inw.ExecuteNonQueryAsync();
@@ -830,7 +832,7 @@ namespace ProWeighSuitePlatforms.Data
         }
 
         // ===== Transactions =====
-        public async Task RecordTransactionAsync(string id, string batchNo, string tubId, int supplierId, double weightKg)
+        public async Task RecordTransactionAsync(string id, string batchNo, string tubId, int supplierId, double weight, string uom = "kg")
         {
             await using var conn = await OpenAsync();
             await using var tx = (SqliteTransaction)await conn.BeginTransactionAsync();
@@ -839,13 +841,14 @@ namespace ProWeighSuitePlatforms.Data
                 using var cmd = conn.CreateCommand();
                 cmd.Transaction = tx;
                 cmd.CommandText = @"
-                INSERT INTO fusion_transactions (id, batch_no, tub_id, supplier_id, weight_kg, recorded_at, is_synced)
-                VALUES ($id, $batch, $tub, $sup, $w, datetime('now','localtime'), 0);";
+                INSERT INTO fusion_transactions (id, batch_no, tub_id, supplier_id, weight, uom, recorded_at, is_synced)
+                VALUES ($id, $batch, $tub, $sup, $w, $uom, datetime('now','localtime'), 0);";
                 cmd.Parameters.AddWithValue("$id", id);
                 cmd.Parameters.AddWithValue("$batch", batchNo);
                 cmd.Parameters.AddWithValue("$tub", tubId);
                 cmd.Parameters.AddWithValue("$sup", supplierId);
-                cmd.Parameters.AddWithValue("$w", weightKg);
+                cmd.Parameters.AddWithValue("$w", weight);
+                cmd.Parameters.AddWithValue("$uom", uom ?? "kg");
                 await cmd.ExecuteNonQueryAsync();
 
                 using var ev = conn.CreateCommand();
@@ -854,7 +857,7 @@ namespace ProWeighSuitePlatforms.Data
                 INSERT INTO fusion_tub_events (tub_id, event_type, weight_kg, created_at)
                 VALUES ($tub, 'WEIGHED', $w, datetime('now','localtime'));";
                 ev.Parameters.AddWithValue("$tub", tubId);
-                ev.Parameters.AddWithValue("$w", weightKg);
+                ev.Parameters.AddWithValue("$w", weight);
                 await ev.ExecuteNonQueryAsync();
 
                 await tx.CommitAsync();
@@ -872,12 +875,12 @@ namespace ProWeighSuitePlatforms.Data
             using var cmd = conn.CreateCommand();
             if (string.IsNullOrWhiteSpace(batchNo))
             {
-                cmd.CommandText = "SELECT id, batch_no, tub_id, supplier_id, weight_kg, recorded_at, epc, tub_cycles, supplier_name, grn_no, bay_id, lot_no, nuts, operator_name FROM fusion_transactions ORDER BY recorded_at DESC LIMIT $n";
+                cmd.CommandText = "SELECT id, batch_no, tub_id, supplier_id, weight, uom, recorded_at, epc, tub_cycles, supplier_name, grn_no, bay_id, lot_no, nuts, operator_name FROM fusion_transactions ORDER BY recorded_at DESC LIMIT $n";
                 cmd.Parameters.AddWithValue("$n", limit);
             }
             else
             {
-                cmd.CommandText = "SELECT id, batch_no, tub_id, supplier_id, weight_kg, recorded_at, epc, tub_cycles, supplier_name, grn_no, bay_id, lot_no, nuts, operator_name FROM fusion_transactions WHERE batch_no=$b ORDER BY recorded_at DESC LIMIT $n";
+                cmd.CommandText = "SELECT id, batch_no, tub_id, supplier_id, weight, uom, recorded_at, epc, tub_cycles, supplier_name, grn_no, bay_id, lot_no, nuts, operator_name FROM fusion_transactions WHERE batch_no=$b ORDER BY recorded_at DESC LIMIT $n";
                 cmd.Parameters.AddWithValue("$b", batchNo);
                 cmd.Parameters.AddWithValue("$n", limit);
             }
@@ -894,7 +897,8 @@ namespace ProWeighSuitePlatforms.Data
                     BatchNo = GetString(reader, "batch_no"),
                     TubId = GetString(reader, "tub_id"),
                     SupplierId = reader.IsDBNull(o) ? 0 : reader.GetInt32(o),
-                    WeightKg = GetDouble(reader, "weight_kg"),
+                    Weight = GetDouble(reader, "weight"),
+                    Uom = GetString(reader, "uom"),
                     RecordedAt = GetString(reader, "recorded_at"),
                     Epc = GetString(reader, "epc"),
                     TubCycles = reader.IsDBNull(tcOrd) ? 0 : reader.GetInt32(tcOrd),
@@ -913,7 +917,7 @@ namespace ProWeighSuitePlatforms.Data
         {
             await using var conn = await OpenAsync();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = "SELECT COUNT(*), COALESCE(SUM(weight_kg),0) FROM fusion_transactions WHERE date(recorded_at)=date('now','localtime')";
+            cmd.CommandText = "SELECT COUNT(*), COALESCE(SUM(weight),0) FROM fusion_transactions WHERE date(recorded_at)=date('now','localtime')";
             await using var reader = await cmd.ExecuteReaderAsync();
             if (await reader.ReadAsync())
                 return (reader.IsDBNull(0) ? 0 : reader.GetInt32(0), reader.IsDBNull(1) ? 0 : reader.GetDouble(1));
@@ -1223,7 +1227,7 @@ namespace ProWeighSuitePlatforms.Data
                 "SELECT COUNT(*) FROM fusion_transactions WHERE date(recorded_at) >= date($from) AND date(recorded_at) <= date($to)",
                 ("$from", from), ("$to", to));
             var todayKg = await ScalarAsync<double>(
-                "SELECT COALESCE(SUM(weight_kg),0) FROM fusion_transactions WHERE date(recorded_at) >= date($from) AND date(recorded_at) <= date($to)",
+                "SELECT COALESCE(SUM(weight),0) FROM fusion_transactions WHERE date(recorded_at) >= date($from) AND date(recorded_at) <= date($to)",
                 ("$from", from), ("$to", to));
             var activeBatches = await ScalarAsync<int>(
                 "SELECT COUNT(*) FROM fusion_batches WHERE status IN ('Open','running','paused')");
@@ -1243,7 +1247,7 @@ namespace ProWeighSuitePlatforms.Data
             await using var conn = await OpenAsync();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-            SELECT supplier_id, SUM(weight_kg) FROM fusion_transactions
+            SELECT supplier_id, SUM(weight) FROM fusion_transactions
             WHERE date(recorded_at) >= date($from) AND date(recorded_at) <= date($to)
             GROUP BY supplier_id ORDER BY 2 DESC";
             cmd.Parameters.AddWithValue("$from", fromDate ?? DateTime.Today.ToString("yyyy-MM-dd"));
@@ -1413,7 +1417,7 @@ namespace ProWeighSuitePlatforms.Data
             await using var conn = await OpenAsync();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-            SELECT strftime('%H', recorded_at) AS h, SUM(weight_kg) FROM fusion_transactions
+            SELECT strftime('%H', recorded_at) AS h, SUM(weight) FROM fusion_transactions
             WHERE date(recorded_at) >= date($from) AND date(recorded_at) <= date($to)
             GROUP BY h ORDER BY h";
             cmd.Parameters.AddWithValue("$from", fromDate ?? DateTime.Today.ToString("yyyy-MM-dd"));
@@ -1430,7 +1434,7 @@ namespace ProWeighSuitePlatforms.Data
             await using var conn = await OpenAsync();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-            SELECT date(recorded_at) AS d, SUM(weight_kg) FROM fusion_transactions
+            SELECT date(recorded_at) AS d, SUM(weight) FROM fusion_transactions
             WHERE date(recorded_at) >= date($from) AND date(recorded_at) <= date($to)
             GROUP BY d ORDER BY d";
             cmd.Parameters.AddWithValue("$from", fromDate ?? DateTime.Today.AddDays(-6).ToString("yyyy-MM-dd"));
@@ -1447,7 +1451,7 @@ namespace ProWeighSuitePlatforms.Data
             await using var conn = await OpenAsync();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-            SELECT batch_no, SUM(weight_kg) FROM fusion_transactions
+            SELECT batch_no, SUM(weight) FROM fusion_transactions
             WHERE date(recorded_at) >= date($from) AND date(recorded_at) <= date($to)
             GROUP BY batch_no ORDER BY 2 DESC";
             cmd.Parameters.AddWithValue("$from", fromDate ?? DateTime.Today.ToString("yyyy-MM-dd"));
@@ -1464,7 +1468,7 @@ namespace ProWeighSuitePlatforms.Data
             await using var conn = await OpenAsync();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-            SELECT COALESCE(NULLIF(t.bay_id,''),'(unassigned)'), SUM(x.weight_kg)
+            SELECT COALESCE(NULLIF(t.bay_id,''),'(unassigned)'), SUM(x.weight)
             FROM fusion_transactions x LEFT JOIN fusion_tubs t ON t.tub_id=x.tub_id
             WHERE date(x.recorded_at) >= date($from) AND date(x.recorded_at) <= date($to)
             GROUP BY 1 ORDER BY 2 DESC";
@@ -1823,7 +1827,7 @@ namespace ProWeighSuitePlatforms.Data
             await using var conn = await OpenAsync();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-            SELECT ft.id, ft.batch_no, ft.tub_id, ft.supplier_id, ft.weight_kg, ft.recorded_at,
+            SELECT ft.id, ft.batch_no, ft.tub_id, ft.supplier_id, ft.weight, ft.uom, ft.recorded_at,
                    COALESCE(NULLIF(ft.supplier_name,''), fs.name, '') AS supplier_name
             FROM fusion_transactions ft
             LEFT JOIN fusion_suppliers fs ON fs.id = ft.supplier_id
@@ -1843,7 +1847,8 @@ namespace ProWeighSuitePlatforms.Data
                     BatchNo = GetString(reader, "batch_no"),
                     TubId = GetString(reader, "tub_id"),
                     SupplierId = reader.IsDBNull(o) ? 0 : reader.GetInt32(o),
-                    WeightKg = GetDouble(reader, "weight_kg"),
+                    Weight = GetDouble(reader, "weight"),
+                    Uom = GetString(reader, "uom"),
                     RecordedAt = GetString(reader, "recorded_at"),
                     SupplierName = GetString(reader, "supplier_name"),
                 });

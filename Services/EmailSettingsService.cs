@@ -15,7 +15,7 @@ namespace ProWeighSuitePlatforms.Services
 
         public EmailSettingsService()
         {
-            var appData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ProWeighSuitePlatforms");
+            var appData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ProWeighSuiteFusion");
             if (!Directory.Exists(appData)) Directory.CreateDirectory(appData);
             _filePath = Path.Combine(appData, "email-settings.json");
         }

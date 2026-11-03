@@ -125,7 +125,7 @@ namespace ProWeighSuitePlatforms.ViewModels
         public string NewEpc { get => _newEpc; set { if (SetProperty(ref _newEpc, value) && !_isResettingAddForm) ValidateNewEpc(); } }
         private string _newColour = "Orange";
         public string NewColour { get => _newColour; set { if (SetProperty(ref _newColour, value) && !_isResettingAddForm) ValidateNewColour(); } }
-        private string _newCapacity = "50";
+        private string _newCapacity = string.Empty;
         public string NewCapacity { get => _newCapacity; set { if (SetProperty(ref _newCapacity, value) && !_isResettingAddForm) ValidateNewCapacity(); } }
         private string _newBay = string.Empty;
         public string NewBay { get => _newBay; set { if (SetProperty(ref _newBay, value) && !_isResettingAddForm) ValidateNewBay(); } }
@@ -143,7 +143,7 @@ namespace ProWeighSuitePlatforms.ViewModels
                 RaisePropertyChanged(nameof(NewEpc));
                 _newColour = "Orange";
                 RaisePropertyChanged(nameof(NewColour));
-                _newCapacity = "50";
+                _newCapacity = string.Empty;
                 RaisePropertyChanged(nameof(NewCapacity));
                 _newBay = string.Empty;
                 RaisePropertyChanged(nameof(NewBay));

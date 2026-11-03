@@ -14,7 +14,7 @@ namespace ProWeighSuitePlatforms.Services
         private readonly EmailSettingsService _settingsService;
         private static readonly string _logPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "ProWeighSuitePlatforms", "email-error.log");
+            "ProWeighSuiteFusion", "email-error.log");
 
         public EmailService()
         {

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace ProWeighSuitePlatforms.Licensing
 {
     /// <summary>
-    /// Entitlement gate. FileLicenseService reads %APPDATA%\ProWeighSuitePlatforms\license.json;
+    /// Entitlement gate. FileLicenseService reads %APPDATA%\ProWeighSuiteFusion\license.json;
     /// a missing file means dev fallback allow-all, a present file gates by entitled modules
     /// and expiry.
     /// </summary>
