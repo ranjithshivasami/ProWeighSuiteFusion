@@ -101,6 +101,7 @@ namespace ProWeighSuitePlatforms.ViewModels
 
         private FusionBatch? _batch;
         public string SelectedBatchNo { get; private set; } = string.Empty;
+        private string? _lastLoadedBatchNo;
 
         private string _bannerText = "No batch yet.";
         public string BannerText { get => _bannerText; private set => SetProperty(ref _bannerText, value); }
@@ -706,12 +707,26 @@ namespace ProWeighSuitePlatforms.ViewModels
                 var batches = await repo.GetBatchesAsync();
                 if (!string.IsNullOrWhiteSpace(want) && batches.Any(b => string.Equals(b.BatchNo, want, StringComparison.OrdinalIgnoreCase)))
                     SelectedBatchNo = want;
-                else if (!batches.Any(b => string.Equals(b.BatchNo, SelectedBatchNo, StringComparison.OrdinalIgnoreCase)
-                    && !string.Equals(b.Status, "completed", StringComparison.OrdinalIgnoreCase)
-                    && !string.Equals(b.Status, "Closed", StringComparison.OrdinalIgnoreCase)))
+                else if (batches.Any(b => string.Equals(b.BatchNo, SelectedBatchNo, StringComparison.OrdinalIgnoreCase)))
+                    // Keep the current selection (even if completed) so completed batch data stays visible.
+                    SelectedBatchNo = SelectedBatchNo;
+                else
                     SelectedBatchNo = batches.FirstOrDefault(b => !string.Equals(b.Status, "completed", StringComparison.OrdinalIgnoreCase)
-                        && !string.Equals(b.Status, "Closed", StringComparison.OrdinalIgnoreCase))?.BatchNo ?? string.Empty;
+                        && !string.Equals(b.Status, "Closed", StringComparison.OrdinalIgnoreCase))?.BatchNo
+                        ?? batches.FirstOrDefault()?.BatchNo ?? string.Empty;
+
+                // When switching to a different batch, clear tub assignments so the
+                // new batch can start fresh. Completed batch data is preserved until
+                // this point. On first load there is no previous batch to clear.
+                if (!string.IsNullOrEmpty(SelectedBatchNo)
+                    && !string.Equals(SelectedBatchNo, _lastLoadedBatchNo, StringComparison.OrdinalIgnoreCase)
+                    && !string.IsNullOrEmpty(_lastLoadedBatchNo))
+                {
+                    await repo.ClearBatchAssignmentsAsync(SelectedBatchNo);
+                }
+
                 await RefreshBatchAsync();
+                _lastLoadedBatchNo = SelectedBatchNo;
                 // Mirror batch weighing: with ZeroReturn on, the first weigh of a
                 // running batch also waits for the scale to read near zero.
                 if (IsRunning)
@@ -739,29 +754,23 @@ namespace ProWeighSuitePlatforms.ViewModels
                 ValidateManualEpc();
 
                 Pills.Clear();
-                // Completed batches moved to the "Batch status" menu; the live
-                // pill strip only shows batches the operator can still work on.
-                foreach (var b in batches.Where(b =>
-                    !string.Equals(b.Status, "completed", StringComparison.OrdinalIgnoreCase)
-                    && !string.Equals(b.Status, "Closed", StringComparison.OrdinalIgnoreCase)))
+                // Pill strip shows active batches plus ONLY the currently selected
+                // completed batch (for review). Older completed batches are hidden
+                // to prevent tab overcrowding — they live in the Completed/History tab.
+                foreach (var b in batches)
+                {
+                    bool isCompleted = string.Equals(b.Status, "completed", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(b.Status, "Closed", StringComparison.OrdinalIgnoreCase);
+                    // Hide completed batches unless this is the one currently selected
+                    if (isCompleted && !string.Equals(b.BatchNo, SelectedBatchNo, StringComparison.OrdinalIgnoreCase)) continue;
                     Pills.Add(new LiveBatchPill
                     {
                         BatchNo = b.BatchNo,
-                        Display = $"{b.BatchNo} · {b.Status}",
+                        Display = isCompleted ? $"{b.BatchNo} · {(b.Status ?? string.Empty).ToUpperInvariant()} (COMPLETED)" : $"{b.BatchNo} · {b.Status ?? string.Empty}",
                         Status = b.Status ?? string.Empty,
                         IsSelected = string.Equals(b.BatchNo, SelectedBatchNo, StringComparison.OrdinalIgnoreCase),
                     });
-                // If the selected batch was completed (now only visible in Batch
-                // status), fall back to the first active batch.
-                var selectedActive = batches.FirstOrDefault(b =>
-                    string.Equals(b.BatchNo, SelectedBatchNo, StringComparison.OrdinalIgnoreCase)
-                    && !string.Equals(b.Status, "completed", StringComparison.OrdinalIgnoreCase)
-                    && !string.Equals(b.Status, "Closed", StringComparison.OrdinalIgnoreCase));
-                if (selectedActive == null)
-                    SelectedBatchNo = batches.FirstOrDefault(b =>
-                        !string.Equals(b.Status, "completed", StringComparison.OrdinalIgnoreCase)
-                        && !string.Equals(b.Status, "Closed", StringComparison.OrdinalIgnoreCase))?.BatchNo
-                        ?? string.Empty;
+                }
                 int activeCount = batches.Count(b => !string.Equals(b.Status, "completed", StringComparison.OrdinalIgnoreCase)
                     && !string.Equals(b.Status, "Closed", StringComparison.OrdinalIgnoreCase));
                 int freeTubs = tubs.Count(t => !t.IsBlocked && string.IsNullOrEmpty(t.AssignedTo) && t.UsedCycles < 2000);
@@ -800,7 +809,7 @@ namespace ProWeighSuitePlatforms.ViewModels
                 var net = tot - pz;
                 if (IsCompleted)
                 {
-                    int doneN = lots.Sum(l => l.DoneTubs) * Math.Max(1, _batch.NutsPerTub);
+                    int doneN = lots.Sum(l => l.DoneNuts);
                     BannerText = $"{_batch.BatchNo} · COMPLETED · {doneN:N0} coconuts, {lots.Sum(l => l.DoneKg):N0} kg weighed · tubs released";
                     BannerSub = $"Turn around time {FDur(tot)} · running {FDur(net)} · paused {FDur(pz)} ({_batch.PauseCount} pause(s))";
                 }
@@ -827,13 +836,26 @@ namespace ProWeighSuitePlatforms.ViewModels
                 int np = Math.Max(1, _batch.NutsPerTub);
                 int doneTubs = lots.Sum(l => l.DoneTubs);
                 double doneKg = lots.Sum(l => l.DoneKg);
+                int doneNuts = lots.Sum(l => l.DoneNuts);
                 int targetTubs = _batch.TargetTubs > 0 ? _batch.TargetTubs : lots.Sum(l => l.Tubs);
                 int targetNuts = _batch.TargetNuts > 0 ? _batch.TargetNuts : lots.Sum(l => l.Nuts);
-                double pc = targetTubs > 0 ? Math.Min(100, (double)doneTubs / targetTubs * 100) : 0;
+
+                // Progress reflects the actual completion target: weight first,
+                // then nut count, then tub count as fallback. Tub count alone
+                // is NOT a completion trigger. No cap — show actual % even if > 100.
+                double pc;
+                if (_batch.TargetKg > 0)
+                    pc = doneKg / _batch.TargetKg * 100;
+                else if (_batch.TargetNuts > 0)
+                    pc = (double)doneNuts / _batch.TargetNuts * 100;
+                else if (targetTubs > 0)
+                    pc = (double)doneTubs / targetTubs * 100;
+                else
+                    pc = 0;
 
                 KpiWeight = $"{doneKg:N0} kg";
                 KpiWeightSub = $"target {_batch.TargetKg:N0} kg";
-                KpiNuts = $"{(doneTubs * np):N0}";
+                KpiNuts = $"{lots.Sum(l => l.DoneNuts):N0}";
                 KpiNutsSub = $"of {targetNuts:N0}";
                 KpiTubs = $"{doneTubs:N0}";
                 KpiTubsSub = $"of {targetTubs:N0} · lots planned {lots.Sum(l => l.Tubs):N0}";
@@ -854,7 +876,7 @@ namespace ProWeighSuitePlatforms.ViewModels
                         ProgressPct = l.Tubs > 0 ? Math.Min(100, (double)l.DoneTubs / l.Tubs * 100) : 0,
                         AssignedCount = assigned,
                         DonePlanText = $"{l.DoneTubs:N0} / {l.Tubs:N0}",
-                        NutsText = $"{(l.DoneTubs * np):N0}",
+                        NutsText = $"{l.DoneNuts:N0}",
                         KgText = $"{l.DoneKg:N0}",
                         GrnBayText = $"{l.GrnNo} · {l.BayId}",
                     });
@@ -865,7 +887,7 @@ namespace ProWeighSuitePlatforms.ViewModels
                 {
                     var sl = lots.Where(l => string.Equals(l.SupplierName, s, StringComparison.OrdinalIgnoreCase)).ToList();
                     int plan = sl.Sum(l => l.Tubs) * np;
-                    int done = sl.Sum(l => l.DoneTubs) * np;
+                    int done = sl.Sum(l => l.DoneNuts);
                     SupplierCards.Add(new LiveSupplierCard
                     {
                         Supplier = s,
@@ -1018,13 +1040,12 @@ namespace ProWeighSuitePlatforms.ViewModels
                 if (!string.IsNullOrEmpty(manualEpc))
                     return await WeighManualEpcAsync(repo, manualEpc);
                 var lots = await repo.GetPlanLotsAsync(_batch.BatchNo);
-                var open = lots.Where(l => !l.IsCompleted && l.DoneTubs < l.Tubs && !l.IsPaused).ToList();
+                // Tubs per lot is only a planning target, not a hard limit. Weighing
+                // must continue until the batch Weight OR Nut Count target is reached.
+                var open = lots.Where(l => !l.IsCompleted && !l.IsPaused).ToList();
                 if (open.Count == 0)
                 {
-                    if (lots.Count > 0 && lots.All(l => l.IsCompleted || l.DoneTubs >= l.Tubs))
-                        await CompleteBatchInternalAsync(repo, auto: true);
-                    else
-                        StatusText = "All open lots are paused.";
+                    StatusText = "No open lots to weigh from. Add more lots or manually complete the batch.";
                     await RefreshBatchAsync();
                     return false;
                 }
@@ -1100,7 +1121,7 @@ namespace ProWeighSuitePlatforms.ViewModels
                     $"Tub {tub.TubId} assigned to batch {_batch.BatchNo} from manual EPC scan {epc}.");
             }
             var lots = await repo.GetPlanLotsAsync(_batch!.BatchNo);
-            var lot = lots.Where(l => !l.IsCompleted && l.DoneTubs < l.Tubs && !l.IsPaused && TubFitsLot(tub, l))
+            var lot = lots.Where(l => !l.IsCompleted && !l.IsPaused && TubFitsLot(tub, l))
                 .OrderByDescending(l => l.Tubs - l.DoneTubs)
                 .FirstOrDefault();
             if (lot == null)
@@ -1156,6 +1177,16 @@ namespace ProWeighSuitePlatforms.ViewModels
                 return false;
             }
             double w = Math.Round(single.Value, 2);
+            // Nuts for this tub = actual weight / average piece weight (APW).
+            // Use lot-specific APW (lot.WeightKg / lot.Nuts) when available,
+            // otherwise fall back to batch TargetApwKg, then to NutsPerTub.
+            // Stored in fusion_transactions.nuts at capture time.
+            double lotApw = lot.WeightKg > 0 && lot.Nuts > 0
+                ? lot.WeightKg / lot.Nuts
+                : _batch!.TargetApwKg;
+            int nuts = lotApw > 0
+                ? Math.Max(1, (int)Math.Round(w / lotApw))
+                : Math.Max(1, _batch.NutsPerTub);
             // UOM: scale first, then material (from GRN), then default "kg".
             string? scaleUom = string.IsNullOrWhiteSpace(_scale?.LastUnit) ? null : _scale.LastUnit;
             string uom = scaleUom ?? await GetMaterialUomByGrnAsync(repo, lot.GrnNo) ?? "kg";
@@ -1202,7 +1233,7 @@ namespace ProWeighSuitePlatforms.ViewModels
                 GrnNo = lot.GrnNo,
                 BayId = lot.BayId,
                 LotNo = lot.LotNo,
-                Nuts = np,
+                Nuts = nuts,
                 OperatorName = OperatorName,
             };
             await repo.RecordLiveWeighAsync(tx, lot.DoneTubs + 1, lot.DoneKg + w);
@@ -1213,14 +1244,6 @@ namespace ProWeighSuitePlatforms.ViewModels
             string? grnNote = string.IsNullOrWhiteSpace(lot.GrnNo)
                 ? $"No GRN on lot {lot.LotNo} — stock consumption skipped."
                 : null;
-            if ((lot.DoneTubs + 1) >= lot.Tubs)
-            {
-                await repo.SetLotCompletedAsync(_batch.BatchNo, lot.LotNo, true);
-                await repo.AddBatchEventAsync(_batch.BatchNo, "Lot Completed");
-                await _audit.LogFusionEventAsync(_username, "Fusion_Lot_Completed",
-                    "FusionLot", lot.LotNo,
-                    $"Lot {lot.LotNo} in batch {_batch.BatchNo} completed automatically at {lot.DoneTubs + 1}/{lot.Tubs} tubs.");
-            }
             var fresh = await repo.GetPlanLotsAsync(_batch.BatchNo);
             if (fresh.Count > 0 && BatchTargetReached(fresh, out var reason))
                 await CompleteBatchInternalAsync(repo, auto: true, reason);
@@ -1343,8 +1366,9 @@ namespace ProWeighSuitePlatforms.ViewModels
         }
 
         /// <summary>
-        /// Returns true when the live batch has reached any configured target
-        /// (target weight kg, target tubs, or target nuts), whichever is hit first.
+        /// Returns true when the live batch has reached a completion target.
+        /// A batch completes ONLY when Target Weight OR Target Nut Count is reached.
+        /// Tub cycle count is intentionally ignored for completion triggers.
         /// A target value of 0 means "not configured" and is ignored.
         /// </summary>
         private bool BatchTargetReached(List<FusionPlanLot> lots, out string reason)
@@ -1354,22 +1378,15 @@ namespace ProWeighSuitePlatforms.ViewModels
 
             double doneKg = lots.Sum(l => l.DoneKg);
             int doneTubs = lots.Sum(l => l.DoneTubs);
-            int nutsPerTub = Math.Max(1, _batch.NutsPerTub);
-            int doneNuts = doneTubs * nutsPerTub;
+            int doneNuts = lots.Sum(l => l.DoneNuts);   // actual weighed coconuts, not approximate NutsPerTub
 
-            // Target weight reached first.
+            // Target weight reached.
             if (_batch.TargetKg > 0 && doneKg >= _batch.TargetKg)
             {
                 reason = $"target weight {_batch.TargetKg:N0} kg reached ({doneKg:N0} kg)";
                 return true;
             }
-            // Target tub count reached first.
-            if (_batch.TargetTubs > 0 && doneTubs >= _batch.TargetTubs)
-            {
-                reason = $"target tubs {_batch.TargetTubs} reached ({doneTubs})";
-                return true;
-            }
-            // Target nut count reached first.
+            // Target nut count reached (actual weighed nuts, not approximate NutsPerTub).
             if (_batch.TargetNuts > 0 && doneNuts >= _batch.TargetNuts)
             {
                 reason = $"target nuts {_batch.TargetNuts} reached ({doneNuts})";
@@ -1383,10 +1400,12 @@ namespace ProWeighSuitePlatforms.ViewModels
             if (_batch == null) return;
             await repo.CompleteBatchRunAsync(_batch.BatchNo);
             await repo.AddBatchEventAsync(_batch.BatchNo, "Batch Completed");
+            // Release tubs immediately upon completion so they can be reused,
+            // while keeping batch data (lots, weights, coconut counts) visible for review.
             await repo.ClearBatchAssignmentsAsync(_batch.BatchNo);
             var detail = reason != null
-                ? $"Batch {_batch.BatchNo} completed automatically — {reason}; assigned tubs released."
-                : $"Batch {_batch.BatchNo} completed {(auto ? "automatically" : "manually")}; assigned tubs released.";
+                ? $"Batch {_batch.BatchNo} completed automatically — {reason}; tubs released."
+                : $"Batch {_batch.BatchNo} completed {(auto ? "automatically" : "manually")}; tubs released.";
             await _audit.LogFusionEventAsync(_username, "Fusion_Batch_Completed",
                 "FusionBatch", _batch.BatchNo, detail);
             StopAutoRun();

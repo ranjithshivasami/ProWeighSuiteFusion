@@ -29,7 +29,7 @@ xmlns:converters="clr-namespace:ProWeighSuitePlatforms.Converters"
             </ResourceDictionary.MergedDictionaries>
 
             <!-- App version — single source is Version.props (1.1.6); keep this key in sync -->
-            <sys:String x:Key="AppVersion">1.1.6</sys:String>
+            <sys:String x:Key="AppVersion">1.0.0</sys:String>
 
             <converters:IsLessThanConverter x:Key="IsLessThanConverter" />
             <converters:IsGreaterThanConverter x:Key="IsGreaterThanConverter" />

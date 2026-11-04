@@ -281,6 +281,7 @@ namespace ProWeighSuitePlatforms.Data
             var runLots = await GetColumnsAsync(conn, "fusion_plan_lots");
             await AddColumnAsync(conn, "fusion_plan_lots", runLots, "done_tubs", "done_tubs INTEGER NOT NULL DEFAULT 0");
             await AddColumnAsync(conn, "fusion_plan_lots", runLots, "done_kg", "done_kg REAL NOT NULL DEFAULT 0");
+            await AddColumnAsync(conn, "fusion_plan_lots", runLots, "done_nuts", "done_nuts INTEGER NOT NULL DEFAULT 0");
             await AddColumnAsync(conn, "fusion_plan_lots", runLots, "is_paused", "is_paused INTEGER NOT NULL DEFAULT 0");
             await AddColumnAsync(conn, "fusion_plan_lots", runLots, "is_completed", "is_completed INTEGER NOT NULL DEFAULT 0");
 

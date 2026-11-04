@@ -3,11 +3,11 @@
 // Never references weighing_* tables.
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using ProWeighSuitePlatforms.Models;
-
 namespace ProWeighSuitePlatforms.Data
 {
     public sealed class FusionRepository
@@ -433,7 +433,7 @@ namespace ProWeighSuitePlatforms.Data
         {
             await using var conn = await OpenAsync();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = "SELECT lot_no, batch_no, supplier_name, grn_no, bay_id, best_before, days_left, tubs, nuts, weight_kg, colour, tubs_in_pool, cycles_per_tub, done_tubs, done_kg, is_paused, is_completed FROM fusion_plan_lots WHERE batch_no=$b ORDER BY id";
+            cmd.CommandText = "SELECT lot_no, batch_no, supplier_name, grn_no, bay_id, best_before, days_left, tubs, nuts, weight_kg, colour, tubs_in_pool, cycles_per_tub, done_tubs, done_kg, done_nuts, is_paused, is_completed FROM fusion_plan_lots WHERE batch_no=$b ORDER BY id";
             cmd.Parameters.AddWithValue("$b", batchNo);
             var list = new List<FusionPlanLot>();
             await using var reader = await cmd.ExecuteReaderAsync();
@@ -446,6 +446,7 @@ namespace ProWeighSuitePlatforms.Data
                 var cOrd = reader.GetOrdinal("cycles_per_tub");
                 var dtOrd = reader.GetOrdinal("done_tubs");
                 var dkOrd = reader.GetOrdinal("done_kg");
+                var dnOrd = reader.GetOrdinal("done_nuts");
                 var pzOrd = reader.GetOrdinal("is_paused");
                 var fnOrd = reader.GetOrdinal("is_completed");
                 list.Add(new FusionPlanLot
@@ -465,6 +466,7 @@ namespace ProWeighSuitePlatforms.Data
                     CyclesPerTub = reader.IsDBNull(cOrd) ? 0 : reader.GetDouble(cOrd),
                     DoneTubs = reader.IsDBNull(dtOrd) ? 0 : reader.GetInt32(dtOrd),
                     DoneKg = reader.IsDBNull(dkOrd) ? 0 : reader.GetDouble(dkOrd),
+                    DoneNuts = reader.IsDBNull(dnOrd) ? 0 : reader.GetInt32(dnOrd),
                     IsPaused = !reader.IsDBNull(pzOrd) && reader.GetInt32(pzOrd) != 0,
                     IsCompleted = !reader.IsDBNull(fnOrd) && reader.GetInt32(fnOrd) != 0,
                 });
@@ -477,8 +479,8 @@ namespace ProWeighSuitePlatforms.Data
             await using var conn = await OpenAsync();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-            INSERT INTO fusion_plan_lots (batch_no, lot_no, supplier_name, grn_no, bay_id, best_before, days_left, tubs, nuts, weight_kg, colour, tubs_in_pool, cycles_per_tub, done_tubs, done_kg, is_paused, is_completed)
-            VALUES ($b,$lot,$s,$g,$bay,$bb,$dl,$t,$n,$w,$c,$p,$cyc,0,0,0,0)";
+            INSERT INTO fusion_plan_lots (batch_no, lot_no, supplier_name, grn_no, bay_id, best_before, days_left, tubs, nuts, weight_kg, colour, tubs_in_pool, cycles_per_tub, done_tubs, done_kg, done_nuts, is_paused, is_completed)
+            VALUES ($b,$lot,$s,$g,$bay,$bb,$dl,$t,$n,$w,$c,$p,$cyc,0,0,0,0,0)";
             cmd.Parameters.AddWithValue("$b", l.BatchNo);
             cmd.Parameters.AddWithValue("$lot", l.LotNo);
             cmd.Parameters.AddWithValue("$s", l.SupplierName);
@@ -577,13 +579,14 @@ namespace ProWeighSuitePlatforms.Data
             await cmd.ExecuteNonQueryAsync();
         }
 
-        public async Task UpdateLotRunAsync(string batchNo, string lotNo, int doneTubs, double doneKg)
+        public async Task UpdateLotRunAsync(string batchNo, string lotNo, int doneTubs, double doneKg, int doneNuts = 0)
         {
             await using var conn = await OpenAsync();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = "UPDATE fusion_plan_lots SET done_tubs=$t, done_kg=$k WHERE batch_no=$b AND lot_no=$l";
+            cmd.CommandText = "UPDATE fusion_plan_lots SET done_tubs=$t, done_kg=$k, done_nuts=$n WHERE batch_no=$b AND lot_no=$l";
             cmd.Parameters.AddWithValue("$t", Math.Max(0, doneTubs));
             cmd.Parameters.AddWithValue("$k", Math.Max(0, doneKg));
+            cmd.Parameters.AddWithValue("$n", Math.Max(0, doneNuts));
             cmd.Parameters.AddWithValue("$b", batchNo);
             cmd.Parameters.AddWithValue("$l", lotNo);
             await cmd.ExecuteNonQueryAsync();
@@ -722,9 +725,10 @@ namespace ProWeighSuitePlatforms.Data
 
                 using var lot = conn.CreateCommand();
                 lot.Transaction = txx;
-                lot.CommandText = "UPDATE fusion_plan_lots SET done_tubs=$t, done_kg=$k WHERE batch_no=$b AND lot_no=$l";
+                lot.CommandText = "UPDATE fusion_plan_lots SET done_tubs=$t, done_kg=$k, done_nuts=done_nuts+$n WHERE batch_no=$b AND lot_no=$l";
                 lot.Parameters.AddWithValue("$t", Math.Max(0, doneTubs));
                 lot.Parameters.AddWithValue("$k", Math.Max(0, doneKg));
+                lot.Parameters.AddWithValue("$n", Math.Max(0, tx.Nuts));
                 lot.Parameters.AddWithValue("$b", tx.BatchNo);
                 lot.Parameters.AddWithValue("$l", tx.LotNo ?? string.Empty);
                 await lot.ExecuteNonQueryAsync();
@@ -1854,6 +1858,68 @@ namespace ProWeighSuitePlatforms.Data
                 });
             }
             return list;
+        }
+
+        // ===== Dynamic report columns over fusion_transactions =====
+        /// <summary>
+        /// Discovers column names from the fusion_transactions table schema
+        /// (PRAGMA table_info), in table definition order.
+        /// </summary>
+        public async Task<List<string>> GetTransactionColumnNamesAsync()
+        {
+            await using var conn = await OpenAsync();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "PRAGMA table_info(fusion_transactions)";
+            var list = new List<string>();
+            await using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+                list.Add(reader.GetString(1)); // column name is at index 1
+            return list;
+        }
+
+        /// <summary>
+        /// Loads fusion_transactions rows for the date range into a DataTable.
+        /// A leading "SNo" column (1-based row index) is added for dynamic display.
+        /// </summary>
+        public async Task<DataTable> LoadTransactionsReportAsync(string fromDate, string toDate)
+        {
+            await using var conn = await OpenAsync();
+
+            // Discover columns from schema
+            var columns = new List<string>();
+            using (var colCmd = conn.CreateCommand())
+            {
+                colCmd.CommandText = "PRAGMA table_info(fusion_transactions)";
+                using var colReader = await colCmd.ExecuteReaderAsync();
+                while (await colReader.ReadAsync())
+                    columns.Add(colReader.GetString(1));
+            }
+
+            if (columns.Count == 0)
+                return new DataTable();
+
+            var colList = string.Join(", ", columns.Select(c => $"[{c}]"));
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = $@"
+            SELECT {colList}
+            FROM fusion_transactions
+            WHERE date(recorded_at) >= $from AND date(recorded_at) <= $to
+            ORDER BY recorded_at DESC";
+            cmd.Parameters.AddWithValue("$from", fromDate);
+            cmd.Parameters.AddWithValue("$to", toDate);
+
+            var table = new DataTable();
+            using var reader = await cmd.ExecuteReaderAsync();
+            table.Load(reader);
+
+            // Add dynamic SNo column (1-based index)
+            if (!table.Columns.Contains("SNo"))
+                table.Columns.Add("SNo", typeof(int));
+            table.Columns["SNo"]!.SetOrdinal(0);
+            for (int i = 0; i < table.Rows.Count; i++)
+                table.Rows[i]["SNo"] = i + 1;
+
+            return table;
         }
     }
 }

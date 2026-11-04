@@ -111,6 +111,7 @@ namespace ProWeighSuitePlatforms.Models
         // Live run progress
         public int DoneTubs { get; set; }
         public double DoneKg { get; set; }
+        public int DoneNuts { get; set; }      // actual weighed coconuts (Round(weight / lot APW))
         public bool IsPaused { get; set; }
         public bool IsCompleted { get; set; }
     }

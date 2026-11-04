@@ -67,3 +67,8 @@ This repository was extracted from
 [`ProWeighSuitePlatforms`](https://github.com/ranjithshivasami/ProWeighSuitePlatforms)
 at monorepo commit `a19e9d5`, and later consolidated into this single-project
 layout.
+
+## Release
+
+dotnet publish .\ProWeighFusion.csproj -c Release -r win-x64 --self-contained -o ./publish /p:VelopackPackaging=true
+vpk pack --packId ProWeighFusion --packVersion 1.0.0 --packDir ./publish --mainExe ProWeighSuitePlatforms.exe --channel stable

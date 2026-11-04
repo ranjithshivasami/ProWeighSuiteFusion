@@ -287,7 +287,7 @@
                             </Border>
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock Text="{Binding KpiProgress}" FontSize="20" FontWeight="Bold" Foreground="#1c2430" TextWrapping="Wrap"/>
-                                <ProgressBar Value="{Binding KpiProgressPct, Mode=OneWay}" Maximum="100" Minimum="0" Width="110" HorizontalAlignment="Left" Margin="0,6,0,0" Style="{StaticResource LiveBarStyle}"/>
+                                <ProgressBar Value="{Binding KpiProgressPct, Mode=OneWay}" Maximum="200" Minimum="0" Width="110" HorizontalAlignment="Left" Margin="0,6,0,0" Style="{StaticResource LiveBarStyle}"/>
                             </StackPanel>
                         </DockPanel>
                     </StackPanel>
