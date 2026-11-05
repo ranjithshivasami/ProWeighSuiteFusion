@@ -306,11 +306,40 @@ namespace ProWeighSuitePlatforms.Data
         }
 
         // ===== Batches + lots =====
-        public async Task<List<FusionBatch>> GetBatchesAsync()
+        public async Task<List<FusionBatch>> GetBatchesAsync(DateTime? fromDate = null, DateTime? toDate = null)
         {
             await using var conn = await OpenAsync();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = "SELECT batch_no, target_kg, status, created_at, batch_date, supplier_mode, supplier_name, tub_mode, lot_mode, target_apw_kg, nuts_per_tub, target_hours, tub_loop_min, started_at, paused_ms, pause_started_at, pause_count, completed_at, operator_name, target_tubs, target_nuts FROM fusion_batches ORDER BY created_at DESC";
+            var sql = @"
+            SELECT fb.batch_no, fb.target_kg, fb.status, fb.created_at, fb.batch_date,
+                   fb.supplier_mode, fb.supplier_name, fb.tub_mode, fb.lot_mode,
+                   fb.target_apw_kg, fb.nuts_per_tub, fb.target_hours, fb.tub_loop_min,
+                   fb.started_at, fb.paused_ms, fb.pause_started_at, fb.pause_count,
+                   fb.completed_at, fb.operator_name, fb.target_tubs, fb.target_nuts,
+                   COALESCE(SUM(ft.weight), 0) AS achieved_weight_kg,
+                   COALESCE(SUM(ft.nuts), 0) AS achieved_nuts_count
+            FROM fusion_batches fb
+            LEFT JOIN fusion_transactions ft ON ft.batch_no = fb.batch_no";
+            var conditions = new List<string>();
+            if (fromDate.HasValue)
+            {
+                conditions.Add("date(fb.created_at) >= $from");
+                cmd.Parameters.AddWithValue("$from", fromDate.Value.Date.ToString("yyyy-MM-dd"));
+            }
+            if (toDate.HasValue)
+            {
+                conditions.Add("date(fb.created_at) <= $to");
+                cmd.Parameters.AddWithValue("$to", toDate.Value.Date.ToString("yyyy-MM-dd"));
+            }
+            if (conditions.Count > 0)
+                sql += " WHERE " + string.Join(" AND ", conditions);
+            sql += " GROUP BY fb.batch_no, fb.target_kg, fb.status, fb.created_at, fb.batch_date, "
+                 + "fb.supplier_mode, fb.supplier_name, fb.tub_mode, fb.lot_mode, "
+                 + "fb.target_apw_kg, fb.nuts_per_tub, fb.target_hours, fb.tub_loop_min, "
+                 + "fb.started_at, fb.paused_ms, fb.pause_started_at, fb.pause_count, "
+                 + "fb.completed_at, fb.operator_name, fb.target_tubs, fb.target_nuts "
+                 + "ORDER BY fb.created_at DESC";
+            cmd.CommandText = sql;
             var list = new List<FusionBatch>();
             await using var reader = await cmd.ExecuteReaderAsync();
             while (await reader.ReadAsync())
@@ -323,6 +352,8 @@ namespace ProWeighSuitePlatforms.Data
                 var pcOrd = reader.GetOrdinal("pause_count");
                 var ttOrd = reader.GetOrdinal("target_tubs");
                 var tnOrd = reader.GetOrdinal("target_nuts");
+                var awOrd = reader.GetOrdinal("achieved_weight_kg");
+                var acOrd = reader.GetOrdinal("achieved_nuts_count");
                 list.Add(new FusionBatch
                 {
                     BatchNo = GetString(reader, "batch_no"),
@@ -346,6 +377,8 @@ namespace ProWeighSuitePlatforms.Data
                     OperatorName = GetString(reader, "operator_name"),
                     TargetTubs = reader.IsDBNull(ttOrd) ? 0 : reader.GetInt32(ttOrd),
                     TargetNuts = reader.IsDBNull(tnOrd) ? 0 : reader.GetInt32(tnOrd),
+                    AchievedWeightKg = reader.IsDBNull(awOrd) ? 0 : reader.GetDouble(awOrd),
+                    AchievedNutsCount = reader.IsDBNull(acOrd) ? 0 : reader.GetInt32(acOrd),
                 });
             }
             return list;

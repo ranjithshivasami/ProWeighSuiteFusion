@@ -31,6 +31,52 @@ namespace ProWeighSuitePlatforms.ViewModels
         public ObservableCollection<string> ReportColumns { get; } = new();
         public ObservableCollection<SelectableColumn> AvailableColumns { get; } = new();
 
+        /// <summary>
+        /// Friendly UI names for fusion_transactions schema columns.
+        /// The DataGrid binds to the DB column name (Key) but displays the friendly name.
+        /// "is_synced" is intentionally omitted — it is removed from the report UI.
+        /// </summary>
+        private static readonly Dictionary<string, string> ColumnDisplayNames = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["id"] = "Id",
+            ["batch_no"] = "Batch No",
+            ["tub_id"] = "Tub",
+            ["supplier_name"] = "Supplier Name",
+            ["weight"] = "Weight",
+            ["uom"] = "UOM",
+            ["recorded_at"] = "Recorded At",
+            ["epc"] = "EPC",
+            ["tub_cycles"] = "Tub Cycles",
+            ["grn_no"] = "GRN No",
+            ["bay_id"] = "Bay",
+            ["lot_no"] = "LOT No",
+            ["nuts"] = "Nuts",
+            ["supplier_id"] = "Supplier Id",
+            ["operator_name"] = "Operator Name",
+        };
+
+        public static string GetDisplayName(string dbColumnName)
+        {
+            if (ColumnDisplayNames.TryGetValue(dbColumnName, out var display))
+                return display;
+            return dbColumnName;
+        }
+
+        public event EventHandler? ColumnSelectionChanged;
+
+        private void NotifyColumnSelectionChanged()
+        {
+            ColumnSelectionChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        public SelectableColumn? GetColumnByKey(string key)
+        {
+            foreach (var col in AvailableColumns)
+                if (string.Equals(col.Key, key, StringComparison.OrdinalIgnoreCase))
+                    return col;
+            return null;
+        }
+
         private bool _selectAllColumns = true;
         public bool SelectAllColumns
         {
@@ -41,7 +87,7 @@ namespace ProWeighSuitePlatforms.ViewModels
                 {
                     foreach (var col in AvailableColumns)
                         col.IsSelected = value;
-                    ApplyColumnVisibility();
+                    NotifyColumnSelectionChanged();
                 }
             }
         }
@@ -90,7 +136,9 @@ namespace ProWeighSuitePlatforms.ViewModels
         private void InitializeColumns()
         {
             // S.No is always first
-            AvailableColumns.Add(new SelectableColumn { Key = "SNo", DisplayName = "S.No", IsSelected = true });
+            var sno = new SelectableColumn { Key = "SNo", DisplayName = "S.No", IsSelected = true };
+            sno.SelectionChanged += (_, _) => NotifyColumnSelectionChanged();
+            AvailableColumns.Add(sno);
         }
 
         public async Task LoadAsync()
@@ -103,6 +151,9 @@ namespace ProWeighSuitePlatforms.ViewModels
                 // Discover columns from fusion_transactions table schema
                 var columns = await repo.GetTransactionColumnNamesAsync();
 
+                // Remove the sync flag from the report UI entirely.
+                columns = columns.Where(c => !string.Equals(c, "is_synced", StringComparison.OrdinalIgnoreCase)).ToList();
+
                 ReportColumns.Clear();
                 ReportColumns.Add("SNo");
                 foreach (var col in columns)
@@ -111,9 +162,20 @@ namespace ProWeighSuitePlatforms.ViewModels
                 // Rebuild AvailableColumns from schema (keep selection state)
                 var selection = AvailableColumns.ToDictionary(c => c.Key, c => c.IsSelected);
                 AvailableColumns.Clear();
-                AvailableColumns.Add(new SelectableColumn { Key = "SNo", DisplayName = "S.No", IsSelected = selection.TryGetValue("SNo", out var s) ? s : true });
+                var sno = new SelectableColumn { Key = "SNo", DisplayName = "S.No", IsSelected = selection.TryGetValue("SNo", out var s) ? s : true };
+                sno.SelectionChanged += (_, _) => NotifyColumnSelectionChanged();
+                AvailableColumns.Add(sno);
                 foreach (var col in columns)
-                    AvailableColumns.Add(new SelectableColumn { Key = col, DisplayName = col, IsSelected = selection.TryGetValue(col, out var v) ? v : true });
+                {
+                    var selectable = new SelectableColumn
+                    {
+                        Key = col,                          // DB column name — used for binding + visibility key
+                        DisplayName = GetDisplayName(col),  // friendly UI name shown in header & column picker
+                        IsSelected = selection.TryGetValue(col, out var v) ? v : true,
+                    };
+                    selectable.SelectionChanged += (_, _) => NotifyColumnSelectionChanged();
+                    AvailableColumns.Add(selectable);
+                }
 
                 // Load data into DataTable (reuse existing ReportData DataView)
                 var from = _from.ToString("yyyy-MM-dd");
@@ -166,11 +228,6 @@ namespace ProWeighSuitePlatforms.ViewModels
                 row["SNo"] = i++;
         }
 
-        private void ApplyColumnVisibility()
-        {
-            // Column visibility is handled by the view via AvailableColumns;
-            // this hook is kept for future column-show/hide logic.
-        }
 
         private async Task ExportCsvAsync()
         {

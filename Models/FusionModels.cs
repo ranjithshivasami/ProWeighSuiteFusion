@@ -81,6 +81,9 @@ namespace ProWeighSuitePlatforms.Models
         public string OperatorName { get; set; } = string.Empty;
         public int TargetTubs { get; set; }
         public int TargetNuts { get; set; }
+        // Achieved (weighed) totals for this batch
+        public double AchievedWeightKg { get; set; }
+        public int AchievedNutsCount { get; set; }
     }
 
     // Batch status history for the live view stepper (Batch Created / Lot Created /

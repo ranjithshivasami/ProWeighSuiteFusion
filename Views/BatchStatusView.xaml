@@ -1,7 +1,80 @@
 <UserControl x:Class="ProWeighSuitePlatforms.Views.BatchStatusView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Border Style="{StaticResource PageBackgroundStyle}">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:behaviors="clr-namespace:ProWeighSuitePlatforms.Behaviors"
+             xmlns:converters="clr-namespace:ProWeighSuitePlatforms.Converters"
+             x:Name="Root">
+    <UserControl.Resources>
+        <Style x:Key="BasicTableHeaderStyle" TargetType="DataGridColumnHeader" BasedOn="{StaticResource AppDataGridHeaderStyle}">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#111827"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="20,6"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        </Style>
+        <Style x:Key="TablePagerButtonStyle" TargetType="Button">
+            <Setter Property="MinWidth" Value="34"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrandPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F3F4F6"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Foreground" Value="#9CA3AF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="RowActionButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#3B82F6"/>
+            <Setter Property="Background" Value="#E8EEFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#D6E4FF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <Border Style="{StaticResource PageBackgroundStyle}" Padding="8,12" behaviors:AutoFocusBehavior.IsEnabled="True">
      <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                    CanContentScroll="False" PanningMode="VerticalOnly">
         <Grid>
@@ -10,37 +83,181 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <Border Grid.Row="1" Margin="10,0,10,10" Padding="12" Background="White" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="10">
-                <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="Click a batch to see its lot details" FontSize="13" Foreground="#374151" VerticalAlignment="Center" Margin="0,0,12,4"/>
-                    <Button Margin="0,0,0,4" Style="{StaticResource SecondaryButtonStyle}" Content="Refresh" Command="{Binding RefreshCommand}"/>
-                </WrapPanel>
+            <!-- Filter bar: date range + refresh -->
+            <Border Grid.Row="1" Margin="4,0,4,8" Padding="12" Background="White" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="10">
+                <DockPanel LastChildFill="False">
+                    <TextBlock DockPanel.Dock="Left" Text="Batch status register" FontWeight="SemiBold" FontSize="14" Foreground="#1c2430" VerticalAlignment="Center" Margin="0,0,12,4"/>
+
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button DockPanel.Dock="Right" Margin="0,0,6,4" Style="{StaticResource SecondaryButtonStyle}" Content="Refresh" Command="{Binding RefreshCommand}"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,4">
+                        <TextBlock Text="From" FontSize="12" Foreground="#374151" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <DatePicker Style="{StaticResource FormDatePickerStyle}" SelectedDate="{Binding FromDate, Mode=TwoWay}" Width="115" Padding="5" materialDesign:HintAssist.Hint="From date"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,4">
+                        <TextBlock Text="To" FontSize="12" Foreground="#374151" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <DatePicker Style="{StaticResource FormDatePickerStyle}" SelectedDate="{Binding ToDate, Mode=TwoWay}" Width="115" Padding="5" materialDesign:HintAssist.Hint="To date"/>
+                    </StackPanel>
+                </DockPanel>
             </Border>
 
-            <Border Grid.Row="2" Margin="10,0,10,10" Padding="8" Background="White" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="10">
-                <DataGrid AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" MinHeight="150"
-                          ItemsSource="{Binding Batches}" SelectedItem="{Binding SelectedBatch, Mode=TwoWay}"
-                          SelectionMode="Single" SelectionUnit="FullRow"
-                          ColumnHeaderStyle="{StaticResource AppDataGridHeaderStyle}">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Batch No" Binding="{Binding BatchNo}" Width="*"/>
-                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="*"/>
-                        <DataGridTextColumn Header="Target kg" Binding="{Binding TargetKg}" Width="*"/>
-                        <DataGridTextColumn Header="Supplier" Binding="{Binding SupplierName}" Width="*"/>
-                        <DataGridTextColumn Header="Created" Binding="{Binding CreatedAt}" Width="*"/>
-                        <DataGridTextColumn Header="Completed" Binding="{Binding CompletedAt}" Width="*"/>
-                        <DataGridTextColumn Header="Operator" Binding="{Binding OperatorName}" Width="*"/>
-                    </DataGrid.Columns>
-                </DataGrid>
+            <!-- Paged batch DataGrid -->
+            <Border Grid.Row="2" Margin="4,0,4,8" Background="White" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="16,16,16,8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Grid.Row="0" LastChildFill="False" Margin="0,0,0,8">
+                        <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="Show" FontSize="12" Foreground="#374151" VerticalAlignment="Center"/>
+                            <ComboBox Width="70" Margin="6,0" SelectedValue="{Binding PageSize}" SelectedValuePath="Content" Style="{StaticResource FormComboBoxStyle}" FontSize="12" Padding="4">
+                                <ComboBoxItem Content="10"/>
+                                <ComboBoxItem Content="25"/>
+                                <ComboBoxItem Content="50"/>
+                                <ComboBoxItem Content="100"/>
+                            </ComboBox>
+                            <TextBlock Text="entries" FontSize="12" Foreground="#374151" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </DockPanel>
+
+                    <DataGrid Grid.Row="1" MaxHeight="460" VerticalAlignment="Top" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
+                              CanUserSortColumns="True"
+                              HeadersVisibility="Column"
+                              ItemsSource="{Binding PagedBatches}"
+                              SelectionMode="Single" SelectionUnit="FullRow"
+                              SelectedItem="{Binding SelectedBatch, Mode=TwoWay}"
+                              CanUserResizeRows="False"
+                              GridLinesVisibility="Horizontal"
+                              HorizontalGridLinesBrush="#E5E7EB"
+                              BorderBrush="#E5E7EB" BorderThickness="0"
+                              HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                              EnableRowVirtualization="True" EnableColumnVirtualization="True"
+                              Style="{StaticResource AppDataGridStyle}">
+                        <DataGrid.Resources>
+                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource BasicTableHeaderStyle}">
+                                <Setter Property="Padding" Value="16,8"/>
+                            </Style>
+                        </DataGrid.Resources>
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow" BasedOn="{StaticResource AppDataGridRowStyle}">
+                                <Setter Property="MinHeight" Value="34"/>
+                            </Style>
+                        </DataGrid.RowStyle>
+                        <DataGrid.CellStyle>
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource AppDataGridCellStyle}">
+                                <Setter Property="Padding" Value="16,4"/>
+                                <Setter Property="FontSize" Value="12.5"/>
+                            </Style>
+                        </DataGrid.CellStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Batch No" Binding="{Binding BatchNo}" Width="130" MinWidth="120" SortMemberPath="BatchNo">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}">
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Date" Binding="{Binding CreatedAt}" Width="150" MinWidth="130" SortMemberPath="CreatedAt">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}"/>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="110" MinWidth="100" SortMemberPath="Status">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}"/>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Batch Date" Binding="{Binding BatchDate}" Width="130" MinWidth="120" SortMemberPath="BatchDate">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}"/>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Target kg" Binding="{Binding TargetKg, StringFormat=N3}" Width="110" MinWidth="90" SortMemberPath="TargetKg">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextRightStyle}"/>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Achieved Weight" Binding="{Binding AchievedWeightKg, StringFormat=N3}" Width="120" MinWidth="100" SortMemberPath="AchievedWeightKg">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextRightStyle}"/>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Target Tubs" Binding="{Binding TargetTubs, StringFormat=N0}" Width="110" MinWidth="90" SortMemberPath="TargetTubs">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextRightStyle}"/>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Target Nuts" Binding="{Binding TargetNuts, StringFormat=N0}" Width="110" MinWidth="90" SortMemberPath="TargetNuts">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextRightStyle}"/>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Achieved Count" Binding="{Binding AchievedNutsCount, StringFormat=N0}" Width="120" MinWidth="100" SortMemberPath="AchievedNutsCount">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextRightStyle}"/>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Started" Binding="{Binding StartedAt}" Width="150" MinWidth="130" SortMemberPath="StartedAt">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}"/>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Completed" Binding="{Binding CompletedAt}" Width="150" MinWidth="130" SortMemberPath="CompletedAt">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}"/>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <DockPanel Grid.Row="2" Margin="0,14,0,0" LastChildFill="False">
+                        <TextBlock DockPanel.Dock="Left" Text="{Binding ShowingText, Mode=OneWay}" FontSize="12" Foreground="#374151" VerticalAlignment="Center" Margin="0,0,12,4"/>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,0">
+                            <Button Style="{StaticResource TablePagerButtonStyle}" Content="Previous" Command="{Binding PrevPageCommand}"/>
+                            <ItemsControl ItemsSource="{Binding PageNumbers}" Margin="4,0">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Content="{Binding Number}" Command="{Binding DataContext.GoToPageCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Number}">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource TablePagerButtonStyle}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                                            <Setter Property="Background" Value="{DynamicResource BrandPrimaryBrush}"/>
+                                                            <Setter Property="Foreground" Value="{DynamicResource BrandOnPrimaryBrush}"/>
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource BrandPrimaryBrush}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Button Style="{StaticResource TablePagerButtonStyle}" Content="Next" Command="{Binding NextPageCommand}"/>
+                        </StackPanel>
+                    </DockPanel>
+                </Grid>
             </Border>
 
-            <Border Grid.Row="3" Margin="10,0,10,10" Padding="8" Background="White" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="10"
+            <!-- Lot details panel -->
+            <Border Grid.Row="3" Margin="4,0,4,8" Padding="8" Background="White" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="10"
                     Visibility="{Binding HasSelection, Converter={StaticResource BoolToVisibilityConverter}}">
                 <StackPanel>
                     <TextBlock Text="{Binding LotsHeader}" FontSize="14" FontWeight="SemiBold" Foreground="#374151" Margin="2,2,2,6"/>
-                    <DataGrid AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" MinHeight="100"
+                    <DataGrid AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" MinHeight="140"
                               ItemsSource="{Binding Lots}"
                               ColumnHeaderStyle="{StaticResource AppDataGridHeaderStyle}">
                         <DataGrid.Columns>
@@ -61,7 +278,9 @@
                     </DataGrid>
                 </StackPanel>
             </Border>
+
+            <TextBlock Grid.Row="4" Text="{Binding StatusText}" Foreground="#5b6472" Margin="4,0,4,4" TextWrapping="Wrap"/>
         </Grid>
-     </ScrollViewer>
+      </ScrollViewer>
     </Border>
 </UserControl>

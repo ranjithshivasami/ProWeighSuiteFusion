@@ -3,7 +3,7 @@ using System.Windows.Controls;
 namespace ProWeighSuitePlatforms.Views
 {
     /// <summary>
-    /// Interaction logic for BatchStatusView.xaml
+    /// Interaction logic for BatchStatusView
     /// </summary>
     public partial class BatchStatusView : UserControl
     {

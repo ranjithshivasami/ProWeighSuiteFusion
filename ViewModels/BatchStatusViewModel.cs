@@ -1,6 +1,7 @@
-// Fusion "Batch status" screen: every batch with one-click lot detail expansion.
-// Completed batches moved here from the Live view pill strip.
+// Fusion "Batch status" screen: every batch as a paged DataGrid with a date-range
+// filter (defaults to today), plus one-click lot detail expansion.
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,7 +17,9 @@ namespace ProWeighSuitePlatforms.ViewModels
         public string Title => "Batch status";
 
         public ObservableCollection<FusionBatch> Batches { get; } = new();
+        public ObservableCollection<FusionBatch> PagedBatches { get; } = new();
         public ObservableCollection<FusionPlanLot> Lots { get; } = new();
+        public ObservableCollection<PageNumberItem> PageNumbers { get; } = new();
 
         private FusionBatch? _selectedBatch;
         public FusionBatch? SelectedBatch
@@ -40,14 +43,106 @@ namespace ProWeighSuitePlatforms.ViewModels
             ? "Lot details"
             : $"Lot details - {_selectedBatch.BatchNo} ({_selectedBatch.Status})";
 
+        // ---- Date range filter ----
+        private DateTime? _fromDate = DateTime.Today;
+        public DateTime? FromDate
+        {
+            get => _fromDate;
+            set
+            {
+                if (SetProperty(ref _fromDate, value))
+                {
+                    CurrentPage = 1;
+                    _ = LoadAsync();
+                }
+            }
+        }
+
+        private DateTime? _toDate = DateTime.Today;
+        public DateTime? ToDate
+        {
+            get => _toDate;
+            set
+            {
+                if (SetProperty(ref _toDate, value))
+                {
+                    CurrentPage = 1;
+                    _ = LoadAsync();
+                }
+            }
+        }
+
+        // ---- Pagination ----
+        private int _pageSize = 10;
+        public int PageSize
+        {
+            get => _pageSize;
+            set
+            {
+                if (SetProperty(ref _pageSize, value))
+                {
+                    CurrentPage = 1;
+                    UpdatePagedData();
+                }
+            }
+        }
+
+        private int _currentPage = 1;
+        public int CurrentPage
+        {
+            get => _currentPage;
+            set
+            {
+                if (SetProperty(ref _currentPage, value))
+                {
+                    UpdatePagedData();
+                    RaisePropertyChanged(nameof(TotalPages));
+                    RaisePropertyChanged(nameof(PageInfo));
+                    RaisePropertyChanged(nameof(ShowingText));
+                }
+            }
+        }
+
+        public int TotalPages => Math.Max(1, (int)Math.Ceiling((double)TotalRecords / Math.Max(1, PageSize)));
+
+        private int _totalRecords;
+        public int TotalRecords
+        {
+            get => _totalRecords;
+            private set => SetProperty(ref _totalRecords, value);
+        }
+
+        public string PageInfo => $"Page {CurrentPage} of {TotalPages}  ({TotalRecords} records)";
+
+        public string ShowingText
+        {
+            get
+            {
+                if (TotalRecords == 0) return "Showing 0 to 0 of 0 records";
+                var from = (CurrentPage - 1) * PageSize + 1;
+                var to = Math.Min(CurrentPage * PageSize, TotalRecords);
+                return $"Showing {from} to {to} of {TotalRecords} records";
+            }
+        }
+
         private string _statusText = string.Empty;
         public string StatusText { get => _statusText; private set => SetProperty(ref _statusText, value); }
 
         public ICommand RefreshCommand { get; }
+        public ICommand PrevPageCommand { get; }
+        public ICommand NextPageCommand { get; }
+        public ICommand GoToPageCommand { get; }
 
         public BatchStatusViewModel()
         {
             RefreshCommand = new RelayCommand(async _ => await LoadAsync());
+            PrevPageCommand = new RelayCommand(_ => { if (CurrentPage > 1) CurrentPage--; }, _ => CurrentPage > 1);
+            NextPageCommand = new RelayCommand(_ => { if (CurrentPage < TotalPages) CurrentPage++; }, _ => CurrentPage < TotalPages);
+            GoToPageCommand = new RelayCommand(param =>
+            {
+                if (param is int page && page >= 1 && page <= Math.Max(1, TotalPages) && page != CurrentPage)
+                    CurrentPage = page;
+            });
             _ = LoadAsync();
         }
 
@@ -57,25 +152,60 @@ namespace ProWeighSuitePlatforms.ViewModels
             {
                 await new FusionDatabaseInit(AppConfigurationManager.GetDatabasePath()).EnsureCreatedAsync();
                 var repo = new FusionRepository(AppConfigurationManager.GetDatabasePath());
-                var batches = await repo.GetBatchesAsync();
+
+                var batches = await repo.GetBatchesAsync(FromDate, ToDate);
 
                 var keep = _selectedBatch?.BatchNo;
                 Batches.Clear();
                 foreach (var b in batches)
                     Batches.Add(b);
 
-                SelectedBatch = batches.FirstOrDefault(b =>
+                TotalRecords = Batches.Count;
+
+                if (CurrentPage > TotalPages) CurrentPage = 1;
+                UpdatePagedData();
+
+                // Re-select the previously selected batch if still present.
+                SelectedBatch = Batches.FirstOrDefault(b =>
                         string.Equals(b.BatchNo, keep, StringComparison.OrdinalIgnoreCase))
-                    ?? batches.FirstOrDefault();
+                    ?? Batches.FirstOrDefault();
 
                 StatusText = Batches.Count == 0
-                    ? "No batches yet. Create one in the Batch creation screen."
+                    ? "No batches found for the selected date range."
                     : $"{Batches.Count} batch(es) listed.";
             }
             catch (Exception ex)
             {
                 StatusText = $"Load failed: {ex.Message}";
             }
+        }
+
+        private void UpdatePagedData()
+        {
+            var paged = Batches
+                .Skip((CurrentPage - 1) * PageSize)
+                .Take(PageSize)
+                .ToList();
+            PagedBatches.Clear();
+            foreach (var b in paged)
+                PagedBatches.Add(b);
+
+            RefreshPageNumbers();
+            RaisePropertyChanged(nameof(CurrentPage));
+            RaisePropertyChanged(nameof(TotalPages));
+            RaisePropertyChanged(nameof(PageInfo));
+            RaisePropertyChanged(nameof(ShowingText));
+        }
+
+        private void RefreshPageNumbers()
+        {
+            PageNumbers.Clear();
+            var total = Math.Max(1, TotalPages);
+            var start = Math.Max(1, Math.Min(CurrentPage - 2, total - 4));
+            var end = Math.Min(total, start + 4);
+            start = Math.Max(1, end - 4);
+            for (var i = start; i <= end; i++)
+                PageNumbers.Add(new PageNumberItem { Number = i, IsCurrent = i == CurrentPage });
         }
 
         private async Task LoadLotsAsync(string? batchNo)
@@ -101,6 +231,12 @@ namespace ProWeighSuitePlatforms.ViewModels
             {
                 RaisePropertyChanged(nameof(HasLots));
             }
+        }
+
+        public sealed class PageNumberItem
+        {
+            public int Number { get; set; }
+            public bool IsCurrent { get; set; }
         }
     }
 }

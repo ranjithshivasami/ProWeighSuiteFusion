@@ -206,13 +206,13 @@
     </Style>
 
     <Style x:Key="FormDatePickerStyle" TargetType="DatePicker" BasedOn="{StaticResource MaterialDesignOutlinedDatePicker}">
-        <Setter Property="Background" Value="White"/>
-        <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource BrandSurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BrandBorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="FontSize" Value="14"/>
-        <Setter Property="Foreground" Value="#26334d"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrandTextPrimaryBrush}"/>
         <Setter Property="Padding" Value="8"/>
-        <Setter Property="materialDesign:HintAssist.Background" Value="White"/>
+        <Setter Property="materialDesign:HintAssist.Background" Value="{DynamicResource BrandSurfaceBrush}"/>
         <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="{StaticResource InputCornerRadius}"/>
         <Setter Property="materialDesign:TextFieldAssist.UnderlineBrush" Value="{DynamicResource BrandPrimaryBrush}"/>
         <Style.Triggers>
