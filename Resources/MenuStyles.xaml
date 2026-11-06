@@ -1,8 +1,9 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
 
-    <!-- Light sidebar nav (BridgeX look). Active item uses full theme color
-         BrandPrimaryBrush / BrandOnPrimaryBrush so theme switching keeps working. -->
+    <!-- Light sidebar nav (BridgeX look). Menu text uses the Fusion brand color
+         (#009688 teal by default). Active/hover states use theme brushes. -->
 
     <ControlTemplate x:Key="Menu_Template" TargetType="{x:Type MenuItem}">
         <Border x:Name="Border" Background="Transparent" Padding="4,0" Margin="0,1,0,1">
@@ -16,10 +17,10 @@
                     </Grid.ColumnDefinitions>
                     <ContentPresenter x:Name="Icon" Content="{TemplateBinding Icon}"
                                       Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center"
-                                      TextElement.Foreground="{DynamicResource BrandPrimaryBrush}"/>
-                    <ContentPresenter x:Name="HeaderHost" ContentSource="Header"
-                                      Grid.Column="1" VerticalAlignment="Center" Margin="12,0,0,0"
-                                      TextBlock.Foreground="{DynamicResource BrandPrimaryBrush}" TextBlock.FontSize="14" TextBlock.FontWeight="Normal" TextOptions.TextFormattingMode="Display"/>
+                                      TextElement.Foreground="#009688"/>
+                    <TextBlock x:Name="HeaderHost" Text="{TemplateBinding Header}"
+                               Grid.Column="1" VerticalAlignment="Center" Margin="12,0,0,0"
+                               Foreground="#009688" FontSize="14" FontWeight="Normal" TextOptions.TextFormattingMode="Display"/>
                     <Border x:Name="Badge" Grid.Column="2" Width="18" Height="18" CornerRadius="9"
                             Background="#e0472f" Visibility="Collapsed"
                             VerticalAlignment="Center" Margin="0,0,4,0">
@@ -34,18 +35,18 @@
             <Trigger Property="IsHighlighted" Value="True">
                 <Setter TargetName="ActiveIndicator" Property="Opacity" Value="1"/>
                 <Setter TargetName="ActiveIndicator" Property="Background" Value="#f4f6fa"/>
-                <Setter TargetName="HeaderHost" Property="TextBlock.Foreground" Value="{DynamicResource BrandPrimaryDarkBrush}"/>
+                <Setter TargetName="HeaderHost" Property="Foreground" Value="{DynamicResource BrandPrimaryDarkBrush}"/>
                 <Setter TargetName="Icon" Property="TextElement.Foreground" Value="{DynamicResource BrandPrimaryDarkBrush}"/>
             </Trigger>
             <Trigger Property="IsEnabled" Value="False">
-                <Setter TargetName="HeaderHost" Property="TextBlock.Foreground" Value="#a7adb8"/>
+                <Setter TargetName="HeaderHost" Property="Foreground" Value="#a7adb8"/>
                 <Setter TargetName="Icon" Property="TextElement.Foreground" Value="#a7adb8"/>
             </Trigger>
             <Trigger Property="IsChecked" Value="True">
                 <Setter TargetName="ActiveIndicator" Property="Opacity" Value="1"/>
                 <Setter TargetName="ActiveIndicator" Property="Background" Value="{DynamicResource BrandPrimaryBrush}"/>
                 <Setter TargetName="ActiveIndicator" Property="BorderBrush" Value="{DynamicResource BrandPrimaryBrush}"/>
-                <Setter TargetName="HeaderHost" Property="TextBlock.Foreground" Value="{DynamicResource BrandOnPrimaryBrush}"/>
+                <Setter TargetName="HeaderHost" Property="Foreground" Value="{DynamicResource BrandOnPrimaryBrush}"/>
                 <Setter TargetName="Icon" Property="TextElement.Foreground" Value="{DynamicResource BrandOnPrimaryBrush}"/>
             </Trigger>
             <MultiTrigger>
@@ -56,7 +57,7 @@
                 <Setter TargetName="ActiveIndicator" Property="Opacity" Value="1"/>
                 <Setter TargetName="ActiveIndicator" Property="Background" Value="{DynamicResource BrandPrimaryBrush}"/>
                 <Setter TargetName="ActiveIndicator" Property="BorderBrush" Value="{DynamicResource BrandPrimaryBrush}"/>
-                <Setter TargetName="HeaderHost" Property="TextBlock.Foreground" Value="{DynamicResource BrandOnPrimaryBrush}"/>
+                <Setter TargetName="HeaderHost" Property="Foreground" Value="{DynamicResource BrandOnPrimaryBrush}"/>
                 <Setter TargetName="Icon" Property="TextElement.Foreground" Value="{DynamicResource BrandOnPrimaryBrush}"/>
             </MultiTrigger>
         </ControlTemplate.Triggers>
@@ -75,11 +76,11 @@
                         </Grid.ColumnDefinitions>
                         <ContentPresenter x:Name="Icon" Content="{TemplateBinding Icon}"
                                           Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center"
-                                          TextElement.Foreground="{DynamicResource BrandPrimaryBrush}"/>
-                        <ContentPresenter x:Name="HeaderHost" ContentSource="Header"
-                                          Grid.Column="1" VerticalAlignment="Center" Margin="12,0,0,0"
-                                          TextBlock.Foreground="{DynamicResource BrandPrimaryBrush}" TextBlock.FontSize="14" TextBlock.FontWeight="Normal" TextOptions.TextFormattingMode="Display"/>
-                        <Path x:Name="Arrow" Grid.Column="2" Data="M 0 0 L 5 4 L 0 8 Z" Fill="{DynamicResource BrandPrimaryBrush}"
+                                          TextElement.Foreground="#009688"/>
+                        <TextBlock x:Name="HeaderHost" Text="{TemplateBinding Header}"
+                                   Grid.Column="1" VerticalAlignment="Center" Margin="12,0,0,0"
+                                   Foreground="#009688" FontSize="14" FontWeight="Normal" TextOptions.TextFormattingMode="Display"/>
+                        <Path x:Name="Arrow" Grid.Column="2" Data="M 0 0 L 5 4 L 0 8 Z" Fill="#009688"
                               VerticalAlignment="Center" HorizontalAlignment="Center"/>
                     </Grid>
                 </Grid>
@@ -104,7 +105,7 @@
             <Trigger Property="IsHighlighted" Value="True">
                 <Setter TargetName="ActiveIndicator" Property="Opacity" Value="1"/>
                 <Setter TargetName="ActiveIndicator" Property="Background" Value="#f4f6fa"/>
-                <Setter TargetName="HeaderHost" Property="TextBlock.Foreground" Value="{DynamicResource BrandPrimaryDarkBrush}"/>
+                <Setter TargetName="HeaderHost" Property="Foreground" Value="{DynamicResource BrandPrimaryDarkBrush}"/>
                 <Setter TargetName="Icon" Property="TextElement.Foreground" Value="{DynamicResource BrandPrimaryDarkBrush}"/>
             </Trigger>
             <Trigger Property="IsSubmenuOpen" Value="True">
@@ -127,10 +128,10 @@
                     </Grid.ColumnDefinitions>
                     <ContentPresenter x:Name="Icon" Content="{TemplateBinding Icon}"
                                       Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center"
-                                      TextElement.Foreground="{DynamicResource BrandPrimaryBrush}"/>
-                    <ContentPresenter x:Name="HeaderHost" ContentSource="Header"
-                                      Grid.Column="1" VerticalAlignment="Center" Margin="12,0,0,0"
-                                      TextBlock.Foreground="{DynamicResource BrandPrimaryBrush}" TextBlock.FontSize="13" TextBlock.FontWeight="Normal" TextOptions.TextFormattingMode="Display"/>
+                                      TextElement.Foreground="#009688"/>
+                    <TextBlock x:Name="HeaderHost" Text="{TemplateBinding Header}"
+                               Grid.Column="1" VerticalAlignment="Center" Margin="12,0,0,0"
+                               Foreground="#009688" FontSize="13" FontWeight="Normal" TextOptions.TextFormattingMode="Display"/>
                 </Grid>
             </Grid>
         </Border>
@@ -138,14 +139,14 @@
             <Trigger Property="IsHighlighted" Value="True">
                 <Setter TargetName="ActiveIndicator" Property="Opacity" Value="1"/>
                 <Setter TargetName="ActiveIndicator" Property="Background" Value="#f4f6fa"/>
-                <Setter TargetName="HeaderHost" Property="TextBlock.Foreground" Value="{DynamicResource BrandPrimaryDarkBrush}"/>
+                <Setter TargetName="HeaderHost" Property="Foreground" Value="{DynamicResource BrandPrimaryDarkBrush}"/>
                 <Setter TargetName="Icon" Property="TextElement.Foreground" Value="{DynamicResource BrandPrimaryDarkBrush}"/>
             </Trigger>
             <Trigger Property="IsChecked" Value="True">
                 <Setter TargetName="ActiveIndicator" Property="Opacity" Value="1"/>
                 <Setter TargetName="ActiveIndicator" Property="Background" Value="{DynamicResource BrandPrimaryBrush}"/>
                 <Setter TargetName="ActiveIndicator" Property="BorderBrush" Value="{DynamicResource BrandPrimaryBrush}"/>
-                <Setter TargetName="HeaderHost" Property="TextBlock.Foreground" Value="{DynamicResource BrandOnPrimaryBrush}"/>
+                <Setter TargetName="HeaderHost" Property="Foreground" Value="{DynamicResource BrandOnPrimaryBrush}"/>
                 <Setter TargetName="Icon" Property="TextElement.Foreground" Value="{DynamicResource BrandOnPrimaryBrush}"/>
             </Trigger>
         </ControlTemplate.Triggers>

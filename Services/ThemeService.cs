@@ -159,17 +159,9 @@ namespace ProWeighSuitePlatforms.Services
 
         private static void SetBrush(Application app, string key, Color color)
         {
-            // Mutate the shared instance so every DynamicResource (and any
-            // StaticResource holding the same instance) updates. A frozen brush
-            // cannot be mutated — replace it instead of throwing.
-            if (app.Resources[key] is SolidColorBrush existing && !existing.IsFrozen)
-            {
-                existing.Color = color;
-            }
-            else
-            {
-                app.Resources[key] = new SolidColorBrush(color);
-            }
+            // Always replace the resource so DynamicResource expressions everywhere
+            // (including inside ControlTemplates) re-evaluate and pick up the new color.
+            app.Resources[key] = new SolidColorBrush(color);
         }
 
         private static Color Darken(Color c, double amount)

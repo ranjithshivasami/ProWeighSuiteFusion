@@ -11,7 +11,7 @@
 
     <UserControl.Resources>
         <Style x:Key="ShellNavigationChildItemStyle" TargetType="MenuItem">
-            <Setter Property="Foreground" Value="#5b6472"/>
+            <Setter Property="Foreground" Value="#009688"/>
             <Setter Property="Header" Value="{Binding Title}"/>
             <Setter Property="Command" Value="{Binding Command}"/>
             <Setter Property="CommandParameter" Value="{Binding CommandParameter}"/>
@@ -22,7 +22,7 @@
             <EventSetter Event="PreviewMouseDown" Handler="MenuItem_PreviewMouseDown"/>
         </Style>
         <Style x:Key="ShellNavigationItemStyle" TargetType="MenuItem">
-            <Setter Property="Foreground" Value="{DynamicResource SidebarTextBrush}"/>
+            <Setter Property="Foreground" Value="#009688"/>
             <Setter Property="Header" Value="{Binding Title}"/>
             <Setter Property="Command" Value="{Binding Command}"/>
             <Setter Property="CommandParameter" Value="{Binding CommandParameter}"/>
@@ -185,6 +185,7 @@
                             </Style>
                         </ScrollViewer.Resources>
                         <Menu Background="Transparent"
+                              Foreground="#009688"
                               ItemsSource="{Binding NavigationItems}"
                               ItemContainerStyle="{StaticResource ShellNavigationItemStyle}">
                             <Menu.ItemsPanel>
@@ -423,7 +424,7 @@
                                     <Button.Style>
                                         <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                                             <Setter Property="Background" Value="Transparent"/>
-                                            <Setter Property="Foreground" Value="{DynamicResource SidebarTextBrush}"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource BrandPrimaryBrush}"/>
                                             <Setter Property="BorderThickness" Value="0"/>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding IsActive}" Value="True">

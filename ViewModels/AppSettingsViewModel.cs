@@ -18,8 +18,6 @@ namespace ProWeighSuitePlatforms.ViewModels
         private readonly SyncSettingsService _syncSettingsService = new();
         private readonly AuditService _auditService = new();
         private readonly string _currentUsername;
-        private readonly string _brandDefaultHex;
-        private readonly string _brandDefaultName;
         private AppSettings _settings = new();
         private SyncSettings _syncSettings = new();
 
@@ -469,70 +467,6 @@ namespace ProWeighSuitePlatforms.ViewModels
         }
 
         public ICommand SaveCommand { get; }
-        public ICommand PreviewThemeCommand { get; }
-        public ICommand ResetBrandThemeCommand { get; }
-
-        // Brand theme — admin-switchable accent color
-        public IReadOnlyList<ThemeService.ThemeOption> BrandThemes => ThemeService.BuiltInThemes;
-
-        private ThemeService.ThemeOption? _selectedBrandTheme;
-        public ThemeService.ThemeOption? SelectedBrandTheme
-        {
-            get => _selectedBrandTheme;
-            set
-            {
-                if (SetProperty(ref _selectedBrandTheme, value) && value != null)
-                {
-                    // Picking a preset is an explicit admin choice: persist the
-                    // override so it survives a rebuild of the brand.
-                    _settings.BrandThemeCustom = true;
-                    BrandPrimaryHexText = value.PrimaryHex;
-                    BrandThemeError = string.Empty;
-                    try
-                    {
-                        ThemeService.Apply(value.PrimaryHex, value.Name);
-                    }
-                    catch (Exception ex)
-                    {
-                        BrandThemeError = $"Could not apply theme '{value.Name}': {ex.Message}";
-                    }
-                }
-            }
-        }
-
-        private string _brandPrimaryHexText = "#FF9F00";
-        public string BrandPrimaryHexText
-        {
-            get => _brandPrimaryHexText;
-            set
-            {
-                if (!SetProperty(ref _brandPrimaryHexText, value)) return;
-                // Live-validate only; Apply happens via preset setter or Apply button
-                if (string.IsNullOrWhiteSpace(value))
-                    BrandThemeError = "Enter a hex color (e.g. #086BE8) or pick a preset.";
-                else
-                {
-                    var t = value.Trim();
-                    if (!t.StartsWith("#")) t = "#" + t;
-                    if (t.Length == 4 || t.Length == 7 || t.Length == 9)
-                        BrandThemeError = string.Empty;
-                    else
-                        BrandThemeError = "Use #RGB, #RRGGBB or #AARRGGBB (e.g. #086BE8).";
-                }
-            }
-        }
-
-        private string _brandThemeError = string.Empty;
-        public string BrandThemeError
-        {
-            get => _brandThemeError;
-            private set
-            {
-                if (SetProperty(ref _brandThemeError, value))
-                    RaisePropertyChanged(nameof(HasBrandThemeError));
-            }
-        }
-        public bool HasBrandThemeError => !string.IsNullOrWhiteSpace(_brandThemeError);
 
         // Sync master switch — persisted in sync-settings.json and applied live
         // via SyncGate so transaction + audit sync pause immediately on toggle.
@@ -552,14 +486,7 @@ namespace ProWeighSuitePlatforms.ViewModels
             string? brandPrimaryHex = null, string? brandSecondaryHex = null, string? brandName = null)
         {
             _currentUsername = currentUsername;
-            // Build-stamped brand color (Hosts/<flavor>/branding.json). Used as the
-            // default when no admin theme override has been saved, and as the
-            // "Use brand default" reset target.
-            _brandDefaultHex = Models.AppSettings.NormalizeBrandHex(brandPrimaryHex);
-            _brandDefaultName = string.IsNullOrWhiteSpace(brandName) ? "Brand" : brandName.Trim();
             SaveCommand = new RelayCommand(async _ => await SaveAsync());
-            PreviewThemeCommand = new RelayCommand(_ => PreviewTheme());
-            ResetBrandThemeCommand = new RelayCommand(_ => ResetBrandTheme());
 
             // Load settings synchronously so the view binds with the persisted values
             // from the very first frame. Previously LoadAsync() was fire-and-forget:
@@ -599,50 +526,6 @@ namespace ProWeighSuitePlatforms.ViewModels
             {
                 System.Diagnostics.Debug.WriteLine($"[AppSettingsViewModel] Synchronous settings load failed, using defaults: {ex.Message}");
                 return new AppSettings();
-            }
-        }
-
-        private void PreviewTheme()
-        {
-            if (!string.IsNullOrWhiteSpace(BrandThemeError)) return;
-            var hex = Models.AppSettings.NormalizeBrandHex(BrandPrimaryHexText);
-            BrandPrimaryHexText = hex;
-            // Explicit Apply of a custom hex = admin theme override.
-            _settings.BrandThemeCustom = true;
-            try
-            {
-                ThemeService.Apply(hex, SelectedBrandTheme?.Name ?? "Custom");
-            }
-            catch (Exception ex)
-            {
-                BrandThemeError = $"Could not preview theme: {ex.Message}";
-            }
-        }
-
-        private void ResetBrandTheme()
-        {
-            // Return to the build-stamped brand color and clear the override flag
-            // so the brand color stays authoritative across rebuilds.
-            _settings.BrandThemeCustom = false;
-            BrandThemeError = string.Empty;
-            BrandPrimaryHexText = _brandDefaultHex;
-            _selectedBrandTheme = null;
-            foreach (var t in ThemeService.BuiltInThemes)
-            {
-                if (string.Equals(t.PrimaryHex, _brandDefaultHex, StringComparison.OrdinalIgnoreCase))
-                {
-                    _selectedBrandTheme = t;
-                    break;
-                }
-            }
-            RaisePropertyChanged(nameof(SelectedBrandTheme));
-            try
-            {
-                ThemeService.Apply(_brandDefaultHex, _selectedBrandTheme?.Name ?? _brandDefaultName);
-            }
-            catch (Exception ex)
-            {
-                BrandThemeError = $"Could not apply brand default theme: {ex.Message}";
             }
         }
 
@@ -700,43 +583,6 @@ namespace ProWeighSuitePlatforms.ViewModels
             RaisePropertyChanged(nameof(ScannerIdFilter));
             RaisePropertyChanged(nameof(ScannerAutoTrigger));
             RaisePropertyChanged(nameof(ScannerBrands));
-            // Brand theme — the build-stamped brand color is authoritative unless
-            // an admin explicitly picked an override (BrandThemeCustom).
-            var useBrandDefault = !_settings.BrandThemeCustom;
-            var savedHex = useBrandDefault
-                ? _brandDefaultHex
-                : Models.AppSettings.NormalizeBrandHex(_settings.BrandPrimaryHex);
-            var savedName = useBrandDefault ? _brandDefaultName : _settings.BrandThemeName;
-            _brandPrimaryHexText = savedHex;
-            BrandThemeError = string.Empty;
-            RaisePropertyChanged(nameof(BrandPrimaryHexText));
-            ThemeService.ThemeOption? match = null;
-            foreach (var t in ThemeService.BuiltInThemes)
-            {
-                if (string.Equals(t.PrimaryHex, savedHex, StringComparison.OrdinalIgnoreCase))
-                { match = t; break; }
-            }
-            if (match == null)
-            {
-                foreach (var t in ThemeService.BuiltInThemes)
-                {
-                    if (string.Equals(t.Name, savedName, StringComparison.OrdinalIgnoreCase))
-                    { match = t; break; }
-                }
-            }
-            _selectedBrandTheme = match;
-            RaisePropertyChanged(nameof(SelectedBrandTheme));
-            if (!useBrandDefault)
-            {
-                try
-                {
-                    ThemeService.ApplySavedTheme(savedHex, _settings.BrandThemeName);
-                }
-                catch (Exception ex)
-                {
-                    BrandThemeError = $"Saved theme '{_settings.BrandThemeName}' ({savedHex}) could not be applied: {ex.Message}";
-                }
-            }
             // Sync master switch
             RaisePropertyChanged(nameof(EnableSync));
         }
@@ -809,28 +655,6 @@ namespace ProWeighSuitePlatforms.ViewModels
                     _settings.ScanIntervalMs = int.TryParse(_scanIntervalText, out var p) && p >= 100 && p <= 60000 ? p : 1000;
                 }
 
-                // Brand theme — validate, persist, apply live
-                if (!string.IsNullOrWhiteSpace(BrandThemeError))
-                {
-                    MessageBox.Show(BrandThemeError, "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-                var brandHex = Models.AppSettings.NormalizeBrandHex(BrandPrimaryHexText);
-                var brandName = SelectedBrandTheme?.Name
-                    ?? (_settings.BrandThemeCustom ? ThemeService.CurrentName : _brandDefaultName);
-                // If custom hex doesn't match the selected preset, mark as Custom
-                if (SelectedBrandTheme != null && !string.Equals(SelectedBrandTheme.PrimaryHex, brandHex, StringComparison.OrdinalIgnoreCase))
-                    brandName = "Custom";
-                // A hex that differs from the build-stamped brand color is an
-                // explicit admin pick: persist it as an override. Saving without
-                // touching the theme keeps BrandThemeCustom=false, so the brand
-                // color stays authoritative.
-                if (!string.Equals(brandHex, _brandDefaultHex, StringComparison.OrdinalIgnoreCase))
-                    _settings.BrandThemeCustom = true;
-                _settings.BrandPrimaryHex = brandHex;
-                _settings.BrandThemeName = brandName;
-                ThemeService.Apply(brandHex, brandName);
-
                 // Read-modify-write: preserve sections saved by other pages
                 // (e.g. Configuration → Scanner Settings) unless the scanner
                 // section was edited on this page. Without this, saving App
@@ -853,7 +677,7 @@ namespace ProWeighSuitePlatforms.ViewModels
                     _currentUsername,
                     "Application Settings",
                     null,
-                    $"TargetUOM={_settings.TargetUOM}, PresenceThreshold={_settings.PresenceThreshold}, ScaleResolution={_settings.ScaleResolution}, MaxWeight={_settings.MaxWeight}, RecordAtAccept={_settings.RecordAtAccept}, RecordAtUnderWeight={_settings.RecordAtUnderWeight}, RecordAtOverWeight={_settings.RecordAtOverWeight}, PrintAtAccept={_settings.PrintAtAccept}, PrintAtUnderWeight={_settings.PrintAtUnderWeight}, PrintAtOverWeight={_settings.PrintAtOverWeight}, EnableOTP={_settings.EnableOTP}, WeightCaptureMode={_settings.WeightCaptureMode}, CaptureIntervalMs={_settings.CaptureIntervalMs}, ScanMode={_settings.ScanMode}, ScanIntervalMs={_settings.ScanIntervalMs}, ScannerBrand={_settings.Scanner.Brand}, ScannerIdFilter={_settings.Scanner.ScannerIdFilter}, ScannerAutoTrigger={_settings.Scanner.AutoTriggerOnScan}, BrandTheme={_settings.BrandThemeName}, BrandPrimaryHex={_settings.BrandPrimaryHex}");
+                    $"TargetUOM={_settings.TargetUOM}, PresenceThreshold={_settings.PresenceThreshold}, ScaleResolution={_settings.ScaleResolution}, MaxWeight={_settings.MaxWeight}, RecordAtAccept={_settings.RecordAtAccept}, RecordAtUnderWeight={_settings.RecordAtUnderWeight}, RecordAtOverWeight={_settings.RecordAtOverWeight}, PrintAtAccept={_settings.PrintAtAccept}, PrintAtUnderWeight={_settings.PrintAtUnderWeight}, PrintAtOverWeight={_settings.PrintAtOverWeight}, EnableOTP={_settings.EnableOTP}, WeightCaptureMode={_settings.WeightCaptureMode}, CaptureIntervalMs={_settings.CaptureIntervalMs}, ScanMode={_settings.ScanMode}, ScanIntervalMs={_settings.ScanIntervalMs}, ScannerBrand={_settings.Scanner.Brand}, ScannerIdFilter={_settings.Scanner.ScannerIdFilter}, ScannerAutoTrigger={_settings.Scanner.AutoTriggerOnScan}");
 
                 var captureDisplay = WeightCaptureMode == "Hybrid" ? $"Hybrid ({_settings.CaptureIntervalMs} ms, Scan {ScanMode} {ScanIntervalText} ms)" : IsAutoCapture ? $"Auto ({_settings.CaptureIntervalMs} ms)" : "Manual";
                 var message =
@@ -871,7 +695,6 @@ namespace ProWeighSuitePlatforms.ViewModels
                     $"  Print at Under Weight: {(PrintAtUnderWeight ? "Yes" : "No")}\n" +
                     $"  Print at Over Weight: {(PrintAtOverWeight ? "Yes" : "No")}\n\n" +
                     $"Security: Enable OTP for Super Admin: {(EnableOTP ? "Yes" : "No")}\n\n" +
-                    $"Brand Theme: {brandName} ({brandHex})\n\n" +
                     "Changes take effect on the next weighing transaction. Batch Weighing will pick up the new capture mode after refresh.";
 
                 MessageBox.Show(

@@ -215,6 +215,16 @@
         <Setter Property="materialDesign:HintAssist.Background" Value="{DynamicResource BrandSurfaceBrush}"/>
         <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="{StaticResource InputCornerRadius}"/>
         <Setter Property="materialDesign:TextFieldAssist.UnderlineBrush" Value="{DynamicResource BrandPrimaryBrush}"/>
+        <Setter Property="CalendarStyle">
+            <Setter.Value>
+                <Style TargetType="Calendar">
+                    <Setter Property="Foreground" Value="{DynamicResource BrandPrimaryBrush}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource BrandPrimaryBrush}"/>
+                    <Setter Property="BorderThickness" Value="1"/>
+                    <Setter Property="Background" Value="White"/>
+                </Style>
+            </Setter.Value>
+        </Setter>
         <Style.Triggers>
             <Trigger Property="IsKeyboardFocused" Value="True">
                 <Setter Property="BorderBrush" Value="{DynamicResource BrandPrimaryBrush}"/>
