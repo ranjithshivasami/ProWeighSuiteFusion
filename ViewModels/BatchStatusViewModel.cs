@@ -1,10 +1,12 @@
 // Fusion "Batch status" screen: every batch as a paged DataGrid with a date-range
-// filter (defaults to today), plus one-click lot detail expansion.
+// filter (defaults to today). Each batch row has a View button that opens a large
+// popup showing the batch's lot details.
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using ProWeighSuitePlatforms.Configuration;
 using ProWeighSuitePlatforms.Data;
@@ -20,28 +22,6 @@ namespace ProWeighSuitePlatforms.ViewModels
         public ObservableCollection<FusionBatch> PagedBatches { get; } = new();
         public ObservableCollection<FusionPlanLot> Lots { get; } = new();
         public ObservableCollection<PageNumberItem> PageNumbers { get; } = new();
-
-        private FusionBatch? _selectedBatch;
-        public FusionBatch? SelectedBatch
-        {
-            get => _selectedBatch;
-            set
-            {
-                if (SetProperty(ref _selectedBatch, value))
-                {
-                    RaisePropertyChanged(nameof(HasSelection));
-                    RaisePropertyChanged(nameof(LotsHeader));
-                    _ = LoadLotsAsync(value?.BatchNo);
-                }
-            }
-        }
-
-        public bool HasSelection => _selectedBatch != null;
-        public bool HasLots => Lots.Count > 0;
-
-        public string LotsHeader => _selectedBatch is null
-            ? "Lot details"
-            : $"Lot details - {_selectedBatch.BatchNo} ({_selectedBatch.Status})";
 
         // ---- Date range filter ----
         private DateTime? _fromDate = DateTime.Today;
@@ -132,6 +112,7 @@ namespace ProWeighSuitePlatforms.ViewModels
         public ICommand PrevPageCommand { get; }
         public ICommand NextPageCommand { get; }
         public ICommand GoToPageCommand { get; }
+        public ICommand ViewBatchCommand { get; }
 
         public BatchStatusViewModel()
         {
@@ -143,6 +124,7 @@ namespace ProWeighSuitePlatforms.ViewModels
                 if (param is int page && page >= 1 && page <= Math.Max(1, TotalPages) && page != CurrentPage)
                     CurrentPage = page;
             });
+            ViewBatchCommand = new RelayCommand(async param => await ViewBatchAsync(param as FusionBatch));
             _ = LoadAsync();
         }
 
@@ -155,7 +137,6 @@ namespace ProWeighSuitePlatforms.ViewModels
 
                 var batches = await repo.GetBatchesAsync(FromDate, ToDate);
 
-                var keep = _selectedBatch?.BatchNo;
                 Batches.Clear();
                 foreach (var b in batches)
                     Batches.Add(b);
@@ -164,11 +145,6 @@ namespace ProWeighSuitePlatforms.ViewModels
 
                 if (CurrentPage > TotalPages) CurrentPage = 1;
                 UpdatePagedData();
-
-                // Re-select the previously selected batch if still present.
-                SelectedBatch = Batches.FirstOrDefault(b =>
-                        string.Equals(b.BatchNo, keep, StringComparison.OrdinalIgnoreCase))
-                    ?? Batches.FirstOrDefault();
 
                 StatusText = Batches.Count == 0
                     ? "No batches found for the selected date range."
@@ -208,14 +184,34 @@ namespace ProWeighSuitePlatforms.ViewModels
                 PageNumbers.Add(new PageNumberItem { Number = i, IsCurrent = i == CurrentPage });
         }
 
+        // ---- Lot detail popup ----
+        private string? _popupBatchNo;
+        public string LotPopupTitle => string.IsNullOrEmpty(_popupBatchNo)
+            ? "Lot details"
+            : $"Lot details - {_popupBatchNo}";
+
+        private async Task ViewBatchAsync(FusionBatch? batch)
+        {
+            if (batch == null) return;
+
+            _popupBatchNo = batch.BatchNo;
+            RaisePropertyChanged(nameof(LotPopupTitle));
+
+            await LoadLotsAsync(batch.BatchNo);
+
+            var window = new Views.BatchLotDetailWindow
+            {
+                Owner = Application.Current.MainWindow,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                DataContext = this,
+            };
+            window.ShowDialog();
+        }
+
         private async Task LoadLotsAsync(string? batchNo)
         {
             Lots.Clear();
-            if (string.IsNullOrWhiteSpace(batchNo))
-            {
-                RaisePropertyChanged(nameof(HasLots));
-                return;
-            }
+            if (string.IsNullOrWhiteSpace(batchNo)) return;
 
             try
             {
@@ -226,10 +222,6 @@ namespace ProWeighSuitePlatforms.ViewModels
             catch (Exception ex)
             {
                 StatusText = $"Lot load failed: {ex.Message}";
-            }
-            finally
-            {
-                RaisePropertyChanged(nameof(HasLots));
             }
         }
 

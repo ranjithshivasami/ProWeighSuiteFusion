@@ -168,6 +168,12 @@
                                               Command="{Binding ExportCsvCommand}"
                                               Icon="{materialDesign:PackIcon Kind=FileExport}"
                                               Foreground="#424242"/>
+                                    <Separator/>
+                                    <MenuItem Header="{Binding EmailButtonText}"
+                                              Command="{Binding EmailReportCommand}"
+                                              Icon="{materialDesign:PackIcon Kind=Email}"
+                                              Foreground="#424242"
+                                              Visibility="{Binding CanExportReports, Converter={StaticResource BoolToVisibilityConverter}}"/>
                                 </StackPanel>
                             </Border>
                         </Popup>

@@ -83,7 +83,6 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- Filter bar: date range + refresh -->
@@ -133,7 +132,6 @@
                               HeadersVisibility="Column"
                               ItemsSource="{Binding PagedBatches}"
                               SelectionMode="Single" SelectionUnit="FullRow"
-                              SelectedItem="{Binding SelectedBatch, Mode=TwoWay}"
                               CanUserResizeRows="False"
                               GridLinesVisibility="Horizontal"
                               HorizontalGridLinesBrush="#E5E7EB"
@@ -215,6 +213,18 @@
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource GridCellTextLeftStyle}"/>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
+                            <!-- View lot details action column -->
+                            <DataGridTemplateColumn Header="View" Width="95">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="View"
+                                                Width="72" Height="30"
+                                                Command="{Binding DataContext.ViewBatchCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource RowActionButtonStyle}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
                         </DataGrid.Columns>
                     </DataGrid>
 
@@ -252,34 +262,8 @@
                 </Grid>
             </Border>
 
-            <!-- Lot details panel -->
-            <Border Grid.Row="3" Margin="4,0,4,8" Padding="8" Background="White" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="10"
-                    Visibility="{Binding HasSelection, Converter={StaticResource BoolToVisibilityConverter}}">
-                <StackPanel>
-                    <TextBlock Text="{Binding LotsHeader}" FontSize="14" FontWeight="SemiBold" Foreground="#374151" Margin="2,2,2,6"/>
-                    <DataGrid AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" MinHeight="140"
-                              ItemsSource="{Binding Lots}"
-                              ColumnHeaderStyle="{StaticResource AppDataGridHeaderStyle}">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Lot" Binding="{Binding LotNo}" Width="*"/>
-                            <DataGridTextColumn Header="Supplier" Binding="{Binding SupplierName}" Width="*"/>
-                            <DataGridTextColumn Header="GRN" Binding="{Binding GrnNo}" Width="*"/>
-                            <DataGridTextColumn Header="Bay" Binding="{Binding BayId}" Width="*"/>
-                            <DataGridTextColumn Header="Best before" Binding="{Binding BestBefore}" Width="*"/>
-                            <DataGridTextColumn Header="Tubs" Binding="{Binding Tubs}" Width="*"/>
-                            <DataGridTextColumn Header="Nuts" Binding="{Binding Nuts}" Width="*"/>
-                            <DataGridTextColumn Header="Weight kg" Binding="{Binding WeightKg}" Width="*"/>
-                            <DataGridTextColumn Header="Colour" Binding="{Binding Colour}" Width="*"/>
-                            <DataGridTextColumn Header="Done tubs" Binding="{Binding DoneTubs}" Width="*"/>
-                            <DataGridTextColumn Header="Done kg" Binding="{Binding DoneKg}" Width="*"/>
-                            <DataGridCheckBoxColumn Header="Paused" Binding="{Binding IsPaused}" Width="*"/>
-                            <DataGridCheckBoxColumn Header="Completed" Binding="{Binding IsCompleted}" Width="*"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </StackPanel>
-            </Border>
 
-            <TextBlock Grid.Row="4" Text="{Binding StatusText}" Foreground="#5b6472" Margin="4,0,4,4" TextWrapping="Wrap"/>
+            <TextBlock Grid.Row="3" Text="{Binding StatusText}" Foreground="#5b6472" Margin="4,0,4,4" TextWrapping="Wrap"/>
         </Grid>
       </ScrollViewer>
     </Border>

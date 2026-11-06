@@ -1165,7 +1165,7 @@ namespace ProWeighSuitePlatforms.ViewModels
                     View(new FusionLiveViewModel(CurrentUser?.Username ?? "System"), new FusionLiveView()));
 
             if (routeId.Equals("FusionReports", StringComparison.OrdinalIgnoreCase))
-                return View(new FusionReportsViewModel(CurrentUser?.Username ?? "System"), new FusionReportsView());
+                return View(new FusionReportsViewModel(_main), new FusionReportsView());
 
             if (routeId.Equals("Category", StringComparison.OrdinalIgnoreCase))
                 return View(new CategoryViewModel(_main), new CategoryView());

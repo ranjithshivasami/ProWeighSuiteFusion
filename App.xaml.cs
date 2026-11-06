@@ -392,6 +392,21 @@ namespace ProWeighSuitePlatforms
 
                 System.Diagnostics.Debug.WriteLine("Database initialization completed successfully");
 
+                // Ensure email-settings.json exists with defaults (idempotent migration).
+                // Safe to call on every startup; backfills any missing fields in an
+                // existing email-settings.json without overwriting user values.
+                try
+                {
+                    var emailMigration = new EmailSettingsMigration();
+                    await emailMigration.MigrateAsync();
+                    System.Diagnostics.Debug.WriteLine("[EmailSettingsMigration] Migration completed");
+                }
+                catch (Exception emailMigEx)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[EmailSettingsMigration] Migration failed (non-fatal): {emailMigEx.Message}");
+                }
+
                 // Open the saved scale at launch so Live view can weigh as
                 // soon as a batch starts. Runs in the background with retries
                 // (scale drivers/emulators can take a few seconds to become
